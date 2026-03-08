@@ -25,7 +25,7 @@
 - [x] **CARD-02**: User can search cards by name, set, rarity, and type
 - [ ] **CARD-03**: User can browse cards by set with card images
 - [x] **CARD-04**: Admin can import new card sets via JSON
-- [ ] **CARD-05**: Users receive push notification when new sets are added
+- [x] **CARD-05**: Users receive push notification when new sets are added
 
 ### Inventory
 
@@ -124,7 +124,7 @@
 | CARD-02 | Phase 2 | Complete |
 | CARD-03 | Phase 2 | Pending |
 | CARD-04 | Phase 2 | Complete |
-| CARD-05 | Phase 2 | Pending |
+| CARD-05 | Phase 2 | Complete |
 | INV-01 | Phase 3 | Pending |
 | INV-02 | Phase 3 | Pending |
 | INV-03 | Phase 3 | Pending |

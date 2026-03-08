@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: in-progress
 stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-08T04:24:49.000Z"
-last_activity: 2026-03-08 -- Phase 2 plan 1 complete (card database backend)
+last_updated: "2026-03-08T04:32:14Z"
+last_activity: 2026-03-08 -- Phase 2 plan 2 complete (push notification infrastructure)
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 ## Current Position
 
 Phase: 2 of 6 (Card Database)
-Plan: 1 of 3 in current phase (complete)
+Plan: 2 of 3 in current phase (complete)
 Status: In Progress
-Last activity: 2026-03-08 -- Phase 2 plan 1 complete (card database backend)
+Last activity: 2026-03-08 -- Phase 2 plan 2 complete (push notification infrastructure)
 
-Progress: [######----] 60% (3/5 plans complete)
+Progress: [########--] 80% (4/5 plans complete)
 
 ## Performance Metrics
 
@@ -44,7 +44,7 @@ Progress: [######----] 60% (3/5 plans complete)
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-and-auth | 2/2 | 9 min | 4.5 min |
-| 02-card-database | 1/3 | 6 min | 6 min |
+| 02-card-database | 2/3 | 10 min | 5 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -73,6 +73,9 @@ Recent decisions affecting current work:
 - TCGdex API as card data source with rarity mapping to diamond/star/crown enum
 - Batch card inserts in groups of 50 within per-set transactions
 - 409 Conflict response for duplicate set import attempts
+- Push token upsert via delete-then-insert pattern for simplicity with Drizzle
+- Push notifications non-critical; registration fails silently
+- Stale push tokens auto-cleaned on DeviceNotRegistered error
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-08T04:24:49.000Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-card-database/02-01-SUMMARY.md
+Last session: 2026-03-08T04:32:14Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-card-database/02-02-SUMMARY.md
