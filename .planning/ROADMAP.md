@@ -34,8 +34,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo scaffolding, shared schemas, API server, DB schema, auth and profile endpoints
-- [ ] 01-02-PLAN.md — Expo mobile app with auth screens, tab navigation, profile management, and onboarding
+- [x] 01-01-PLAN.md — Monorepo scaffolding, shared schemas, API server, DB schema, auth and profile endpoints
+- [x] 01-02-PLAN.md — Expo mobile app with auth screens, tab navigation, profile management, and onboarding
 
 ### Phase 2: Card Database
 **Goal**: Users can browse and search the complete Pokemon TCG Pocket card catalog
