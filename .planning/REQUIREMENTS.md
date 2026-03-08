@@ -17,7 +17,7 @@
 - [x] **PROF-01**: User can set display name and avatar
 - [x] **PROF-02**: User can add their Pokemon TCG Pocket friend code
 - [x] **PROF-03**: User can view other users' profiles with trade history count
-- [ ] **PROF-04**: User can copy another user's friend code to clipboard
+- [x] **PROF-04**: User can copy another user's friend code to clipboard
 
 ### Card Database
 
@@ -119,7 +119,7 @@
 | PROF-01 | Phase 1 | Complete |
 | PROF-02 | Phase 1 | Complete |
 | PROF-03 | Phase 1 | Complete |
-| PROF-04 | Phase 1 | Pending |
+| PROF-04 | Phase 1 | Complete |
 | CARD-01 | Phase 2 | Pending |
 | CARD-02 | Phase 2 | Pending |
 | CARD-03 | Phase 2 | Pending |
