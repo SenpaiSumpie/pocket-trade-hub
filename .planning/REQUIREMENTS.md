@@ -23,7 +23,7 @@
 
 - [x] **CARD-01**: App contains complete Pokemon TCG Pocket card database
 - [x] **CARD-02**: User can search cards by name, set, rarity, and type
-- [ ] **CARD-03**: User can browse cards by set with card images
+- [x] **CARD-03**: User can browse cards by set with card images
 - [x] **CARD-04**: Admin can import new card sets via JSON
 - [x] **CARD-05**: Users receive push notification when new sets are added
 
@@ -122,7 +122,7 @@
 | PROF-04 | Phase 1 | Complete |
 | CARD-01 | Phase 2 | Complete |
 | CARD-02 | Phase 2 | Complete |
-| CARD-03 | Phase 2 | Pending |
+| CARD-03 | Phase 2 | Complete |
 | CARD-04 | Phase 2 | Complete |
 | CARD-05 | Phase 2 | Complete |
 | INV-01 | Phase 3 | Pending |
