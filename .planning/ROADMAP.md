@@ -31,11 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can reset a forgotten password via email
   4. User can set their display name, avatar, and Pokemon TCG Pocket friend code
   5. User can view another user's profile and copy their friend code
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Monorepo scaffolding, shared schemas, API server, DB schema, auth and profile endpoints
+- [ ] 01-02-PLAN.md — Expo mobile app with auth screens, tab navigation, profile management, and onboarding
 
 ### Phase 2: Card Database
 **Goal**: Users can browse and search the complete Pokemon TCG Pocket card catalog
