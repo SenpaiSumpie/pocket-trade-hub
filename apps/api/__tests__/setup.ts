@@ -8,6 +8,8 @@ import { sql as rawSql } from 'drizzle-orm';
 import * as schema from '../src/db/schema';
 import authRoutes from '../src/routes/auth';
 import userRoutes from '../src/routes/users';
+import cardRoutes from '../src/routes/cards';
+import adminRoutes from '../src/routes/admin';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 let testSql: ReturnType<typeof postgres>;
@@ -53,6 +55,8 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   // Routes
   await app.register(authRoutes);
   await app.register(userRoutes);
+  await app.register(cardRoutes);
+  await app.register(adminRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));
@@ -64,7 +68,7 @@ export async function cleanDb() {
   if (!testDb) return;
   // Truncate all tables in reverse dependency order
   await testDb.execute(
-    rawSql`TRUNCATE TABLE password_reset_tokens, refresh_tokens, users CASCADE`
+    rawSql`TRUNCATE TABLE cards, sets, password_reset_tokens, refresh_tokens, users CASCADE`
   );
 }
 
