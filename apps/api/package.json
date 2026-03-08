@@ -16,6 +16,7 @@
     "@fastify/jwt": "^9.0.0",
     "@pocket-trade-hub/shared": "workspace:*",
     "bcrypt": "^5.1.0",
+    "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.0",
     "fastify": "^5.2.0",
     "fastify-plugin": "^5.0.0",

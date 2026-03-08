@@ -73,7 +73,7 @@ export async function issueTokens(
   );
 
   const refreshToken = fastify.jwt.sign(
-    { sub: userId, type: 'refresh' },
+    { sub: userId, type: 'refresh', jti: randomUUID() } as any,
     { expiresIn: '30d' }
   );
 
