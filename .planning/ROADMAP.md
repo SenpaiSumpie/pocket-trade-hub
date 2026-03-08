@@ -62,11 +62,12 @@ Plans:
   2. User can bulk-add cards using a per-set checklist interface
   3. User can view collection completion percentage per set with a progress bar
   4. User can add and remove cards from their wanted list with priority levels (high/medium/low)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Backend API: shared schemas, DB tables, collection/wanted services and routes with integration tests
+- [ ] 03-02-PLAN.md — Mobile state and UI: Zustand store, API hooks, segmented Cards tab, card overlays, checklist mode, detail modal actions
+- [ ] 03-03-PLAN.md — Home tab collection summary card and end-to-end verification
 
 ### Phase 4: Trade Matching Engine
 **Goal**: Users are automatically matched with compatible trade partners who have what they want and want what they have
@@ -124,7 +125,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation and Auth | 2/2 | Complete   | 2026-03-08 |
 | 2. Card Database | 2/3 | In Progress|  |
-| 3. Collection Management | 0/2 | Not started | - |
+| 3. Collection Management | 0/3 | Not started | - |
 | 4. Trade Matching Engine | 0/2 | Not started | - |
 | 5. Trade Proposals and Reputation | 0/3 | Not started | - |
 | 6. Premium Tier | 0/2 | Not started | - |
