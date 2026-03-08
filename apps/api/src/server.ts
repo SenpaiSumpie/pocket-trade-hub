@@ -5,6 +5,8 @@ import dbPlugin from './plugins/db';
 import authPlugin from './plugins/auth';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import cardRoutes from './routes/cards';
+import adminRoutes from './routes/admin';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -17,6 +19,8 @@ export async function buildApp(opts = {}) {
   // Routes
   await app.register(authRoutes);
   await app.register(userRoutes);
+  await app.register(cardRoutes);
+  await app.register(adminRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));
