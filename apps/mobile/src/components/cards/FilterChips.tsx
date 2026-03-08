@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, ScrollView, Pressable, Text, Modal, FlatList, StyleSheet } from 'react-native';
+import { View, Pressable, Text, Modal, FlatList, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { RarityBadge } from './RarityBadge';
@@ -63,40 +63,35 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
 
   return (
     <>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
-      >
+      <View style={styles.filterRow}>
         {filterDefs.map(({ key, label }) => {
           const activeLabel = getActiveLabel(key);
           const isActive = !!activeLabel;
 
           return (
-            <View key={key} style={styles.chipWrapper}>
-              <Pressable
-                style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => setPickerOpen(key)}
-              >
-                <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                  {isActive ? activeLabel : label}
-                </Text>
-                {isActive ? (
-                  <Pressable
-                    onPress={() => onRemoveFilter(key)}
-                    hitSlop={8}
-                    style={styles.closeBtn}
-                  >
-                    <Ionicons name="close" size={14} color={colors.primary} />
-                  </Pressable>
-                ) : (
-                  <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
-                )}
-              </Pressable>
-            </View>
+            <Pressable
+              key={key}
+              style={[styles.chip, isActive && styles.chipActive]}
+              onPress={() => setPickerOpen(key)}
+            >
+              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                {isActive ? activeLabel : label}
+              </Text>
+              {isActive ? (
+                <Pressable
+                  onPress={() => onRemoveFilter(key)}
+                  hitSlop={8}
+                  style={styles.closeBtn}
+                >
+                  <Ionicons name="close" size={16} color={colors.primary} />
+                </Pressable>
+              ) : (
+                <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+              )}
+            </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       <Modal
         visible={!!pickerOpen}
@@ -137,32 +132,31 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
 }
 
 const styles = StyleSheet.create({
-  container: {
+  filterRow: {
+    flexDirection: 'row',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
-  chipWrapper: {
-    flexDirection: 'row',
-  },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: 10,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
   chipActive: {
-    backgroundColor: colors.primary + '20',
+    backgroundColor: colors.primary + '25',
     borderColor: colors.primary,
   },
   chipText: {
-    fontSize: 13,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '500',
   },
   chipTextActive: {
     color: colors.primary,

@@ -63,12 +63,11 @@ export function CardThumbnail({ card, onPress, showSetBadge, setName }: CardThum
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: spacing.xs,
-    maxWidth: '33.33%',
+    padding: spacing.xs,
   },
   imageContainer: {
-    aspectRatio: 1 / 1.4,
-    borderRadius: borderRadius.sm,
+    aspectRatio: 0.715,
+    borderRadius: borderRadius.md,
     overflow: 'hidden',
     backgroundColor: colors.surface,
   },

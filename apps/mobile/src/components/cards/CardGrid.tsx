@@ -115,7 +115,7 @@ export function CardGrid({
           />
         ) : null
       }
-      style={{ paddingHorizontal: spacing.sm }}
+      contentContainerStyle={{ paddingHorizontal: spacing.xs }}
       onRefresh={onRefresh}
       refreshing={refreshing}
     />
@@ -126,14 +126,14 @@ const skeletonStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: spacing.sm,
+    padding: spacing.xs,
   },
   card: {
-    width: '33.33%',
+    flex: 1,
     padding: spacing.xs,
   },
   image: {
-    aspectRatio: 1 / 1.4,
+    aspectRatio: 0.715,
     borderRadius: borderRadius.sm,
     backgroundColor: colors.surface,
   },
