@@ -49,7 +49,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Shared card schemas, DB tables, card/set API routes, admin import, and TCGdex seed script
+- [x] 02-01-PLAN.md — Shared card schemas, DB tables, card/set API routes, admin import, and TCGdex seed script
 - [ ] 02-02-PLAN.md — Push notification infrastructure (token storage, Expo Push SDK, admin import notification wiring)
 - [ ] 02-03-PLAN.md — Mobile card browsing UI (FlashList grid, set picker, live search, filter chips, card detail modal)
 
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Auth | 2/2 | Complete   | 2026-03-08 |
-| 2. Card Database | 0/3 | Not started | - |
+| 2. Card Database | 1/3 | In progress | - |
 | 3. Collection Management | 0/2 | Not started | - |
 | 4. Trade Matching Engine | 0/2 | Not started | - |
 | 5. Trade Proposals and Reputation | 0/3 | Not started | - |
