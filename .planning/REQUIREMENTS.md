@@ -7,16 +7,16 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can create account with email and password
-- [ ] **AUTH-02**: User can log in and stay logged in across app sessions
-- [ ] **AUTH-03**: User can log out from any screen
-- [ ] **AUTH-04**: User can reset password via email link
+- [x] **AUTH-01**: User can create account with email and password
+- [x] **AUTH-02**: User can log in and stay logged in across app sessions
+- [x] **AUTH-03**: User can log out from any screen
+- [x] **AUTH-04**: User can reset password via email link
 
 ### Profiles
 
-- [ ] **PROF-01**: User can set display name and avatar
-- [ ] **PROF-02**: User can add their Pokemon TCG Pocket friend code
-- [ ] **PROF-03**: User can view other users' profiles with trade history count
+- [x] **PROF-01**: User can set display name and avatar
+- [x] **PROF-02**: User can add their Pokemon TCG Pocket friend code
+- [x] **PROF-03**: User can view other users' profiles with trade history count
 - [ ] **PROF-04**: User can copy another user's friend code to clipboard
 
 ### Card Database
@@ -112,13 +112,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| PROF-01 | Phase 1 | Pending |
-| PROF-02 | Phase 1 | Pending |
-| PROF-03 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| PROF-01 | Phase 1 | Complete |
+| PROF-02 | Phase 1 | Complete |
+| PROF-03 | Phase 1 | Complete |
 | PROF-04 | Phase 1 | Pending |
 | CARD-01 | Phase 2 | Pending |
 | CARD-02 | Phase 2 | Pending |
