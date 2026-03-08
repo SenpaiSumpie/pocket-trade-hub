@@ -1,6 +1,36 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/src/stores/auth';
+import SetupChecklist from '@/src/components/SetupChecklist';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+
+interface PreviewCard {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+  color: string;
+}
+
+const PREVIEWS: PreviewCard[] = [
+  {
+    icon: 'albums',
+    title: 'Cards Database',
+    description: 'Browse all Pokemon TCG Pocket cards and track your collection.',
+    color: '#3498db',
+  },
+  {
+    icon: 'git-compare',
+    title: 'Trade Matching',
+    description: 'Find players who have cards you want and want cards you have.',
+    color: '#2ecc71',
+  },
+  {
+    icon: 'paper-plane',
+    title: 'Trade Proposals',
+    description: 'Send and receive trade proposals with built-in friend code sharing.',
+    color: '#e74c3c',
+  },
+];
 
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
@@ -11,13 +41,26 @@ export default function HomeScreen() {
       <Text style={styles.welcome}>Welcome, {displayName}!</Text>
       <Text style={styles.subtitle}>Your trading dashboard</Text>
 
-      {/* Placeholder -- SetupChecklist will be added in Task 2 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Getting Started</Text>
-        <Text style={styles.sectionText}>
-          Complete your profile setup to get the most out of Pocket Trade Hub.
-        </Text>
-      </View>
+      {/* Setup Checklist */}
+      {user && (
+        <View style={styles.section}>
+          <SetupChecklist user={user} />
+        </View>
+      )}
+
+      {/* Coming Soon Previews */}
+      <Text style={styles.previewsTitle}>Coming Soon</Text>
+      {PREVIEWS.map((preview, index) => (
+        <View key={index} style={styles.previewCard}>
+          <View style={[styles.previewIcon, { backgroundColor: preview.color + '20' }]}>
+            <Ionicons name={preview.icon} size={28} color={preview.color} />
+          </View>
+          <View style={styles.previewContent}>
+            <Text style={styles.previewTitle}>{preview.title}</Text>
+            <Text style={styles.previewDescription}>{preview.description}</Text>
+          </View>
+        </View>
+      ))}
     </ScrollView>
   );
 }
@@ -29,6 +72,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
   welcome: {
     ...typography.heading,
@@ -40,17 +84,38 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   section: {
+    marginBottom: spacing.lg,
+  },
+  previewsTitle: {
+    ...typography.subheading,
+    marginBottom: spacing.md,
+  },
+  previewCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
     marginBottom: spacing.md,
   },
-  sectionTitle: {
-    ...typography.subheading,
-    marginBottom: spacing.sm,
+  previewIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionText: {
+  previewContent: {
+    flex: 1,
+  },
+  previewTitle: {
     ...typography.body,
-    color: colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  previewDescription: {
+    ...typography.caption,
+    lineHeight: 18,
   },
 });
