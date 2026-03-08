@@ -75,3 +75,13 @@ export const cards = pgTable('cards', {
   index('cards_rarity_idx').on(table.rarity),
   index('cards_type_idx').on(table.type),
 ]);
+
+export const pushTokens = pgTable('push_tokens', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  token: text('token').notNull().unique(),
+  platform: varchar('platform', { length: 10 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

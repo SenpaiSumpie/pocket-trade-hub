@@ -7,6 +7,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import cardRoutes from './routes/cards';
 import adminRoutes from './routes/admin';
+import notificationRoutes from './routes/notifications';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -21,6 +22,7 @@ export async function buildApp(opts = {}) {
   await app.register(userRoutes);
   await app.register(cardRoutes);
   await app.register(adminRoutes);
+  await app.register(notificationRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));
