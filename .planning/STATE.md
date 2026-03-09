@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 03-01-PLAN.md
+stopped_at: Completed 03-02-PLAN.md
 last_updated: "2026-03-09T01:56:43.000Z"
-last_activity: 2026-03-09 -- Phase 3 plan 01 complete (collection/wanted API)
+last_activity: 2026-03-09 -- Phase 3 plan 02 complete (mobile collection UI)
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 87
 ---
 
 # Project State
@@ -26,18 +26,18 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 ## Current Position
 
 Phase: 3 of 6 (Collection Management)
-Plan: 1 of 3 in current phase (complete)
+Plan: 2 of 3 in current phase (complete)
 Status: Executing Phase 3
-Last activity: 2026-03-09 -- Phase 3 plan 01 complete (collection/wanted API)
+Last activity: 2026-03-09 -- Phase 3 plan 02 complete (mobile collection UI)
 
-Progress: [#######...] 75% (6/8 plans complete)
+Progress: [########..] 87% (7/8 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 7 min
-- Total execution time: 0.69 hours
+- Total execution time: 0.79 hours
 
 **By Phase:**
 
@@ -45,10 +45,10 @@ Progress: [#######...] 75% (6/8 plans complete)
 |-------|-------|-------|----------|
 | 01-foundation-and-auth | 2/2 | 9 min | 4.5 min |
 | 02-card-database | 3/3 | 25 min | 8.3 min |
-| 03-collection-management | 1/3 | 7 min | 7 min |
+| 03-collection-management | 2/3 | 13 min | 6.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 4min, 5min, 5min, 15min, 7min
+- Last 5 plans: 5min, 5min, 15min, 7min, 6min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -82,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Zustand store per domain (cards, auth) for state isolation
 - [Phase 03]: onConflictDoUpdate upsert pattern for collection/wanted unique constraints
 - [Phase 03]: expo-server-sdk jest mock to fix pre-existing ESM import issue in test suite
+- [Phase 03]: Optimistic updates with revert-on-error for responsive collection/wanted mutations
+- [Phase 03]: 300ms debounce on rapid addToCollection calls to batch API requests
+- [Phase 03]: expo-haptics for long-press feedback with web platform guard
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T01:56:43.000Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-collection-management/03-01-SUMMARY.md
+Last session: 2026-03-09T02:05:54Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: .planning/phases/03-collection-management/03-02-SUMMARY.md
