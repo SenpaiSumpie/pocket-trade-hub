@@ -13,6 +13,7 @@ import notificationRoutes from './routes/notifications';
 import collectionRoutes from './routes/collection';
 import wantedRoutes from './routes/wanted';
 import matchRoutes from './routes/matches';
+import proposalRoutes from './routes/proposals';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -33,6 +34,7 @@ export async function buildApp(opts = {}) {
   await app.register(collectionRoutes);
   await app.register(wantedRoutes);
   await app.register(matchRoutes);
+  await app.register(proposalRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));

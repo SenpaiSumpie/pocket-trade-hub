@@ -5,6 +5,7 @@ import {
   getOwnProfile,
   updateProfile,
 } from '../services/user.service';
+import { getUserReputation } from '../services/rating.service';
 
 export default async function userRoutes(fastify: FastifyInstance) {
   // GET /users/me - Must be registered BEFORE /users/:id to avoid matching "me" as :id
@@ -47,7 +48,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /users/:id - Public profile
+  // GET /users/:id - Public profile with reputation
   fastify.get('/users/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
     const user = await getUserById(fastify.db, id);
@@ -56,6 +57,12 @@ export default async function userRoutes(fastify: FastifyInstance) {
       return reply.code(404).send({ error: 'User not found' });
     }
 
-    return reply.code(200).send(user);
+    const reputation = await getUserReputation(fastify.db, id);
+
+    return reply.code(200).send({
+      ...user,
+      avgRating: reputation.avgRating,
+      tradeCount: reputation.tradeCount,
+    });
   });
 }
