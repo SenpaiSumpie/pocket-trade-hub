@@ -3,9 +3,12 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
+import { useNotificationStore } from '@/src/stores/notifications';
 import { apiFetch } from '@/src/hooks/useApi';
+import { fetchUnreadCount } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/stores/auth';
 import { useMatchSocket } from '@/src/hooks/useMatchSocket';
+import { NotificationBell } from '@/src/components/notifications/NotificationBell';
 
 export default function TabLayout() {
   const unseenCount = useTradesStore((s) => s.unseenCount);
@@ -15,7 +18,7 @@ export default function TabLayout() {
   // Connect Socket.IO at the tab level so real-time events work on any tab
   useMatchSocket();
 
-  // Fetch matches on login and whenever lastRefreshed is null (store was reset)
+  // Fetch matches and unread notification count on login
   useEffect(() => {
     if (!isLoggedIn) return;
     if (lastRefreshed !== null) return; // Already loaded
@@ -27,7 +30,16 @@ export default function TabLayout() {
         // Non-critical
       }
     })();
+    // Also fetch unread notification count
+    fetchUnreadCount();
   }, [isLoggedIn, lastRefreshed]);
+
+  // Reset notification store on logout
+  useEffect(() => {
+    if (!isLoggedIn) {
+      useNotificationStore.getState().reset();
+    }
+  }, [isLoggedIn]);
 
   return (
     <Tabs
@@ -44,6 +56,7 @@ export default function TabLayout() {
         },
         headerTintColor: colors.text,
         headerShadowVisible: false,
+        headerRight: () => <NotificationBell />,
       }}
     >
       <Tabs.Screen

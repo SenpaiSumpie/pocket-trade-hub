@@ -5,6 +5,8 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { apiFetch } from './useApi';
 import { useAuthStore } from '../stores/auth';
+import { useNotificationStore } from '../stores/notifications';
+import type { Notification } from '@pocket-trade-hub/shared';
 
 /**
  * Request push notification permissions and register the Expo push token
@@ -72,4 +74,74 @@ export function useNotificationSetup() {
       // Push notifications are non-critical; fail silently
     });
   }, [isLoggedIn]);
+}
+
+// ---- Notification Inbox Hooks ----
+
+interface NotificationsResponse {
+  notifications: Notification[];
+  hasMore: boolean;
+}
+
+interface UnreadCountResponse {
+  count: number;
+}
+
+/**
+ * Fetch the first page of notifications from the server.
+ */
+export async function fetchNotifications(cursor?: string): Promise<void> {
+  const store = useNotificationStore.getState();
+  store.setLoading(true);
+  try {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+    const data = await apiFetch<NotificationsResponse>(`/notifications${query}`);
+    if (cursor) {
+      store.appendNotifications(data.notifications, data.hasMore);
+    } else {
+      store.setNotifications(data.notifications, data.hasMore);
+    }
+  } catch {
+    // Non-critical
+  } finally {
+    store.setLoading(false);
+  }
+}
+
+/**
+ * Fetch the unread notification count from the server.
+ */
+export async function fetchUnreadCount(): Promise<void> {
+  try {
+    const data = await apiFetch<UnreadCountResponse>('/notifications/unread-count');
+    useNotificationStore.getState().setUnreadCount(data.count);
+  } catch {
+    // Non-critical
+  }
+}
+
+/**
+ * Mark a single notification as read (optimistic update).
+ */
+export async function markNotificationRead(id: string): Promise<void> {
+  // Optimistic update
+  useNotificationStore.getState().markRead(id);
+  try {
+    await apiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+  } catch {
+    // Revert not critical for read status
+  }
+}
+
+/**
+ * Mark all notifications as read (optimistic update).
+ */
+export async function markAllNotificationsRead(): Promise<void> {
+  // Optimistic update
+  useNotificationStore.getState().markAllRead();
+  try {
+    await apiFetch('/notifications/read-all', { method: 'PUT' });
+  } catch {
+    // Revert not critical for read status
+  }
 }

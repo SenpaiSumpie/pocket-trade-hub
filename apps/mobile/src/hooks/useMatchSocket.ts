@@ -3,8 +3,9 @@ import { io, Socket } from 'socket.io-client';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../stores/auth';
 import { useTradesStore } from '../stores/trades';
+import { useNotificationStore } from '../stores/notifications';
 import { apiFetch } from './useApi';
-import type { TradeMatch, TradeProposal } from '@pocket-trade-hub/shared';
+import type { TradeMatch, TradeProposal, Notification } from '@pocket-trade-hub/shared';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -128,6 +129,11 @@ export function useMatchSocket() {
         text2: 'The trade has been marked as completed.',
         visibilityTime: 5000,
       });
+    });
+
+    // Real-time notification badge updates
+    socket.on('notification-new', (data: Notification) => {
+      useNotificationStore.getState().addNotification(data);
     });
 
     return () => {
