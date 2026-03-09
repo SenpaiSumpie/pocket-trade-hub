@@ -94,12 +94,13 @@ Plans:
   3. User can view all pending incoming and outgoing proposals and mark trades as completed
   4. User can rate a trade partner after completing a trade, and ratings appear on profiles with trade count
   5. User receives push notifications for new proposals and proposal responses, with a persistent in-app notification inbox
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 05-01-PLAN.md — Backend: shared schemas, DB tables (proposals/ratings/notifications), proposal/rating/notification services, all API routes, Socket.IO events, push notifications
 - [ ] 05-02-PLAN.md — Mobile proposal workflow: trades store extension, proposal hooks, creation modal with fairness meter, proposal list/detail, Trades tab segment toggle
 - [ ] 05-03-PLAN.md — Mobile notifications and reputation: notification bell + inbox, rating modal, reputation display on profiles and match cards
+- [ ] 05-04-PLAN.md — Gap closure: wire orphaned RatingModal into trades.tsx for REP-01
 
 ### Phase 6: Premium Tier
 **Goal**: Users can subscribe to a premium tier that provides analytics, priority placement, and advanced alerts
@@ -127,5 +128,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Card Database | 2/3 | In Progress|  |
 | 3. Collection Management | 3/3 | Complete   | 2026-03-09 |
 | 4. Trade Matching Engine | 2/2 | Complete   | 2026-03-09 |
-| 5. Trade Proposals and Reputation | 1/3 | In Progress | - |
+| 5. Trade Proposals and Reputation | 3/4 | In Progress | - |
 | 6. Premium Tier | 0/2 | Not started | - |
