@@ -143,3 +143,69 @@ export const pushTokens = pgTable('push_tokens', {
   platform: varchar('platform', { length: 10 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const proposalStatusEnum = pgEnum('proposal_status', [
+  'pending',
+  'accepted',
+  'rejected',
+  'countered',
+  'completed',
+  'cancelled',
+]);
+
+export const tradeProposals = pgTable('trade_proposals', {
+  id: text('id').primaryKey(),
+  matchId: text('match_id'),
+  senderId: text('sender_id')
+    .notNull()
+    .references(() => users.id),
+  receiverId: text('receiver_id')
+    .notNull()
+    .references(() => users.id),
+  parentId: text('parent_id'),
+  status: proposalStatusEnum('status').default('pending').notNull(),
+  senderGives: jsonb('sender_gives').notNull(),
+  senderGets: jsonb('sender_gets').notNull(),
+  fairnessScore: integer('fairness_score').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('trade_proposals_sender_id_idx').on(table.senderId),
+  index('trade_proposals_receiver_id_idx').on(table.receiverId),
+  index('trade_proposals_match_id_idx').on(table.matchId),
+  index('trade_proposals_status_idx').on(table.status),
+  index('trade_proposals_parent_id_idx').on(table.parentId),
+]);
+
+export const tradeRatings = pgTable('trade_ratings', {
+  id: text('id').primaryKey(),
+  proposalId: text('proposal_id')
+    .notNull()
+    .references(() => tradeProposals.id),
+  raterId: text('rater_id')
+    .notNull()
+    .references(() => users.id),
+  ratedId: text('rated_id')
+    .notNull()
+    .references(() => users.id),
+  stars: integer('stars').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('trade_ratings_proposal_rater_idx').on(table.proposalId, table.raterId),
+]);
+
+export const notifications = pgTable('notifications', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  type: varchar('type', { length: 30 }).notNull(),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  data: jsonb('data'),
+  read: boolean('read').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('notifications_user_read_idx').on(table.userId, table.read),
+  index('notifications_user_created_idx').on(table.userId, table.createdAt),
+]);

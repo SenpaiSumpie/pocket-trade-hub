@@ -63,3 +63,45 @@ export type {
   TradeMatch,
   MatchSort,
 } from './schemas/match';
+
+export {
+  proposalCardSchema,
+  proposalStatusValues,
+  proposalStatusSchema,
+  createProposalSchema,
+  tradeProposalSchema,
+} from './schemas/proposal';
+export type {
+  ProposalCard,
+  CreateProposalInput,
+  TradeProposal,
+  ProposalStatus,
+} from './schemas/proposal';
+
+export {
+  createRatingSchema,
+  tradeRatingSchema,
+} from './schemas/rating';
+export type {
+  CreateRatingInput,
+  TradeRating,
+} from './schemas/rating';
+
+export {
+  notificationTypeValues,
+  notificationTypeSchema,
+  notificationSchema,
+} from './schemas/notification';
+export type {
+  Notification,
+  NotificationType,
+} from './schemas/notification';
+
+export {
+  calculateFairness,
+  RARITY_WEIGHTS,
+} from './schemas/fairness';
+export type {
+  FairnessCard,
+  FairnessResult,
+} from './schemas/fairness';
