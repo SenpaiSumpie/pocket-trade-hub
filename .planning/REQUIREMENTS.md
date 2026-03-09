@@ -138,17 +138,17 @@
 | MATCH-03 | Phase 4 | Complete |
 | MATCH-04 | Phase 4 | Complete |
 | MATCH-05 | Phase 4 | Complete |
-| TRADE-01 | Phase 5 | Pending |
-| TRADE-02 | Phase 5 | Pending |
-| TRADE-03 | Phase 5 | Pending |
-| TRADE-04 | Phase 5 | Pending |
-| TRADE-05 | Phase 5 | Pending |
-| TRADE-06 | Phase 5 | Pending |
-| REP-01 | Phase 5 | Pending |
-| REP-02 | Phase 5 | Pending |
-| NOTIF-01 | Phase 5 | Pending |
-| NOTIF-02 | Phase 5 | Pending |
-| NOTIF-03 | Phase 5 | Pending |
+| TRADE-01 | Phase 5 | Backend Complete |
+| TRADE-02 | Phase 5 | Backend Complete |
+| TRADE-03 | Phase 5 | Backend Complete |
+| TRADE-04 | Phase 5 | Backend Complete |
+| TRADE-05 | Phase 5 | Backend Complete |
+| TRADE-06 | Phase 5 | Backend Complete |
+| REP-01 | Phase 5 | Backend Complete |
+| REP-02 | Phase 5 | Backend Complete |
+| NOTIF-01 | Phase 5 | Backend Complete |
+| NOTIF-02 | Phase 5 | Backend Complete |
+| NOTIF-03 | Phase 5 | Backend Complete |
 | PREM-01 | Phase 6 | Pending |
 | PREM-02 | Phase 6 | Pending |
 | PREM-03 | Phase 6 | Pending |
