@@ -36,13 +36,19 @@ interface CardDetailModalProps {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_IMAGE_WIDTH = Math.min(SCREEN_WIDTH * 0.65, 320);
+const CARD_IMAGE_WIDTH = Math.min(SCREEN_WIDTH * 0.55, 280);
 const CARD_IMAGE_HEIGHT = CARD_IMAGE_WIDTH * 1.4;
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   high: '#e74c3c',
   medium: colors.primary,
   low: colors.textMuted,
+};
+
+const PRIORITY_LABELS: Record<Priority, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
 };
 
 /* ------------------------------------------------------------------ */
@@ -112,6 +118,73 @@ function PriorityPicker({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Status Banner                                                      */
+/* ------------------------------------------------------------------ */
+
+function StatusBanner({
+  qty,
+  priority,
+  mode,
+}: {
+  qty: number;
+  priority?: Priority;
+  mode: 'browse' | 'collection' | 'wanted';
+}) {
+  const inCollection = qty > 0;
+  const isWanted = priority != null;
+
+  if (!inCollection && !isWanted) return null;
+
+  return (
+    <View style={statusStyles.container}>
+      {inCollection && (
+        <View style={statusStyles.badge}>
+          <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+          <Text style={statusStyles.badgeText}>
+            In Collection ({qty})
+          </Text>
+        </View>
+      )}
+      {isWanted && (
+        <View style={[statusStyles.badge, statusStyles.badgeWanted]}>
+          <Ionicons name="heart" size={14} color="#e74c3c" />
+          <Text style={[statusStyles.badgeText, { color: '#e74c3c' }]}>
+            Wanted ({PRIORITY_LABELS[priority!]})
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const statusStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.success + '20',
+  },
+  badgeWanted: {
+    backgroundColor: '#e74c3c20',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.success,
+  },
+});
+
+/* ------------------------------------------------------------------ */
 /*  CardDetailPage (single card view)                                  */
 /* ------------------------------------------------------------------ */
 
@@ -165,6 +238,9 @@ function CardDetailPage({
           <Text style={styles.cardNumber}>#{card.cardNumber}</Text>
         </View>
 
+        {/* Status banner -- always visible, shows cross-mode state */}
+        <StatusBanner qty={qty} priority={priority} mode={mode} />
+
         <View style={styles.metaRow}>
           <RarityBadge rarity={card.rarity} size="lg" />
           {card.type && (
@@ -183,6 +259,51 @@ function CardDetailPage({
         {card.stage && (
           <Text style={styles.stage}>{card.stage}</Text>
         )}
+
+        {/* Quick action buttons -- always show relevant actions regardless of mode */}
+        <View style={styles.quickActions}>
+          {qty === 0 && (
+            <Pressable
+              style={styles.quickBtn}
+              onPress={() => onAddToCollection?.(card.id)}
+            >
+              <Ionicons name="add-circle" size={18} color={colors.primary} />
+              <Text style={styles.quickBtnText}>Add to Collection</Text>
+            </Pressable>
+          )}
+          {qty > 0 && (
+            <View style={styles.quickBtnGroup}>
+              <View style={styles.quickBtn}>
+                <Ionicons name="layers" size={18} color={colors.primary} />
+                <Text style={styles.quickBtnText}>Qty: {qty}</Text>
+                <QuantityStepper
+                  quantity={qty}
+                  onDecrement={() => onUpdateQuantity?.(card.id, Math.max(0, qty - 1))}
+                  onIncrement={() => onUpdateQuantity?.(card.id, qty + 1)}
+                />
+              </View>
+            </View>
+          )}
+          {!priority && (
+            <Pressable
+              style={styles.quickBtn}
+              onPress={() => onAddToWanted?.(card.id)}
+            >
+              <Ionicons name="heart-outline" size={18} color={colors.primary} />
+              <Text style={styles.quickBtnText}>Add to Wanted</Text>
+            </Pressable>
+          )}
+          {priority && (
+            <View style={styles.quickBtn}>
+              <Ionicons name="flag" size={18} color={PRIORITY_COLORS[priority]} />
+              <Text style={styles.quickBtnText}>Priority</Text>
+              <PriorityPicker
+                current={priority}
+                onChange={(p) => onUpdatePriority?.(card.id, p)}
+              />
+            </View>
+          )}
+        </View>
 
         {card.attacks && card.attacks.length > 0 && (
           <View style={styles.section}>
@@ -235,86 +356,25 @@ function CardDetailPage({
           <Text style={styles.illustrator}>Illus. {card.illustrator}</Text>
         )}
 
-        {/* Context-aware action buttons */}
-        <View style={styles.actions}>
-          {mode === 'browse' && (
-            <>
-              <Pressable
-                style={[styles.actionBtn, styles.actionActive]}
-                onPress={() => onAddToCollection?.(card.id)}
-              >
-                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-                <Text style={styles.actionTextActive}>Add to Collection</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.actionBtn, styles.actionActive]}
-                onPress={() => onAddToWanted?.(card.id)}
-              >
-                <Ionicons name="heart-outline" size={20} color={colors.primary} />
-                <Text style={styles.actionTextActive}>Add to Wanted</Text>
-              </Pressable>
-            </>
+        {/* Danger zone actions */}
+        <View style={styles.dangerActions}>
+          {qty > 0 && (
+            <Pressable
+              style={styles.dangerBtn}
+              onPress={() => onRemoveFromCollection?.(card.id)}
+            >
+              <Ionicons name="trash-outline" size={16} color={colors.error} />
+              <Text style={styles.dangerBtnText}>Remove from Collection</Text>
+            </Pressable>
           )}
-
-          {mode === 'collection' && (
-            <>
-              <View style={[styles.actionBtn, styles.actionActive]}>
-                <Ionicons name="layers-outline" size={20} color={colors.primary} />
-                <Text style={styles.actionTextActive}>Quantity</Text>
-                <QuantityStepper
-                  quantity={qty}
-                  onDecrement={() => onUpdateQuantity?.(card.id, Math.max(0, qty - 1))}
-                  onIncrement={() => onUpdateQuantity?.(card.id, qty + 1)}
-                />
-              </View>
-              {qty > 0 && (
-                <Pressable
-                  style={[styles.actionBtn, styles.actionDanger]}
-                  onPress={() => onRemoveFromCollection?.(card.id)}
-                >
-                  <Ionicons name="trash-outline" size={20} color={colors.error} />
-                  <Text style={styles.actionTextDanger}>Remove from Collection</Text>
-                </Pressable>
-              )}
-              <Pressable
-                style={[styles.actionBtn, styles.actionActive]}
-                onPress={() => onAddToWanted?.(card.id)}
-              >
-                <Ionicons name="heart-outline" size={20} color={colors.primary} />
-                <Text style={styles.actionTextActive}>Add to Wanted</Text>
-              </Pressable>
-            </>
-          )}
-
-          {mode === 'wanted' && (
-            <>
-              {priority && (
-                <View style={[styles.actionBtn, styles.actionActive]}>
-                  <Ionicons name="flag-outline" size={20} color={colors.primary} />
-                  <Text style={styles.actionTextActive}>Priority</Text>
-                  <PriorityPicker
-                    current={priority}
-                    onChange={(p) => onUpdatePriority?.(card.id, p)}
-                  />
-                </View>
-              )}
-              {priority && (
-                <Pressable
-                  style={[styles.actionBtn, styles.actionDanger]}
-                  onPress={() => onRemoveFromWanted?.(card.id)}
-                >
-                  <Ionicons name="trash-outline" size={20} color={colors.error} />
-                  <Text style={styles.actionTextDanger}>Remove from Wanted</Text>
-                </Pressable>
-              )}
-              <Pressable
-                style={[styles.actionBtn, styles.actionActive]}
-                onPress={() => onAddToCollection?.(card.id)}
-              >
-                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-                <Text style={styles.actionTextActive}>Add to Collection</Text>
-              </Pressable>
-            </>
+          {priority && (
+            <Pressable
+              style={styles.dangerBtn}
+              onPress={() => onRemoveFromWanted?.(card.id)}
+            >
+              <Ionicons name="heart-dislike-outline" size={16} color={colors.error} />
+              <Text style={styles.dangerBtnText}>Remove from Wanted</Text>
+            </Pressable>
           )}
         </View>
       </View>
@@ -348,6 +408,10 @@ export function CardDetailModal({
   const canGoLeft = currentIndex > 0;
   const canGoRight = currentIndex < cards.length - 1;
 
+  const currentCard = cards[currentIndex];
+  const currentQty = currentCard ? (collectionQuantity?.(currentCard.id) ?? 0) : 0;
+  const currentPriority = currentCard ? wantedPriority?.(currentCard.id) : undefined;
+
   const goTo = (index: number) => {
     flatListRef.current?.scrollToIndex({ index, animated: true });
     setCurrentIndex(index);
@@ -374,9 +438,25 @@ export function CardDetailModal({
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
             <Ionicons name="close" size={24} color={colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>
-            {currentIndex + 1} / {cards.length}
-          </Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>
+              {currentIndex + 1} / {cards.length}
+            </Text>
+            {/* Mini state indicators in header */}
+            <View style={styles.headerBadges}>
+              {currentQty > 0 && (
+                <View style={styles.headerBadge}>
+                  <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+                  <Text style={styles.headerBadgeText}>{currentQty}</Text>
+                </View>
+              )}
+              {currentPriority && (
+                <View style={[styles.headerBadge, { backgroundColor: PRIORITY_COLORS[currentPriority] + '30' }]}>
+                  <Ionicons name="heart" size={12} color={PRIORITY_COLORS[currentPriority]} />
+                </View>
+              )}
+            </View>
+          </View>
           {/* Web navigation arrows */}
           {Platform.OS === 'web' && (
             <View style={styles.navArrows}>
@@ -496,10 +576,32 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
+  headerCenter: {
+    alignItems: 'center',
+    gap: 4,
+  },
   headerTitle: {
     fontSize: 14,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  headerBadges: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  headerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.success + '20',
+  },
+  headerBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.success,
   },
   closeBtn: {
     position: 'absolute',
@@ -557,7 +659,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   cardName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
@@ -619,6 +721,32 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     textAlign: 'center',
   },
+
+  // Quick actions (unified across all modes)
+  quickActions: {
+    marginTop: spacing.md,
+    gap: spacing.sm,
+  },
+  quickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  quickBtnGroup: {
+    gap: spacing.sm,
+  },
+  quickBtnText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+  },
+
   section: {
     marginTop: spacing.lg,
   },
@@ -706,35 +834,28 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
   },
-  actions: {
+
+  // Danger zone
+  dangerActions: {
     marginTop: spacing.xl,
     gap: spacing.sm,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
-  actionBtn: {
+  dangerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
-  },
-  actionActive: {
+    backgroundColor: colors.error + '10',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.error + '30',
   },
-  actionDanger: {
-    borderWidth: 1,
-    borderColor: colors.error + '40',
-  },
-  actionTextActive: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.text,
-  },
-  actionTextDanger: {
-    flex: 1,
-    fontSize: 15,
+  dangerBtnText: {
+    fontSize: 13,
     fontWeight: '500',
     color: colors.error,
   },
