@@ -55,13 +55,13 @@
 - [ ] **TRADE-02**: User can accept or reject incoming trade proposals
 - [ ] **TRADE-03**: User can send a counter-offer modifying a received proposal
 - [ ] **TRADE-04**: User can view all pending incoming and outgoing proposals
-- [ ] **TRADE-05**: User can mark a trade as completed (executed in-game)
+- [x] **TRADE-05**: User can mark a trade as completed (executed in-game)
 - [ ] **TRADE-06**: System shows trade fairness evaluation (relative rarity/demand)
 
 ### Reputation
 
-- [ ] **REP-01**: User can rate a trade partner after completing a trade
-- [ ] **REP-02**: User profile shows trade count and average rating
+- [x] **REP-01**: User can rate a trade partner after completing a trade
+- [x] **REP-02**: User profile shows trade count and average rating
 
 ### Premium
 
@@ -72,9 +72,9 @@
 
 ### Notifications
 
-- [ ] **NOTIF-01**: User receives push notifications for new trade proposals
-- [ ] **NOTIF-02**: User receives push notifications for proposal responses (accepted/rejected)
-- [ ] **NOTIF-03**: User has persistent in-app notification inbox
+- [x] **NOTIF-01**: User receives push notifications for new trade proposals
+- [x] **NOTIF-02**: User receives push notifications for proposal responses (accepted/rejected)
+- [x] **NOTIF-03**: User has persistent in-app notification inbox
 
 ## v2 Requirements
 

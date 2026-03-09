@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-09T16:32:30Z"
-last_activity: 2026-03-09 -- Plan 05-01 complete (backend trade proposals, ratings, notifications)
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-03-09T16:42:01Z"
+last_activity: 2026-03-09 -- Plan 05-03 complete (notification inbox, rating modal, reputation display)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** Phase 5: Trade Proposals and Reputation -- Plan 01 complete
+**Current focus:** Phase 5: Trade Proposals and Reputation -- All plans complete
 
 ## Current Position
 
 Phase: 5 of 6 (Trade Proposals and Reputation)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In Progress
-Last activity: 2026-03-09 -- Plan 05-01 complete (backend trade proposals, ratings, notifications)
+Last activity: 2026-03-09 -- Plan 05-03 complete (notification inbox, rating modal, reputation display)
 
-Progress: [########--] 85% (11/13 plans complete)
+Progress: [##########] 100% (13/13 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 8.0 min
-- Total execution time: 1.47 hours
+- Total plans completed: 13
+- Average duration: 7.8 min
+- Total execution time: 1.68 hours
 
 **By Phase:**
 
@@ -47,10 +47,10 @@ Progress: [########--] 85% (11/13 plans complete)
 | 02-card-database | 3/3 | 25 min | 8.3 min |
 | 03-collection-management | 3/3 | 26 min | 8.7 min |
 | 04-trade-matching-engine | 2/2 | 21 min | 10.5 min |
-| 05-trade-proposals-and-reputation | 1/3 | 7 min | 7.0 min |
+| 05-trade-proposals-and-reputation | 3/3 | 19 min | 6.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 6min, 13min, 9min, 12min, 7min
+- Last 5 plans: 9min, 12min, 7min, 6min, 6min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -107,6 +107,10 @@ Recent decisions affecting current work:
 - [Phase 05]: Notification inbox uses cursor-based pagination for efficient mobile scrolling
 - [Phase 05]: Rating is idempotent via onConflictDoNothing on (proposalId, raterId)
 - [Phase 05]: Fairness score uses rarity weights (diamond1=1 to crown=100) with Great/Fair/Unfair thresholds
+- [Phase 05]: partnerAvgRating added to TradeMatch schema for match card reputation display
+- [Phase 05]: Match service batch-fetches getUserReputation for all partners in match list
+- [Phase 05]: NotificationBell in screenOptions.headerRight for app-wide notification access
+- [Phase 05]: Optimistic mark-read pattern for notification inbox
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T16:32:30Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: .planning/phases/05-trade-proposals-and-reputation/05-01-SUMMARY.md
+Last session: 2026-03-09T16:42:01Z
+Stopped at: Completed 05-03-PLAN.md
+Resume file: .planning/phases/05-trade-proposals-and-reputation/05-03-SUMMARY.md
