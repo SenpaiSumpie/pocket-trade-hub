@@ -78,11 +78,11 @@ Plans:
   2. User sees pre-computed suggested trades ranked by wanted card priority when opening the app
   3. User receives a push notification when a new trade match is found
   4. User receives a real-time in-app notification when a new match appears while using the app
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Backend matching engine: shared schemas, trade_matches DB table, Redis/Socket.IO infrastructure, two-way matching algorithm, BullMQ debounced recomputation, match API routes, push notifications
+- [ ] 04-02-PLAN.md — Mobile trades experience: Zustand store, Socket.IO real-time hook, Trades tab UI with match cards, detail modal, sort toggle, tab badge, toast notifications
 
 ### Phase 5: Trade Proposals and Reputation
 **Goal**: Users can negotiate specific trades, track proposals, rate trade partners, and stay informed via notifications
