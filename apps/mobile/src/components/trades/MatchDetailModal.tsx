@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +13,7 @@ import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { ProposalCreationModal } from './ProposalCreationModal';
 import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradeMatch, MatchCardPair } from '@pocket-trade-hub/shared';
@@ -46,6 +48,8 @@ function CardPairItem({ pair, showPriority }: { pair: MatchCardPair; showPriorit
 }
 
 export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalProps) {
+  const [showProposalModal, setShowProposalModal] = useState(false);
+
   if (!match) return null;
 
   const avatar = getAvatarById(match.partnerAvatarId);
@@ -125,12 +129,22 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
               </View>
             </View>
 
-            {/* Propose Trade button (disabled placeholder) */}
-            <TouchableOpacity style={styles.proposeButton} disabled activeOpacity={1}>
+            {/* Propose Trade button */}
+            <TouchableOpacity
+              style={styles.proposeButton}
+              onPress={() => setShowProposalModal(true)}
+              activeOpacity={0.7}
+            >
               <Text style={styles.proposeButtonText}>Propose Trade</Text>
-              <Text style={styles.comingSoon}>Coming in Phase 5</Text>
             </TouchableOpacity>
           </ScrollView>
+
+          {/* Proposal creation modal */}
+          <ProposalCreationModal
+            visible={showProposalModal}
+            onClose={() => setShowProposalModal(false)}
+            match={match}
+          />
         </View>
       </View>
     </Modal>
@@ -250,21 +264,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   proposeButton: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     alignItems: 'center',
-    opacity: 0.5,
   },
   proposeButtonText: {
     ...typography.body,
     fontWeight: '600',
-    color: colors.textMuted,
-  },
-  comingSoon: {
-    ...typography.caption,
-    color: colors.textMuted,
-    marginTop: 2,
-    fontSize: 11,
+    color: colors.background,
   },
 });
