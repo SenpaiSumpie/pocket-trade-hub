@@ -51,12 +51,12 @@
 
 ### Trade Proposals
 
-- [ ] **TRADE-01**: User can create a trade proposal selecting cards to give and receive
-- [ ] **TRADE-02**: User can accept or reject incoming trade proposals
-- [ ] **TRADE-03**: User can send a counter-offer modifying a received proposal
-- [ ] **TRADE-04**: User can view all pending incoming and outgoing proposals
+- [x] **TRADE-01**: User can create a trade proposal selecting cards to give and receive
+- [x] **TRADE-02**: User can accept or reject incoming trade proposals
+- [x] **TRADE-03**: User can send a counter-offer modifying a received proposal
+- [x] **TRADE-04**: User can view all pending incoming and outgoing proposals
 - [x] **TRADE-05**: User can mark a trade as completed (executed in-game)
-- [ ] **TRADE-06**: System shows trade fairness evaluation (relative rarity/demand)
+- [x] **TRADE-06**: System shows trade fairness evaluation (relative rarity/demand)
 
 ### Reputation
 
