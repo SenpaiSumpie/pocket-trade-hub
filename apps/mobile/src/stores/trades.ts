@@ -15,6 +15,7 @@ interface TradesState {
   setSortBy: (sort: MatchSort) => void;
   setLoading: (loading: boolean) => void;
   markSeen: (matchId: string) => void;
+  reset: () => void;
 }
 
 export const useTradesStore = create<TradesState>((set) => ({
@@ -49,5 +50,14 @@ export const useTradesStore = create<TradesState>((set) => ({
         ),
         unseenCount: Math.max(0, state.unseenCount - 1),
       };
+    }),
+
+  reset: () =>
+    set({
+      matches: [],
+      unseenCount: 0,
+      sortBy: 'priority',
+      isLoading: false,
+      lastRefreshed: null,
     }),
 }));

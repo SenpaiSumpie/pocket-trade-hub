@@ -164,8 +164,9 @@ export async function recomputeMatchesForUser(
   // Compute new matches
   const rawMatches = await computeTwoWayMatches(db, userId);
 
-  // Delete old matches for this user (both as user and as partner perspective from this user's compute)
+  // Delete old matches: user's own rows AND partner rows that reference this user
   await db.delete(tradeMatches).where(eq(tradeMatches.userId, userId));
+  await db.delete(tradeMatches).where(eq(tradeMatches.partnerId, userId));
 
   // Insert new match rows for the user's perspective
   const newPartnerIds: string[] = [];
@@ -256,7 +257,7 @@ export async function recomputeMatchesForUser(
         }
       }
 
-      // Socket.IO emit
+      // Socket.IO emit to current user
       io.to(`user:${userId}`).emit('new-match', {
         partnerId: match.partnerId,
         partnerName,
@@ -264,13 +265,59 @@ export async function recomputeMatchesForUser(
         starRating,
       });
 
-      // Push notification
+      // Socket.IO emit to partner (they also got a new match)
+      const currentUser = await db
+        .select({ displayName: users.displayName })
+        .from(users)
+        .where(eq(users.id, userId));
+      const currentUserName = currentUser[0]?.displayName || 'Someone';
+      const partnerTopCard = match.userGives[0]?.cardId;
+      let partnerTopCardName = 'a card';
+      if (partnerTopCard) {
+        const cardRows = await db
+          .select({ name: cards.name })
+          .from(cards)
+          .where(eq(cards.id, partnerTopCard));
+        if (cardRows.length > 0) partnerTopCardName = cardRows[0].name;
+      }
+      const { starRating: partnerStarRating } = calculateMatchScore(match.userGives);
+      io.to(`user:${match.partnerId}`).emit('new-match', {
+        partnerId: userId,
+        partnerName: currentUserName,
+        topCardName: partnerTopCardName,
+        starRating: partnerStarRating,
+      });
+
+      // Push notification for current user
       const hasHighPriority = match.userGets.some((g: CardPairData) => g.priority === 'high');
       await sendMatchPushNotification(db, userId, {
         partnerName,
         topCardName,
         isHighPriority: hasHighPriority,
       });
+
+      // Push notification for partner
+      const partnerHasHighPriority = match.userGives.some((g: CardPairData) => g.priority === 'high');
+      await sendMatchPushNotification(db, match.partnerId, {
+        partnerName: currentUserName,
+        topCardName: partnerTopCardName,
+        isHighPriority: partnerHasHighPriority,
+      });
+    }
+  }
+
+  // Always notify the current user and all affected partners that matches changed
+  // This handles removals, updates, and ensures all clients stay in sync
+  if (io) {
+    io.to(`user:${userId}`).emit('matches-updated');
+
+    // Notify all current AND previously matched partners
+    const allAffectedPartners = new Set([
+      ...rawMatches.map((m) => m.partnerId),
+      ...existingPartnerIds,
+    ]);
+    for (const partnerId of allAffectedPartners) {
+      io.to(`user:${partnerId}`).emit('matches-updated');
     }
   }
 

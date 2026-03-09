@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../stores/auth';
 import { useTradesStore } from '../stores/trades';
+import { apiFetch } from './useApi';
 import type { TradeMatch } from '@pocket-trade-hub/shared';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -31,16 +32,22 @@ export function useMatchSocket() {
 
     const socket = io(API_URL, {
       auth: { userId },
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     });
 
     socketRef.current = socket;
 
+    const refetchMatches = () => {
+      const sort = useTradesStore.getState().sortBy;
+      apiFetch<{ matches: TradeMatch[]; unseenCount: number }>(`/matches?sort=${sort}`)
+        .then((result) => {
+          useTradesStore.getState().setMatches(result.matches, result.unseenCount);
+        })
+        .catch(() => {});
+    };
+
     socket.on('new-match', (data: NewMatchEvent & { match?: TradeMatch }) => {
-      // If full match data is provided, add to store
-      if (data.match) {
-        useTradesStore.getState().addMatch(data.match);
-      }
+      refetchMatches();
 
       Toast.show({
         type: 'matchNotification',
@@ -48,6 +55,11 @@ export function useMatchSocket() {
         text2: `${data.partnerName} has ${data.topCardName} you want.`,
         visibilityTime: 5000,
       });
+    });
+
+    // Silently refresh when matches change (removals, card count changes, etc.)
+    socket.on('matches-updated', () => {
+      refetchMatches();
     });
 
     return () => {

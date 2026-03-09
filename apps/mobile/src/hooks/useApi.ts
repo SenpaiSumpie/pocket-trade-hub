@@ -14,7 +14,7 @@ export async function apiFetch<T = unknown>(
   const { accessToken, refreshToken, updateTokens, logout } = useAuthStore.getState();
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
     ...(fetchOptions.headers as Record<string, string>),
   };
 
@@ -59,6 +59,21 @@ export async function apiFetch<T = unknown>(
   }
 
   return res.json();
+}
+
+/** Recompute matches on server and re-fetch to update store/badge. Non-blocking. */
+export function refreshMatchesInBackground() {
+  (async () => {
+    try {
+      await apiFetch('/matches/refresh', { method: 'POST' });
+      const { useTradesStore } = await import('../stores/trades');
+      const sort = useTradesStore.getState().sortBy;
+      const data = await apiFetch<{ matches: any[]; unseenCount: number }>(`/matches?sort=${sort}`);
+      useTradesStore.getState().setMatches(data.matches, data.unseenCount);
+    } catch {
+      // Non-critical
+    }
+  })();
 }
 
 export function useApi() {

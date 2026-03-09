@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { useCollectionStore } from './collection';
+import { useTradesStore } from './trades';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -79,6 +81,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await secureDelete('accessToken');
     await secureDelete('refreshToken');
     await secureDelete('user');
+    // Reset all data stores so next login starts fresh
+    useCollectionStore.getState().reset();
+    useTradesStore.getState().reset();
     set({ accessToken: null, refreshToken: null, user: null, isLoggedIn: false });
   },
 

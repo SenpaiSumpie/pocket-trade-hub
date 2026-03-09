@@ -4,7 +4,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMatches } from '@/src/hooks/useMatches';
-import { useMatchSocket } from '@/src/hooks/useMatchSocket';
 import { useTradesStore } from '@/src/stores/trades';
 import { MatchCard } from '@/src/components/trades/MatchCard';
 import { MatchDetailModal } from '@/src/components/trades/MatchDetailModal';
@@ -14,7 +13,6 @@ import type { TradeMatch } from '@pocket-trade-hub/shared';
 
 export default function TradesScreen() {
   const { matches, isLoading, refresh, markSeen, sortBy, setSortBy } = useMatches();
-  useMatchSocket();
 
   const [selectedMatch, setSelectedMatch] = useState<TradeMatch | null>(null);
   const [modalVisible, setModalVisible] = useState(false);

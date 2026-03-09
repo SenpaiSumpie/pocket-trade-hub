@@ -24,6 +24,7 @@ interface CollectionState {
   addToWanted: (cardId: string, priority?: Priority) => void;
   removeFromWanted: (cardId: string) => void;
   updatePriority: (cardId: string, priority: Priority) => void;
+  reset: () => void;
 }
 
 export const useCollectionStore = create<CollectionState>((set) => ({
@@ -134,4 +135,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
     set((state) => ({
       wantedByCardId: { ...state.wantedByCardId, [cardId]: priority },
     })),
+
+  reset: () =>
+    set({
+      mode: 'browse',
+      collectionByCardId: {},
+      wantedByCardId: {},
+      progressBySet: {},
+      collectionLoaded: false,
+      wantedLoaded: false,
+    }),
 }));

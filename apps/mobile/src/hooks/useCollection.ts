@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { apiFetch } from './useApi';
+import { apiFetch, refreshMatchesInBackground } from './useApi';
 import { useCollectionStore } from '../stores/collection';
 import type { CollectionItem, CollectionProgress } from '@pocket-trade-hub/shared';
 
@@ -62,7 +62,7 @@ export function useAddToCollection() {
               // Non-critical -- optimistic update is already applied
             }
             // Trigger background match recompute (non-blocking)
-            apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+            refreshMatchesInBackground();
           } catch {
             // Revert optimistic update
             if (prev != null) {
@@ -97,7 +97,7 @@ export function useRemoveFromCollection() {
           setProgress(progress);
         } catch { /* non-critical */ }
         // Trigger background match recompute (non-blocking)
-        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+        refreshMatchesInBackground();
       } catch {
         if (prev != null) {
           addToCollection(cardId, prev);
@@ -152,7 +152,7 @@ export function useBulkUpdateCollection() {
         setCollection(items);
         setProgress(progress);
         // Trigger background match recompute (non-blocking)
-        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+        refreshMatchesInBackground();
       } catch {
         // Surface error -- caller can handle
         throw new Error('Bulk update failed');

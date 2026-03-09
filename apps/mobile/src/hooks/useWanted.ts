@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { apiFetch } from './useApi';
+import { apiFetch, refreshMatchesInBackground } from './useApi';
 import { useCollectionStore } from '../stores/collection';
 import type { Priority } from '@pocket-trade-hub/shared';
 
@@ -47,7 +47,7 @@ export function useAddToWanted() {
           body: JSON.stringify({ cardId, priority }),
         });
         // Trigger background match recompute (non-blocking)
-        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+        refreshMatchesInBackground();
       } catch {
         removeFromWanted(cardId);
       }
@@ -68,7 +68,7 @@ export function useRemoveFromWanted() {
       try {
         await apiFetch(`/wanted/${cardId}`, { method: 'DELETE' });
         // Trigger background match recompute (non-blocking)
-        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+        refreshMatchesInBackground();
       } catch {
         if (prev) {
           addToWanted(cardId, prev);
@@ -94,7 +94,7 @@ export function useUpdatePriority() {
           body: JSON.stringify({ priority }),
         });
         // Trigger background match recompute (non-blocking)
-        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
+        refreshMatchesInBackground();
       } catch {
         if (prev) {
           updatePriority(cardId, prev);

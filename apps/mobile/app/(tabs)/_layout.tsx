@@ -1,10 +1,33 @@
+import { useEffect, useCallback } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
+import { apiFetch } from '@/src/hooks/useApi';
+import { useAuthStore } from '@/src/stores/auth';
+import { useMatchSocket } from '@/src/hooks/useMatchSocket';
 
 export default function TabLayout() {
   const unseenCount = useTradesStore((s) => s.unseenCount);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const lastRefreshed = useTradesStore((s) => s.lastRefreshed);
+
+  // Connect Socket.IO at the tab level so real-time events work on any tab
+  useMatchSocket();
+
+  // Fetch matches on login and whenever lastRefreshed is null (store was reset)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    if (lastRefreshed !== null) return; // Already loaded
+    (async () => {
+      try {
+        const data = await apiFetch<{ matches: any[]; unseenCount: number }>('/matches?sort=priority');
+        useTradesStore.getState().setMatches(data.matches, data.unseenCount);
+      } catch {
+        // Non-critical
+      }
+    })();
+  }, [isLoggedIn, lastRefreshed]);
 
   return (
     <Tabs
