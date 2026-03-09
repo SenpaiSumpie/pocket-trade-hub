@@ -9,8 +9,8 @@ import { CardDetailModal } from '@/src/components/cards/CardDetailModal';
 import { useSets, useCardsBySet, useCardSearch } from '@/src/hooks/useCards';
 import { useCardsStore } from '@/src/stores/cards';
 import { useCollectionStore } from '@/src/stores/collection';
-import { useLoadCollection, useAddToCollection, useBulkUpdateCollection } from '@/src/hooks/useCollection';
-import { useLoadWanted } from '@/src/hooks/useWanted';
+import { useLoadCollection, useAddToCollection, useRemoveFromCollection, useUpdateQuantity, useBulkUpdateCollection } from '@/src/hooks/useCollection';
+import { useLoadWanted, useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
 
@@ -46,7 +46,12 @@ export default function CardsScreen() {
   useLoadWanted();
 
   const addToCollection = useAddToCollection();
+  const removeFromCollection = useRemoveFromCollection();
+  const updateQuantity = useUpdateQuantity();
   const bulkUpdate = useBulkUpdateCollection();
+  const addToWanted = useAddToWanted();
+  const removeFromWanted = useRemoveFromWanted();
+  const updatePriority = useUpdatePriority();
 
   // Auto-select first set when sets load
   useEffect(() => {
@@ -295,6 +300,12 @@ export default function CardsScreen() {
         mode={mode}
         collectionQuantity={(cardId) => collectionByCardId[cardId] ?? 0}
         wantedPriority={(cardId) => wantedByCardId[cardId]}
+        onAddToCollection={(cardId) => addToCollection(cardId, 1)}
+        onRemoveFromCollection={(cardId) => removeFromCollection(cardId)}
+        onUpdateQuantity={(cardId, qty) => updateQuantity(cardId, qty)}
+        onAddToWanted={(cardId) => addToWanted(cardId)}
+        onRemoveFromWanted={(cardId) => removeFromWanted(cardId)}
+        onUpdatePriority={(cardId, p) => updatePriority(cardId, p)}
       />
     </SafeAreaView>
   );

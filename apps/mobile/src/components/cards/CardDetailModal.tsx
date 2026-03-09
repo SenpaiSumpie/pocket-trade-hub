@@ -16,6 +16,8 @@ import { RarityBadge } from './RarityBadge';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
 
+type Priority = 'high' | 'medium' | 'low';
+
 interface CardDetailModalProps {
   visible: boolean;
   cards: Card[];
@@ -24,20 +26,123 @@ interface CardDetailModalProps {
   onClose: () => void;
   mode?: 'browse' | 'collection' | 'wanted';
   collectionQuantity?: (cardId: string) => number;
-  wantedPriority?: (cardId: string) => 'high' | 'medium' | 'low' | undefined;
+  wantedPriority?: (cardId: string) => Priority | undefined;
   onAddToCollection?: (cardId: string) => void;
   onRemoveFromCollection?: (cardId: string) => void;
   onUpdateQuantity?: (cardId: string, qty: number) => void;
   onAddToWanted?: (cardId: string) => void;
   onRemoveFromWanted?: (cardId: string) => void;
-  onUpdatePriority?: (cardId: string, priority: 'high' | 'medium' | 'low') => void;
+  onUpdatePriority?: (cardId: string, priority: Priority) => void;
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_IMAGE_WIDTH = Math.min(SCREEN_WIDTH * 0.65, 320);
 const CARD_IMAGE_HEIGHT = CARD_IMAGE_WIDTH * 1.4;
 
-function CardDetailPage({ card, setName }: { card: Card; setName?: string }) {
+const PRIORITY_COLORS: Record<Priority, string> = {
+  high: '#e74c3c',
+  medium: colors.primary,
+  low: colors.textMuted,
+};
+
+/* ------------------------------------------------------------------ */
+/*  Inline QuantityStepper                                            */
+/* ------------------------------------------------------------------ */
+
+function QuantityStepper({
+  quantity,
+  onDecrement,
+  onIncrement,
+}: {
+  quantity: number;
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  return (
+    <View style={actionStyles.stepperRow}>
+      <Pressable style={actionStyles.stepperBtn} onPress={onDecrement}>
+        <Ionicons name="remove" size={20} color={colors.primary} />
+      </Pressable>
+      <Text style={actionStyles.stepperValue}>{quantity}</Text>
+      <Pressable style={actionStyles.stepperBtn} onPress={onIncrement}>
+        <Ionicons name="add" size={20} color={colors.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inline PriorityPicker                                             */
+/* ------------------------------------------------------------------ */
+
+function PriorityPicker({
+  current,
+  onChange,
+}: {
+  current: Priority;
+  onChange: (p: Priority) => void;
+}) {
+  const priorities: Priority[] = ['high', 'medium', 'low'];
+  return (
+    <View style={actionStyles.priorityRow}>
+      {priorities.map((p) => {
+        const active = current === p;
+        return (
+          <Pressable
+            key={p}
+            style={[
+              actionStyles.priorityPill,
+              active && { backgroundColor: PRIORITY_COLORS[p] },
+            ]}
+            onPress={() => onChange(p)}
+          >
+            <Text
+              style={[
+                actionStyles.priorityPillText,
+                active && { color: '#ffffff' },
+              ]}
+            >
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  CardDetailPage (single card view)                                  */
+/* ------------------------------------------------------------------ */
+
+function CardDetailPage({
+  card,
+  setName,
+  mode = 'browse',
+  collectionQuantity,
+  wantedPriority,
+  onAddToCollection,
+  onRemoveFromCollection,
+  onUpdateQuantity,
+  onAddToWanted,
+  onRemoveFromWanted,
+  onUpdatePriority,
+}: {
+  card: Card;
+  setName?: string;
+  mode?: 'browse' | 'collection' | 'wanted';
+  collectionQuantity?: (cardId: string) => number;
+  wantedPriority?: (cardId: string) => Priority | undefined;
+  onAddToCollection?: (cardId: string) => void;
+  onRemoveFromCollection?: (cardId: string) => void;
+  onUpdateQuantity?: (cardId: string, qty: number) => void;
+  onAddToWanted?: (cardId: string) => void;
+  onRemoveFromWanted?: (cardId: string) => void;
+  onUpdatePriority?: (cardId: string, priority: Priority) => void;
+}) {
+  const qty = collectionQuantity?.(card.id) ?? 0;
+  const priority = wantedPriority?.(card.id);
+
   return (
     <ScrollView
       style={{ width: SCREEN_WIDTH }}
@@ -130,22 +235,96 @@ function CardDetailPage({ card, setName }: { card: Card; setName?: string }) {
           <Text style={styles.illustrator}>Illus. {card.illustrator}</Text>
         )}
 
+        {/* Context-aware action buttons */}
         <View style={styles.actions}>
-          <Pressable style={[styles.actionBtn, styles.actionDisabled]}>
-            <Ionicons name="add-circle-outline" size={20} color={colors.textMuted} />
-            <Text style={styles.actionText}>Add to Collection</Text>
-            <Text style={styles.comingSoon}>Coming soon</Text>
-          </Pressable>
-          <Pressable style={[styles.actionBtn, styles.actionDisabled]}>
-            <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
-            <Text style={styles.actionText}>Add to Wanted</Text>
-            <Text style={styles.comingSoon}>Coming soon</Text>
-          </Pressable>
+          {mode === 'browse' && (
+            <>
+              <Pressable
+                style={[styles.actionBtn, styles.actionActive]}
+                onPress={() => onAddToCollection?.(card.id)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                <Text style={styles.actionTextActive}>Add to Collection</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionBtn, styles.actionActive]}
+                onPress={() => onAddToWanted?.(card.id)}
+              >
+                <Ionicons name="heart-outline" size={20} color={colors.primary} />
+                <Text style={styles.actionTextActive}>Add to Wanted</Text>
+              </Pressable>
+            </>
+          )}
+
+          {mode === 'collection' && (
+            <>
+              <View style={[styles.actionBtn, styles.actionActive]}>
+                <Ionicons name="layers-outline" size={20} color={colors.primary} />
+                <Text style={styles.actionTextActive}>Quantity</Text>
+                <QuantityStepper
+                  quantity={qty}
+                  onDecrement={() => onUpdateQuantity?.(card.id, Math.max(0, qty - 1))}
+                  onIncrement={() => onUpdateQuantity?.(card.id, qty + 1)}
+                />
+              </View>
+              {qty > 0 && (
+                <Pressable
+                  style={[styles.actionBtn, styles.actionDanger]}
+                  onPress={() => onRemoveFromCollection?.(card.id)}
+                >
+                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                  <Text style={styles.actionTextDanger}>Remove from Collection</Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={[styles.actionBtn, styles.actionActive]}
+                onPress={() => onAddToWanted?.(card.id)}
+              >
+                <Ionicons name="heart-outline" size={20} color={colors.primary} />
+                <Text style={styles.actionTextActive}>Add to Wanted</Text>
+              </Pressable>
+            </>
+          )}
+
+          {mode === 'wanted' && (
+            <>
+              {priority && (
+                <View style={[styles.actionBtn, styles.actionActive]}>
+                  <Ionicons name="flag-outline" size={20} color={colors.primary} />
+                  <Text style={styles.actionTextActive}>Priority</Text>
+                  <PriorityPicker
+                    current={priority}
+                    onChange={(p) => onUpdatePriority?.(card.id, p)}
+                  />
+                </View>
+              )}
+              {priority && (
+                <Pressable
+                  style={[styles.actionBtn, styles.actionDanger]}
+                  onPress={() => onRemoveFromWanted?.(card.id)}
+                >
+                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                  <Text style={styles.actionTextDanger}>Remove from Wanted</Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={[styles.actionBtn, styles.actionActive]}
+                onPress={() => onAddToCollection?.(card.id)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                <Text style={styles.actionTextActive}>Add to Collection</Text>
+              </Pressable>
+            </>
+          )}
         </View>
       </View>
     </ScrollView>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Main modal component                                               */
+/* ------------------------------------------------------------------ */
 
 export function CardDetailModal({
   visible,
@@ -153,15 +332,15 @@ export function CardDetailModal({
   initialIndex,
   setName,
   onClose,
-  mode: _mode,
-  collectionQuantity: _collectionQuantity,
-  wantedPriority: _wantedPriority,
-  onAddToCollection: _onAddToCollection,
-  onRemoveFromCollection: _onRemoveFromCollection,
-  onUpdateQuantity: _onUpdateQuantity,
-  onAddToWanted: _onAddToWanted,
-  onRemoveFromWanted: _onRemoveFromWanted,
-  onUpdatePriority: _onUpdatePriority,
+  mode = 'browse',
+  collectionQuantity,
+  wantedPriority,
+  onAddToCollection,
+  onRemoveFromCollection,
+  onUpdateQuantity,
+  onAddToWanted,
+  onRemoveFromWanted,
+  onUpdatePriority,
 }: CardDetailModalProps) {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -225,7 +404,19 @@ export function CardDetailModal({
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CardDetailPage card={item} setName={setName} />
+            <CardDetailPage
+              card={item}
+              setName={setName}
+              mode={mode}
+              collectionQuantity={collectionQuantity}
+              wantedPriority={wantedPriority}
+              onAddToCollection={onAddToCollection}
+              onRemoveFromCollection={onRemoveFromCollection}
+              onUpdateQuantity={onUpdateQuantity}
+              onAddToWanted={onAddToWanted}
+              onRemoveFromWanted={onRemoveFromWanted}
+              onUpdatePriority={onUpdatePriority}
+            />
           )}
           onMomentumScrollEnd={(e) => {
             const idx = Math.round(
@@ -244,6 +435,50 @@ export function CardDetailModal({
     </Modal>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Styles                                                             */
+/* ------------------------------------------------------------------ */
+
+const actionStyles = StyleSheet.create({
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  stepperBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primary,
+    minWidth: 28,
+    textAlign: 'center',
+  },
+  priorityRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  priorityPill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.surfaceLight,
+  },
+  priorityPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -483,18 +718,24 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
   },
-  actionDisabled: {
-    opacity: 0.5,
+  actionActive: {
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  actionText: {
+  actionDanger: {
+    borderWidth: 1,
+    borderColor: colors.error + '40',
+  },
+  actionTextActive: {
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: colors.textMuted,
+    color: colors.text,
   },
-  comingSoon: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontStyle: 'italic',
+  actionTextDanger: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.error,
   },
 });
