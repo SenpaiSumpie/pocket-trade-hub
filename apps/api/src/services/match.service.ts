@@ -3,12 +3,16 @@ import { randomUUID } from 'crypto';
 import {
   users,
   cards,
+  pushTokens,
   userCollectionItems,
   userWantedCards,
   tradeMatches,
 } from '../db/schema';
+import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 
 type DbInstance = any;
+
+const expo = new Expo();
 
 const PRIORITY_WEIGHTS: Record<string, number> = {
   high: 3,
@@ -221,7 +225,98 @@ export async function recomputeMatchesForUser(
     }
   }
 
+  // Notify user of new matches via Socket.IO and push notifications
+  if (newPartnerIds.length > 0 && io) {
+    // Get partner names for notification content
+    const newPartners = await db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(inArray(users.id, newPartnerIds));
+
+    const partnerNameMap = new Map<string, string | null>(
+      newPartners.map((p: any) => [p.id, p.displayName])
+    );
+
+    for (const match of rawMatches) {
+      if (!newPartnerIds.includes(match.partnerId)) continue;
+
+      const partnerName = partnerNameMap.get(match.partnerId) || 'Someone';
+      const { score, starRating } = calculateMatchScore(match.userGets);
+      const topCardId = match.userGets[0]?.cardId;
+
+      // Get top card name for notification
+      let topCardName = 'a card';
+      if (topCardId) {
+        const cardRows = await db
+          .select({ name: cards.name })
+          .from(cards)
+          .where(eq(cards.id, topCardId));
+        if (cardRows.length > 0) {
+          topCardName = cardRows[0].name;
+        }
+      }
+
+      // Socket.IO emit
+      io.to(`user:${userId}`).emit('new-match', {
+        partnerId: match.partnerId,
+        partnerName,
+        topCardName,
+        starRating,
+      });
+
+      // Push notification
+      const hasHighPriority = match.userGets.some((g: CardPairData) => g.priority === 'high');
+      await sendMatchPushNotification(db, userId, {
+        partnerName,
+        topCardName,
+        isHighPriority: hasHighPriority,
+      });
+    }
+  }
+
   return { matchCount: rawMatches.length, newPartnerIds };
+}
+
+/**
+ * Send push notification for a new match.
+ */
+async function sendMatchPushNotification(
+  db: DbInstance,
+  userId: string,
+  opts: { partnerName: string; topCardName: string; isHighPriority: boolean },
+) {
+  try {
+    const tokens = await db
+      .select({ token: pushTokens.token })
+      .from(pushTokens)
+      .where(eq(pushTokens.userId, userId));
+
+    if (tokens.length === 0) return;
+
+    const messages: ExpoPushMessage[] = [];
+    for (const record of tokens) {
+      if (!Expo.isExpoPushToken(record.token)) continue;
+      messages.push({
+        to: record.token,
+        sound: 'default',
+        title: opts.isHighPriority ? 'High-priority match!' : 'New match found!',
+        body: `${opts.partnerName} has ${opts.topCardName} you want.`,
+      });
+    }
+
+    if (messages.length > 0) {
+      const chunks = expo.chunkPushNotifications(messages);
+      for (const chunk of chunks) {
+        try {
+          await expo.sendPushNotificationsAsync(chunk);
+        } catch {
+          // Non-critical: silently fail
+        }
+      }
+    }
+  } catch {
+    // Push notification failures are non-critical
+  }
 }
 
 /**
@@ -351,8 +446,8 @@ export async function markMatchSeen(
   const result = await db
     .update(tradeMatches)
     .set({ seen: true, updatedAt: new Date() })
-    .where(and(eq(tradeMatches.id, matchId), eq(tradeMatches.userId, userId)));
+    .where(and(eq(tradeMatches.id, matchId), eq(tradeMatches.userId, userId)))
+    .returning({ id: tradeMatches.id });
 
-  // Drizzle returns the rows affected or empty array
-  return (result?.rowCount ?? result?.length ?? 0) > 0;
+  return result.length > 0;
 }
