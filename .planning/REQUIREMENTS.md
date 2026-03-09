@@ -29,17 +29,17 @@
 
 ### Inventory
 
-- [ ] **INV-01**: User can add cards to their inventory
-- [ ] **INV-02**: User can remove cards from inventory
-- [ ] **INV-03**: User can update card quantities
-- [ ] **INV-04**: User can bulk-add cards via set checklist UI
-- [ ] **INV-05**: User can view collection completion per set with progress bar
+- [x] **INV-01**: User can add cards to their inventory
+- [x] **INV-02**: User can remove cards from inventory
+- [x] **INV-03**: User can update card quantities
+- [x] **INV-04**: User can bulk-add cards via set checklist UI
+- [x] **INV-05**: User can view collection completion per set with progress bar
 
 ### Wanted List
 
-- [ ] **WANT-01**: User can add cards to their wanted list
-- [ ] **WANT-02**: User can remove cards from wanted list
-- [ ] **WANT-03**: User can set priority level (high/medium/low) on wanted cards
+- [x] **WANT-01**: User can add cards to their wanted list
+- [x] **WANT-02**: User can remove cards from wanted list
+- [x] **WANT-03**: User can set priority level (high/medium/low) on wanted cards
 
 ### Trade Matching
 
@@ -125,14 +125,14 @@
 | CARD-03 | Phase 2 | Complete |
 | CARD-04 | Phase 2 | Complete |
 | CARD-05 | Phase 2 | Complete |
-| INV-01 | Phase 3 | Pending |
-| INV-02 | Phase 3 | Pending |
-| INV-03 | Phase 3 | Pending |
-| INV-04 | Phase 3 | Pending |
-| INV-05 | Phase 3 | Pending |
-| WANT-01 | Phase 3 | Pending |
-| WANT-02 | Phase 3 | Pending |
-| WANT-03 | Phase 3 | Pending |
+| INV-01 | Phase 3 | Complete |
+| INV-02 | Phase 3 | Complete |
+| INV-03 | Phase 3 | Complete |
+| INV-04 | Phase 3 | Complete |
+| INV-05 | Phase 3 | Complete |
+| WANT-01 | Phase 3 | Complete |
+| WANT-02 | Phase 3 | Complete |
+| WANT-03 | Phase 3 | Complete |
 | MATCH-01 | Phase 4 | Pending |
 | MATCH-02 | Phase 4 | Pending |
 | MATCH-03 | Phase 4 | Pending |
