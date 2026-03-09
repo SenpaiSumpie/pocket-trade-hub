@@ -6,9 +6,10 @@ interface SetPickerProps {
   sets: CardSet[];
   selectedSetId: string | null;
   onSelectSet: (setId: string) => void;
+  progress?: Record<string, { owned: number; total: number }>;
 }
 
-export function SetPicker({ sets, selectedSetId, onSelectSet }: SetPickerProps) {
+export function SetPicker({ sets, selectedSetId, onSelectSet, progress: _progress }: SetPickerProps) {
   return (
     <ScrollView
       horizontal

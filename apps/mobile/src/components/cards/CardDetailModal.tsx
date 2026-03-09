@@ -22,6 +22,15 @@ interface CardDetailModalProps {
   initialIndex: number;
   setName?: string;
   onClose: () => void;
+  mode?: 'browse' | 'collection' | 'wanted';
+  collectionQuantity?: (cardId: string) => number;
+  wantedPriority?: (cardId: string) => 'high' | 'medium' | 'low' | undefined;
+  onAddToCollection?: (cardId: string) => void;
+  onRemoveFromCollection?: (cardId: string) => void;
+  onUpdateQuantity?: (cardId: string, qty: number) => void;
+  onAddToWanted?: (cardId: string) => void;
+  onRemoveFromWanted?: (cardId: string) => void;
+  onUpdatePriority?: (cardId: string, priority: 'high' | 'medium' | 'low') => void;
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -144,6 +153,15 @@ export function CardDetailModal({
   initialIndex,
   setName,
   onClose,
+  mode: _mode,
+  collectionQuantity: _collectionQuantity,
+  wantedPriority: _wantedPriority,
+  onAddToCollection: _onAddToCollection,
+  onRemoveFromCollection: _onRemoveFromCollection,
+  onUpdateQuantity: _onUpdateQuantity,
+  onAddToWanted: _onAddToWanted,
+  onRemoveFromWanted: _onRemoveFromWanted,
+  onUpdatePriority: _onUpdatePriority,
 }: CardDetailModalProps) {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);

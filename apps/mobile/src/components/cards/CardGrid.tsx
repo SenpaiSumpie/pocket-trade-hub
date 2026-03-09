@@ -3,6 +3,7 @@ import { FlashList } from '@shopify/flash-list';
 import { CardThumbnail } from './CardThumbnail';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
+import type { Priority } from '@pocket-trade-hub/shared';
 import { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 
@@ -16,6 +17,13 @@ interface CardGridProps {
   refreshing?: boolean;
   isSearchMode?: boolean;
   sets?: CardSet[];
+  onCardLongPress?: (card: Card, index: number) => void;
+  collectionByCardId?: Record<string, number>;
+  wantedByCardId?: Record<string, Priority>;
+  mode?: 'browse' | 'collection' | 'wanted';
+  checklistMode?: boolean;
+  checklistSelections?: Set<string>;
+  onCheckToggle?: (cardId: string) => void;
 }
 
 function SkeletonCard() {
@@ -80,6 +88,13 @@ export function CardGrid({
   refreshing = false,
   isSearchMode = false,
   sets = [],
+  onCardLongPress,
+  collectionByCardId,
+  wantedByCardId,
+  mode = 'browse',
+  checklistMode = false,
+  checklistSelections,
+  onCheckToggle,
 }: CardGridProps) {
   if (loading && cards.length === 0) {
     return <LoadingSkeleton />;
@@ -92,6 +107,16 @@ export function CardGrid({
   const getSetName = (setId: string): string | undefined =>
     sets.find((s) => s.id === setId)?.name;
 
+  const isDimmed = (cardId: string): boolean => {
+    if (mode === 'collection' && collectionByCardId) {
+      return !(cardId in collectionByCardId);
+    }
+    if (mode === 'wanted' && wantedByCardId) {
+      return !(cardId in wantedByCardId);
+    }
+    return false;
+  };
+
   return (
     <FlashList
       data={cards}
@@ -102,6 +127,13 @@ export function CardGrid({
           onPress={() => onCardPress(item, index)}
           showSetBadge={isSearchMode}
           setName={getSetName(item.setId)}
+          quantity={collectionByCardId?.[item.id]}
+          priority={wantedByCardId?.[item.id]}
+          dimmed={isDimmed(item.id)}
+          onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+          checklistMode={checklistMode}
+          checked={checklistSelections?.has(item.id)}
+          onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
         />
       )}
       keyExtractor={(item) => item.id}
