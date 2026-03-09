@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { SearchBar } from '@/src/components/cards/SearchBar';
 import { SetPicker } from '@/src/components/cards/SetPicker';
 import { FilterChips } from '@/src/components/cards/FilterChips';
@@ -16,10 +17,10 @@ import type { Card } from '@pocket-trade-hub/shared';
 
 type Mode = 'browse' | 'collection' | 'wanted';
 
-const SEGMENTS: Array<{ key: Mode; label: string }> = [
-  { key: 'browse', label: 'Browse' },
-  { key: 'collection', label: 'My Collection' },
-  { key: 'wanted', label: 'Wanted' },
+const SEGMENTS: Array<{ key: Mode; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { key: 'browse', label: 'Browse', icon: 'grid-outline' },
+  { key: 'collection', label: 'My Collection', icon: 'albums-outline' },
+  { key: 'wanted', label: 'Wanted', icon: 'heart-outline' },
 ];
 
 export default function CardsScreen() {
@@ -53,6 +54,10 @@ export default function CardsScreen() {
   const removeFromWanted = useRemoveFromWanted();
   const updatePriority = useUpdatePriority();
 
+  // Set filter dropdown state ('' means All sets)
+  const [setFilterId, setSetFilterId] = useState<string>('');
+  const [showSetDropdown, setShowSetDropdown] = useState(false);
+
   // Auto-select first set when sets load
   useEffect(() => {
     if (sets.length > 0 && !selectedSetId) {
@@ -78,9 +83,9 @@ export default function CardsScreen() {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailIndex, setDetailIndex] = useState(0);
 
-  // Checklist mode state
-  const [checklistMode, setChecklistMode] = useState(false);
-  const [checklistSelections, setChecklistSelections] = useState<Set<string>>(new Set());
+  // Multi-select mode state (replaces checklist)
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [multiSelectIds, setMultiSelectIds] = useState<Set<string>>(new Set());
 
   const currentCards = isSearchMode ? searchResults : setCards;
   const currentLoading = isSearchMode ? searchLoading : setLoading;
@@ -101,10 +106,30 @@ export default function CardsScreen() {
     return currentCards;
   }, [currentCards, mode, wantedByCardId]);
 
+  // Filter by set if set filter is active
+  const filteredCards = useMemo(() => {
+    if (setFilterId && !isSearchMode) {
+      return displayCards.filter((c) => c.setId === setFilterId);
+    }
+    return displayCards;
+  }, [displayCards, setFilterId, isSearchMode]);
+
   const handleCardPress = useCallback((card: Card, index: number) => {
+    if (multiSelectMode) {
+      setMultiSelectIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(card.id)) {
+          next.delete(card.id);
+        } else {
+          next.add(card.id);
+        }
+        return next;
+      });
+      return;
+    }
     setDetailIndex(index);
     setDetailVisible(true);
-  }, []);
+  }, [multiSelectMode]);
 
   const handleRefresh = useCallback(() => {
     if (!isSearchMode) {
@@ -114,72 +139,62 @@ export default function CardsScreen() {
 
   const handleLongPress = useCallback(
     (card: Card) => {
-      if (mode === 'browse' || mode === 'collection') {
-        addToCollection(card.id, 1);
-      }
+      if (multiSelectMode) return;
+      // Enter multi-select mode with this card as first selection
+      setMultiSelectIds(new Set([card.id]));
+      setMultiSelectMode(true);
     },
-    [mode, addToCollection],
+    [multiSelectMode],
   );
 
-  // Checklist handlers
-  const enterChecklistMode = useCallback(() => {
-    // Pre-populate with currently owned cards
-    const owned = new Set(
-      Object.keys(collectionByCardId).filter((id) =>
-        currentCards.some((c) => c.id === id),
-      ),
-    );
-    setChecklistSelections(owned);
-    setChecklistMode(true);
-  }, [collectionByCardId, currentCards]);
-
-  const exitChecklistMode = useCallback(() => {
-    setChecklistMode(false);
-    setChecklistSelections(new Set());
+  // Multi-select action handlers
+  const exitMultiSelect = useCallback(() => {
+    setMultiSelectMode(false);
+    setMultiSelectIds(new Set());
   }, []);
 
-  const handleCheckToggle = useCallback((cardId: string) => {
-    setChecklistSelections((prev) => {
-      const next = new Set(prev);
-      if (next.has(cardId)) {
-        next.delete(cardId);
-      } else {
-        next.add(cardId);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleSelectAll = useCallback(() => {
-    setChecklistSelections(new Set(currentCards.map((c) => c.id)));
-  }, [currentCards]);
-
-  const handleDeselectAll = useCallback(() => {
-    setChecklistSelections(new Set());
-  }, []);
-
-  const allSelected = currentCards.length > 0 && checklistSelections.size === currentCards.length;
-
-  const handleSaveChecklist = useCallback(async () => {
+  const handleMultiSelectAddToCollection = useCallback(async () => {
     if (!selectedSetId) return;
-    const ownedSet = new Set(Object.keys(collectionByCardId));
-    const additions = [...checklistSelections].filter((id) => !ownedSet.has(id));
-    const removals = [...ownedSet].filter(
-      (id) => !checklistSelections.has(id) && currentCards.some((c) => c.id === id),
-    );
-    if (additions.length > 0 || removals.length > 0) {
-      await bulkUpdate(selectedSetId, additions, removals);
+    const additions = [...multiSelectIds].filter((id) => !(id in collectionByCardId));
+    if (additions.length > 0) {
+      await bulkUpdate(selectedSetId, additions, []);
     }
-    exitChecklistMode();
-  }, [selectedSetId, collectionByCardId, checklistSelections, currentCards, bulkUpdate, exitChecklistMode]);
+    exitMultiSelect();
+  }, [selectedSetId, multiSelectIds, collectionByCardId, bulkUpdate, exitMultiSelect]);
+
+  const handleMultiSelectAddToWanted = useCallback(async () => {
+    for (const cardId of multiSelectIds) {
+      if (!(cardId in wantedByCardId)) {
+        await addToWanted(cardId);
+      }
+    }
+    exitMultiSelect();
+  }, [multiSelectIds, wantedByCardId, addToWanted, exitMultiSelect]);
+
+  const handleMultiSelectRemove = useCallback(async () => {
+    if (mode === 'collection') {
+      if (!selectedSetId) return;
+      const removals = [...multiSelectIds].filter((id) => id in collectionByCardId);
+      if (removals.length > 0) {
+        await bulkUpdate(selectedSetId, [], removals);
+      }
+    } else if (mode === 'wanted') {
+      for (const cardId of multiSelectIds) {
+        if (cardId in wantedByCardId) {
+          await removeFromWanted(cardId);
+        }
+      }
+    }
+    exitMultiSelect();
+  }, [mode, selectedSetId, multiSelectIds, collectionByCardId, wantedByCardId, bulkUpdate, removeFromWanted, exitMultiSelect]);
 
   // Mode switch handler
   const handleModeSwitch = useCallback(
     (newMode: Mode) => {
-      if (checklistMode) exitChecklistMode();
+      if (multiSelectMode) exitMultiSelect();
       setMode(newMode);
     },
-    [setMode, checklistMode, exitChecklistMode],
+    [setMode, multiSelectMode, exitMultiSelect],
   );
 
   // Progress data for SetPicker
@@ -195,48 +210,118 @@ export default function CardsScreen() {
   // Find set name for detail modal
   const currentSetName = sets.find((s) => s.id === selectedSetId)?.name;
 
+  // Set dropdown options
+  const setOptions = useMemo(() => {
+    return [{ id: '', name: 'All Sets' }, ...sets];
+  }, [sets]);
+
+  const selectedSetLabel = setFilterId
+    ? sets.find((s) => s.id === setFilterId)?.name ?? 'All Sets'
+    : 'All Sets';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
-
-      {/* Segmented control */}
-      <View style={styles.segmentRow}>
-        {SEGMENTS.map((seg) => {
+      {/* Tab bar with icons and dividers */}
+      <View style={styles.tabBar}>
+        {SEGMENTS.map((seg, i) => {
           const active = mode === seg.key;
           return (
-            <Pressable
-              key={seg.key}
-              style={[styles.segment, active && styles.segmentActive]}
-              onPress={() => handleModeSwitch(seg.key)}
-            >
-              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                {seg.label}
-              </Text>
-            </Pressable>
+            <View key={seg.key} style={styles.tabItemWrapper}>
+              {i > 0 && <View style={styles.tabDivider} />}
+              <Pressable
+                style={[styles.tabItem, active && styles.tabItemActive]}
+                onPress={() => handleModeSwitch(seg.key)}
+              >
+                <Ionicons
+                  name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                  size={18}
+                  color={active ? colors.primary : colors.textMuted}
+                />
+                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                  {seg.label}
+                </Text>
+              </Pressable>
+            </View>
           );
         })}
       </View>
 
-      {/* Checklist mode toggle (collection mode only) */}
-      {mode === 'collection' && !isSearchMode && !checklistMode && (
-        <View style={styles.checklistToggleRow}>
-          <Pressable style={styles.checklistBtn} onPress={enterChecklistMode}>
-            <Text style={styles.checklistBtnText}>Checklist Mode</Text>
+      {/* Search bar */}
+      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+
+      {/* Set filter dropdown */}
+      {!isSearchMode && !setsLoading && (
+        <View style={styles.setFilterRow}>
+          <Pressable
+            style={styles.setDropdownBtn}
+            onPress={() => setShowSetDropdown(!showSetDropdown)}
+          >
+            <Ionicons name="layers-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.setDropdownLabel} numberOfLines={1}>
+              {selectedSetLabel}
+            </Text>
+            <Ionicons
+              name={showSetDropdown ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={colors.textMuted}
+            />
           </Pressable>
+
+          {/* Progress indicator for selected set */}
+          {mode === 'collection' && setFilterId && progressForPicker?.[setFilterId] && (
+            <View style={styles.setProgressInline}>
+              <View style={styles.setProgressTrack}>
+                <View
+                  style={[
+                    styles.setProgressFill,
+                    {
+                      width: `${Math.min(
+                        ((progressForPicker[setFilterId].owned / progressForPicker[setFilterId].total) * 100),
+                        100,
+                      )}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.setProgressText}>
+                {progressForPicker[setFilterId].owned}/{progressForPicker[setFilterId].total}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
-      {/* Checklist header bar */}
-      {checklistMode && (
-        <View style={styles.checklistHeader}>
-          <Pressable onPress={allSelected ? handleDeselectAll : handleSelectAll}>
-            <Text style={styles.checklistAction}>
-              {allSelected ? 'Deselect All' : 'Select All'}
-            </Text>
-          </Pressable>
-          <Text style={styles.checklistCount}>
-            {checklistSelections.size}/{currentCards.length}
-          </Text>
+      {/* Set dropdown menu */}
+      {showSetDropdown && !isSearchMode && (
+        <View style={styles.setDropdownMenu}>
+          {setOptions.map((opt) => {
+            const isActive = opt.id === setFilterId;
+            const prog = opt.id ? progressForPicker?.[opt.id] : undefined;
+            return (
+              <Pressable
+                key={opt.id || '__all__'}
+                style={[styles.setDropdownItem, isActive && styles.setDropdownItemActive]}
+                onPress={() => {
+                  setSetFilterId(opt.id);
+                  if (opt.id) {
+                    setSelectedSet(opt.id);
+                  } else if (sets.length > 0) {
+                    setSelectedSet(sets[0].id);
+                  }
+                  setShowSetDropdown(false);
+                }}
+              >
+                <Text style={[styles.setDropdownItemText, isActive && styles.setDropdownItemTextActive]}>
+                  {opt.name}
+                </Text>
+                {prog && (
+                  <Text style={styles.setDropdownItemProgress}>
+                    {prog.owned}/{prog.total}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
       )}
 
@@ -249,18 +334,9 @@ export default function CardsScreen() {
         />
       )}
 
-      {!isSearchMode && !setsLoading && (
-        <SetPicker
-          sets={sets}
-          selectedSetId={selectedSetId}
-          onSelectSet={setSelectedSet}
-          progress={progressForPicker}
-        />
-      )}
-
       <View style={styles.grid}>
         <CardGrid
-          cards={displayCards}
+          cards={filteredCards}
           loading={currentLoading}
           hasMore={!isSearchMode ? hasMore : false}
           onLoadMore={!isSearchMode ? loadMore : undefined}
@@ -273,27 +349,68 @@ export default function CardsScreen() {
           collectionByCardId={collectionByCardId}
           wantedByCardId={wantedByCardId}
           onCardLongPress={(card) => handleLongPress(card)}
-          checklistMode={checklistMode}
-          checklistSelections={checklistSelections}
-          onCheckToggle={handleCheckToggle}
+          checklistMode={multiSelectMode}
+          checklistSelections={multiSelectIds}
+          onCheckToggle={(cardId) => {
+            setMultiSelectIds((prev) => {
+              const next = new Set(prev);
+              if (next.has(cardId)) {
+                next.delete(cardId);
+              } else {
+                next.add(cardId);
+              }
+              return next;
+            });
+          }}
         />
       </View>
 
-      {/* Checklist bottom bar */}
-      {checklistMode && (
-        <View style={styles.checklistBottom}>
-          <Pressable style={styles.cancelBtn} onPress={exitChecklistMode}>
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </Pressable>
-          <Pressable style={styles.saveBtn} onPress={handleSaveChecklist}>
-            <Text style={styles.saveBtnText}>Save</Text>
-          </Pressable>
+      {/* Multi-select floating action bar */}
+      {multiSelectMode && (
+        <View style={styles.floatingBar}>
+          <View style={styles.floatingBarInner}>
+            <Text style={styles.floatingCount}>
+              {multiSelectIds.size} selected
+            </Text>
+            <View style={styles.floatingActions}>
+              {(mode === 'browse' || mode === 'collection') && (
+                <Pressable
+                  style={styles.floatingBtn}
+                  onPress={handleMultiSelectAddToCollection}
+                >
+                  <Ionicons name="add-circle" size={20} color={colors.primary} />
+                  <Text style={styles.floatingBtnText}>Collect</Text>
+                </Pressable>
+              )}
+              {(mode === 'browse' || mode === 'wanted') && (
+                <Pressable
+                  style={styles.floatingBtn}
+                  onPress={handleMultiSelectAddToWanted}
+                >
+                  <Ionicons name="heart" size={20} color={colors.primary} />
+                  <Text style={styles.floatingBtnText}>Want</Text>
+                </Pressable>
+              )}
+              {(mode === 'collection' || mode === 'wanted') && (
+                <Pressable
+                  style={[styles.floatingBtn, styles.floatingBtnDanger]}
+                  onPress={handleMultiSelectRemove}
+                >
+                  <Ionicons name="trash" size={20} color={colors.error} />
+                  <Text style={[styles.floatingBtnText, { color: colors.error }]}>Remove</Text>
+                </Pressable>
+              )}
+              <Pressable style={styles.floatingBtnCancel} onPress={exitMultiSelect}>
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
         </View>
       )}
 
       <CardDetailModal
         visible={detailVisible}
-        cards={displayCards}
+        cards={filteredCards}
         initialIndex={detailIndex}
         setName={isSearchMode ? undefined : currentSetName}
         onClose={() => setDetailVisible(false)}
@@ -319,99 +436,192 @@ const styles = StyleSheet.create({
   grid: {
     flex: 1,
   },
-  segmentRow: {
+
+  // Tab bar styles
+  tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
-    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
   },
-  segment: {
+  tabItemWrapper: {
     flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  tabDivider: {
+    width: 1,
+    backgroundColor: colors.border,
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm + 2,
+    gap: 6,
   },
-  segmentActive: {
-    backgroundColor: colors.primary + '20',
-    borderColor: colors.primary,
+  tabItemActive: {
+    backgroundColor: colors.primary + '18',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
   },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  segmentTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  checklistToggleRow: {
-    alignItems: 'flex-end',
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.xs,
-  },
-  checklistBtn: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  checklistBtnText: {
+  tabLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
     fontWeight: '500',
+    color: colors.textMuted,
   },
-  checklistHeader: {
+  tabLabelActive: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+
+  // Set filter dropdown
+  setFilterRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.xs,
-  },
-  checklistAction: {
-    fontSize: 13,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  checklistCount: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  checklistBottom: {
-    flexDirection: 'row',
     gap: spacing.sm,
-    padding: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
   },
-  cancelBtn: {
-    flex: 1,
+  setDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  cancelBtnText: {
-    fontSize: 15,
+  setDropdownLabel: {
+    fontSize: 13,
     fontWeight: '500',
     color: colors.textSecondary,
+    maxWidth: 150,
   },
-  saveBtn: {
+  setDropdownMenu: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    maxHeight: 240,
+    overflow: 'scroll' as any,
+  },
+  setDropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  setDropdownItemActive: {
+    backgroundColor: colors.primary + '18',
+  },
+  setDropdownItemText: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '400',
     flex: 1,
+  },
+  setDropdownItemTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  setDropdownItemProgress: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginLeft: spacing.sm,
+  },
+  setProgressInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 1,
+  },
+  setProgressTrack: {
+    flex: 1,
+    height: 4,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  setProgressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  setProgressText: {
+    fontSize: 11,
+    color: colors.textMuted,
+    fontWeight: '500',
+  },
+
+  // Floating action bar for multi-select
+  floatingBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.md,
+    paddingBottom: Platform.OS === 'web' ? spacing.md : spacing.xl,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.background + 'EE',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  floatingBarInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  floatingCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  floatingActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  floatingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
   },
-  saveBtnText: {
-    fontSize: 15,
+  floatingBtnDanger: {
+    borderColor: colors.error + '40',
+  },
+  floatingBtnText: {
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.background,
+    color: colors.primary,
+  },
+  floatingBtnCancel: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 });
