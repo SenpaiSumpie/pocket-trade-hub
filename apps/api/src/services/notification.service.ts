@@ -1,6 +1,7 @@
-import { eq } from 'drizzle-orm';
+import { eq, and, sql, lt, desc } from 'drizzle-orm';
 import { Expo, type ExpoPushMessage, type ExpoPushTicket } from 'expo-server-sdk';
-import { pushTokens } from '../db/schema';
+import { randomUUID } from 'crypto';
+import { pushTokens, notifications } from '../db/schema';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 const expo = new Expo();
@@ -95,4 +96,163 @@ export async function sendNewSetNotification(
   }
 
   return { sent, failed };
+}
+
+export async function createNotification(
+  db: any,
+  opts: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: any;
+  },
+) {
+  const id = randomUUID();
+  const [notification] = await db
+    .insert(notifications)
+    .values({
+      id,
+      userId: opts.userId,
+      type: opts.type,
+      title: opts.title,
+      body: opts.body,
+      data: opts.data || null,
+    })
+    .returning();
+
+  return notification;
+}
+
+export async function getNotifications(
+  db: any,
+  userId: string,
+  opts: { limit?: number; cursor?: string } = {},
+) {
+  const { limit = 20, cursor } = opts;
+
+  const conditions: any[] = [eq(notifications.userId, userId)];
+
+  if (cursor) {
+    conditions.push(
+      sql`(${notifications.createdAt}, ${notifications.id}) < (
+        SELECT ${notifications.createdAt}, ${notifications.id}
+        FROM ${notifications}
+        WHERE ${notifications.id} = ${cursor}
+      )`,
+    );
+  }
+
+  const whereClause =
+    conditions.length === 1 ? conditions[0] : and(...conditions);
+
+  const rows = await db
+    .select()
+    .from(notifications)
+    .where(whereClause)
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const result = hasMore ? rows.slice(0, limit) : rows;
+
+  return {
+    notifications: result,
+    hasMore,
+  };
+}
+
+export async function markRead(
+  db: any,
+  notificationId: string,
+  userId: string,
+) {
+  const result = await db
+    .update(notifications)
+    .set({ read: true })
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId),
+      ),
+    )
+    .returning({ id: notifications.id });
+
+  return result.length > 0;
+}
+
+export async function markAllRead(db: any, userId: string) {
+  const result = await db
+    .update(notifications)
+    .set({ read: true })
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.read, false),
+      ),
+    )
+    .returning({ id: notifications.id });
+
+  return result.length;
+}
+
+export async function getUnreadCount(db: any, userId: string) {
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.read, false),
+      ),
+    );
+
+  return result[0]?.count || 0;
+}
+
+export async function sendProposalPushNotification(
+  db: any,
+  userId: string,
+  title: string,
+  body: string,
+) {
+  try {
+    const tokens = await db
+      .select({ token: pushTokens.token })
+      .from(pushTokens)
+      .where(eq(pushTokens.userId, userId));
+
+    if (tokens.length === 0) return;
+
+    const messages: ExpoPushMessage[] = [];
+    for (const record of tokens) {
+      if (!Expo.isExpoPushToken(record.token)) continue;
+      messages.push({ to: record.token, sound: 'default', title, body });
+    }
+
+    if (messages.length > 0) {
+      const chunks = expo.chunkPushNotifications(messages);
+      for (const chunk of chunks) {
+        try {
+          await expo.sendPushNotificationsAsync(chunk);
+        } catch {
+          // Push failures non-critical
+        }
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+}
+
+export async function archiveOldNotifications(db: any) {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const result = await db
+    .delete(notifications)
+    .where(lt(notifications.createdAt, thirtyDaysAgo))
+    .returning({ id: notifications.id });
+
+  return result.length;
 }
