@@ -46,6 +46,8 @@ export function useAddToWanted() {
           method: 'POST',
           body: JSON.stringify({ cardId, priority }),
         });
+        // Trigger background match recompute (non-blocking)
+        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
       } catch {
         removeFromWanted(cardId);
       }
@@ -65,6 +67,8 @@ export function useRemoveFromWanted() {
 
       try {
         await apiFetch(`/wanted/${cardId}`, { method: 'DELETE' });
+        // Trigger background match recompute (non-blocking)
+        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
       } catch {
         if (prev) {
           addToWanted(cardId, prev);
@@ -89,6 +93,8 @@ export function useUpdatePriority() {
           method: 'PUT',
           body: JSON.stringify({ priority }),
         });
+        // Trigger background match recompute (non-blocking)
+        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
       } catch {
         if (prev) {
           updatePriority(cardId, prev);

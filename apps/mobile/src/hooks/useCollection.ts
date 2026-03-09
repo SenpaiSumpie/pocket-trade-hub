@@ -61,6 +61,8 @@ export function useAddToCollection() {
             } catch {
               // Non-critical -- optimistic update is already applied
             }
+            // Trigger background match recompute (non-blocking)
+            apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
           } catch {
             // Revert optimistic update
             if (prev != null) {
@@ -94,6 +96,8 @@ export function useRemoveFromCollection() {
           const progress = await apiFetch<CollectionProgress[]>('/collection/progress');
           setProgress(progress);
         } catch { /* non-critical */ }
+        // Trigger background match recompute (non-blocking)
+        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
       } catch {
         if (prev != null) {
           addToCollection(cardId, prev);
@@ -147,6 +151,8 @@ export function useBulkUpdateCollection() {
         ]);
         setCollection(items);
         setProgress(progress);
+        // Trigger background match recompute (non-blocking)
+        apiFetch('/matches/refresh', { method: 'POST' }).catch(() => {});
       } catch {
         // Surface error -- caller can handle
         throw new Error('Bulk update failed');
