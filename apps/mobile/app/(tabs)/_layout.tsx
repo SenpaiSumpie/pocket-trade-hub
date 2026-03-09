@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants/theme';
+import { useTradesStore } from '@/src/stores/trades';
 
 export default function TabLayout() {
+  const unseenCount = useTradesStore((s) => s.unseenCount);
+
   return (
     <Tabs
       screenOptions={{
@@ -42,9 +45,12 @@ export default function TabLayout() {
         name="trades"
         options={{
           title: 'Trades',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal" size={size} color={color} />
           ),
+          tabBarBadge: unseenCount > 0 ? unseenCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#e53e3e', fontSize: 10 },
         }}
       />
       <Tabs.Screen
