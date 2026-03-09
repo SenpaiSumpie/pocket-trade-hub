@@ -26,6 +26,16 @@ export function MatchCard({ match, onPress }: MatchCardProps) {
         <Text style={styles.partnerName} numberOfLines={1}>
           {match.partnerDisplayName ?? 'Trainer'}
         </Text>
+        {match.partnerAvgRating > 0 ? (
+          <View style={styles.partnerRepRow}>
+            <Ionicons name="star" size={10} color="#f0c040" />
+            <Text style={styles.partnerRepText}>
+              {match.partnerAvgRating.toFixed(1)} ({match.partnerTradeCount})
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.newTraderText}>New trader</Text>
+        )}
       </View>
 
       {/* Center: Best card pair */}
@@ -108,6 +118,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
     maxWidth: 60,
+  },
+  partnerRepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginTop: 2,
+  },
+  partnerRepText: {
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+  newTraderText: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   pairSection: {
     flex: 1,

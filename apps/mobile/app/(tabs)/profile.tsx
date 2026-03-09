@@ -1,14 +1,59 @@
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/src/stores/auth';
 import { getAvatarById } from '@/src/constants/avatars';
 import FriendCodeBadge from '@/src/components/FriendCodeBadge';
+import { apiFetch } from '@/src/hooks/useApi';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+
+interface UserReputation {
+  avgRating: number;
+  tradeCount: number;
+}
+
+function ReputationStars({ avgRating, tradeCount }: UserReputation) {
+  if (tradeCount === 0) {
+    return <Text style={styles.noRatingsText}>No ratings yet</Text>;
+  }
+
+  const fullStars = Math.floor(avgRating);
+  const hasHalf = avgRating - fullStars >= 0.25 && avgRating - fullStars < 0.75;
+  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+  return (
+    <View style={styles.reputationRow}>
+      <View style={styles.starsRow}>
+        {Array.from({ length: fullStars }, (_, i) => (
+          <Ionicons key={`f${i}`} name="star" size={18} color="#f0c040" />
+        ))}
+        {hasHalf && <Ionicons name="star-half" size={18} color="#f0c040" />}
+        {Array.from({ length: emptyStars }, (_, i) => (
+          <Ionicons key={`e${i}`} name="star-outline" size={18} color={colors.textMuted} />
+        ))}
+      </View>
+      <Text style={styles.ratingText}>
+        {avgRating.toFixed(1)} ({tradeCount} trade{tradeCount !== 1 ? 's' : ''})
+      </Text>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const [reputation, setReputation] = useState<UserReputation>({ avgRating: 0, tradeCount: 0 });
+
+  useEffect(() => {
+    if (!isLoggedIn || !user?.id) return;
+    apiFetch<{ avgRating: number; tradeCount: number }>(`/users/${user.id}`)
+      .then((data) => {
+        setReputation({ avgRating: data.avgRating, tradeCount: data.tradeCount });
+      })
+      .catch(() => {});
+  }, [isLoggedIn, user?.id]);
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
@@ -53,6 +98,9 @@ export default function ProfileScreen() {
           {user?.displayName || 'No display name'}
         </Text>
         <Text style={styles.email}>{user?.email}</Text>
+        <View style={styles.reputationSection}>
+          <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} />
+        </View>
       </View>
 
       {/* Friend Code */}
@@ -131,6 +179,27 @@ const styles = StyleSheet.create({
   email: {
     ...typography.caption,
     marginTop: spacing.xs,
+  },
+  reputationSection: {
+    marginTop: spacing.sm,
+    alignItems: 'center',
+  },
+  reputationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  ratingText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  noRatingsText: {
+    ...typography.caption,
+    color: colors.textMuted,
   },
   friendCodeSection: {
     width: '100%',

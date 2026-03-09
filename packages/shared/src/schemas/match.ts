@@ -16,6 +16,7 @@ export const tradeMatchSchema = z.object({
   partnerAvatarId: z.string().nullable(),
   partnerFriendCode: z.string().nullable(),
   partnerTradeCount: z.number(),
+  partnerAvgRating: z.number(),
   userGives: z.array(matchCardPairSchema),
   userGets: z.array(matchCardPairSchema),
   score: z.number(),

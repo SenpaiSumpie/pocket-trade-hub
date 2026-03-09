@@ -9,6 +9,7 @@ import {
   tradeMatches,
 } from '../db/schema';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
+import { getUserReputation } from './rating.service';
 
 type DbInstance = any;
 
@@ -434,6 +435,15 @@ export async function getMatchesForUser(
 
   const cardMap = new Map<string, { id: string; name: string; imageUrl: string; rarity: string | null }>(cardDetails.map((c: any) => [c.id, c]));
 
+  // Fetch reputation for all partners
+  const reputationMap = new Map<string, { avgRating: number; tradeCount: number }>();
+  await Promise.all(
+    partnerIds.map(async (pid: string) => {
+      const rep = await getUserReputation(db, pid);
+      reputationMap.set(pid, rep);
+    }),
+  );
+
   // Hydrate matches
   let unseenCount = 0;
   const hydratedMatches = matchRows.map((match: any) => {
@@ -467,7 +477,8 @@ export async function getMatchesForUser(
       partnerDisplayName: partner?.displayName || null,
       partnerAvatarId: partner?.avatarId || null,
       partnerFriendCode: partner?.friendCode || null,
-      partnerTradeCount: 0, // Trade count comes in Phase 5
+      partnerTradeCount: reputationMap.get(match.partnerId)?.tradeCount ?? 0,
+      partnerAvgRating: reputationMap.get(match.partnerId)?.avgRating ?? 0,
       userGives: gives,
       userGets: gets,
       score: match.score,
