@@ -34,7 +34,7 @@ export function useLoadCollection() {
 
 /** Add a card to collection with optimistic update and debounced API call. */
 export function useAddToCollection() {
-  const { addToCollection, removeFromCollection, collectionByCardId } = useCollectionStore();
+  const { addToCollection, removeFromCollection, collectionByCardId, setProgress } = useCollectionStore();
   const pending = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   return useCallback(
@@ -54,6 +54,13 @@ export function useAddToCollection() {
               method: 'POST',
               body: JSON.stringify({ cardId, quantity }),
             });
+            // Refresh progress from server to keep in sync
+            try {
+              const progress = await apiFetch<CollectionProgress[]>('/collection/progress');
+              setProgress(progress);
+            } catch {
+              // Non-critical -- optimistic update is already applied
+            }
           } catch {
             // Revert optimistic update
             if (prev != null) {
@@ -67,13 +74,13 @@ export function useAddToCollection() {
         pending.current.set(cardId, timer);
       });
     },
-    [addToCollection, removeFromCollection, collectionByCardId],
+    [addToCollection, removeFromCollection, collectionByCardId, setProgress],
   );
 }
 
 /** Remove a card from collection with optimistic update. */
 export function useRemoveFromCollection() {
-  const { removeFromCollection, addToCollection, collectionByCardId } = useCollectionStore();
+  const { removeFromCollection, addToCollection, collectionByCardId, setProgress } = useCollectionStore();
 
   return useCallback(
     async (cardId: string) => {
@@ -82,13 +89,18 @@ export function useRemoveFromCollection() {
 
       try {
         await apiFetch(`/collection/${cardId}`, { method: 'DELETE' });
+        // Refresh progress from server
+        try {
+          const progress = await apiFetch<CollectionProgress[]>('/collection/progress');
+          setProgress(progress);
+        } catch { /* non-critical */ }
       } catch {
         if (prev != null) {
           addToCollection(cardId, prev);
         }
       }
     },
-    [removeFromCollection, addToCollection, collectionByCardId],
+    [removeFromCollection, addToCollection, collectionByCardId, setProgress],
   );
 }
 
