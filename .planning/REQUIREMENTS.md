@@ -44,7 +44,7 @@
 ### Trade Matching
 
 - [x] **MATCH-01**: System automatically finds two-way trade matches (A has what B wants AND B has what A wants)
-- [ ] **MATCH-02**: User sees pre-computed suggested trades when opening the app
+- [x] **MATCH-02**: User sees pre-computed suggested trades when opening the app
 - [x] **MATCH-03**: User receives push notification when a new match is found
 - [x] **MATCH-04**: Matching engine uses wanted card priority to rank suggestions
 - [x] **MATCH-05**: User receives real-time in-app notification for new matches
@@ -134,7 +134,7 @@
 | WANT-02 | Phase 3 | Complete |
 | WANT-03 | Phase 3 | Complete |
 | MATCH-01 | Phase 4 | Complete |
-| MATCH-02 | Phase 4 | Pending |
+| MATCH-02 | Phase 4 | Complete |
 | MATCH-03 | Phase 4 | Complete |
 | MATCH-04 | Phase 4 | Complete |
 | MATCH-05 | Phase 4 | Complete |
