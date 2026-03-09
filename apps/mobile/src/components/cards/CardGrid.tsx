@@ -134,6 +134,8 @@ export function CardGrid({
           checklistMode={checklistMode}
           checked={checklistSelections?.has(item.id)}
           onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
+          inCollection={mode !== 'collection' && collectionByCardId != null && item.id in collectionByCardId}
+          isWanted={mode !== 'wanted' && wantedByCardId != null && item.id in wantedByCardId}
         />
       )}
       keyExtractor={(item) => item.id}

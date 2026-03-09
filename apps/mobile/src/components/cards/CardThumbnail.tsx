@@ -20,6 +20,10 @@ interface CardThumbnailProps {
   checklistMode?: boolean;
   checked?: boolean;
   onCheckToggle?: () => void;
+  /** Show a small "in collection" indicator in browse/wanted modes */
+  inCollection?: boolean;
+  /** Show a small "wanted" indicator in browse/collection modes */
+  isWanted?: boolean;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -60,6 +64,8 @@ export function CardThumbnail({
   checklistMode,
   checked,
   onCheckToggle,
+  inCollection,
+  isWanted,
 }: CardThumbnailProps) {
   const typeColor = card.type ? TYPE_COLORS[card.type] || colors.textMuted : colors.textMuted;
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -93,7 +99,7 @@ export function CardThumbnail({
 
   return (
     <Pressable style={styles.container} onPress={handlePress} onLongPress={handleLongPress}>
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, checklistMode && checked && styles.imageContainerSelected]}>
         <Image
           source={{ uri: card.imageUrl }}
           style={styles.image}
@@ -120,6 +126,27 @@ export function CardThumbnail({
           </View>
         )}
 
+        {/* State indicators (bottom-left corner) - show cross-state info */}
+        <View style={styles.stateIndicators}>
+          {inCollection && (
+            <View style={styles.stateChip}>
+              <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+            </View>
+          )}
+          {isWanted && (
+            <View style={styles.stateChip}>
+              <Ionicons name="heart" size={12} color="#e74c3c" />
+            </View>
+          )}
+        </View>
+
+        {/* Owned indicator (collection mode - show checkmark on owned cards) */}
+        {quantity != null && quantity >= 1 && !dimmed && (
+          <View style={styles.ownedIndicator}>
+            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+          </View>
+        )}
+
         {/* Set badge */}
         {showSetBadge && setName && (
           <View style={styles.setBadge}>
@@ -129,19 +156,20 @@ export function CardThumbnail({
           </View>
         )}
 
-        {/* Checklist overlay */}
+        {/* Multi-select overlay */}
         {checklistMode && (
-          <View style={styles.checkOverlay}>
+          <View style={[styles.checkOverlay, checked && styles.checkOverlayChecked]}>
             <Ionicons
-              name={checked ? 'checkbox' : 'square-outline'}
+              name={checked ? 'checkmark-circle' : 'ellipse-outline'}
               size={24}
-              color={checked ? colors.primary : colors.text}
+              color={checked ? colors.primary : 'rgba(255,255,255,0.7)'}
             />
           </View>
         )}
 
         {/* Toast overlay for quick-add */}
         <Animated.View style={[styles.toastOverlay, { opacity: toastOpacity }]} pointerEvents="none">
+          <Ionicons name="checkmark-circle" size={28} color="#ffffff" />
           <Text style={styles.toastText}>Added!</Text>
         </Animated.View>
       </View>
@@ -168,6 +196,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     overflow: 'hidden',
     backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  imageContainerSelected: {
+    borderColor: colors.primary,
   },
   image: {
     width: '100%',
@@ -208,6 +241,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
   },
+  stateIndicators: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    flexDirection: 'row',
+    gap: 2,
+  },
+  stateChip: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ownedIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+  },
   setBadge: {
     position: 'absolute',
     top: spacing.xs,
@@ -225,22 +278,21 @@ const styles = StyleSheet.create({
   },
   checkOverlay: {
     position: 'absolute',
-    bottom: 6,
-    alignSelf: 'center',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+    top: 6,
+    left: 6,
   },
+  checkOverlayChecked: {},
   toastOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(46,204,113,0.7)',
+    backgroundColor: 'rgba(46,204,113,0.75)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   toastText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#ffffff',
+    marginTop: 2,
   },
   name: {
     fontSize: 11,
