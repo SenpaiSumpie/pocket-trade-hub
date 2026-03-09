@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/src/stores/auth';
 import SetupChecklist from '@/src/components/SetupChecklist';
+import CollectionSummary from '@/src/components/cards/CollectionSummary';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 interface PreviewCard {
@@ -15,7 +16,7 @@ const PREVIEWS: PreviewCard[] = [
   {
     icon: 'albums',
     title: 'Cards Database',
-    description: 'Browse all Pokemon TCG Pocket cards and track your collection.',
+    description: 'Browse all Pokemon TCG Pocket cards and manage your collection.',
     color: '#3498db',
   },
   {
@@ -34,6 +35,7 @@ const PREVIEWS: PreviewCard[] = [
 
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const displayName = user?.displayName || 'Trainer';
 
   return (
@@ -45,6 +47,13 @@ export default function HomeScreen() {
       {user && (
         <View style={styles.section}>
           <SetupChecklist user={user} />
+        </View>
+      )}
+
+      {/* Collection Summary (requires auth) */}
+      {isLoggedIn && (
+        <View style={styles.section}>
+          <CollectionSummary />
         </View>
       )}
 
