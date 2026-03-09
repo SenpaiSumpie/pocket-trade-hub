@@ -1,30 +1,57 @@
 import { create } from 'zustand';
-import type { TradeMatch, MatchSort } from '@pocket-trade-hub/shared';
+import type { TradeMatch, MatchSort, TradeProposal } from '@pocket-trade-hub/shared';
+
+type ProposalDirection = 'incoming' | 'outgoing' | 'all';
+type ActiveSegment = 'matches' | 'proposals';
 
 interface TradesState {
+  // Matches state
   matches: TradeMatch[];
   unseenCount: number;
   sortBy: MatchSort;
   isLoading: boolean;
   lastRefreshed: number | null;
 
-  // Actions
+  // Proposals state
+  proposals: TradeProposal[];
+  proposalsLoading: boolean;
+  proposalDirection: ProposalDirection;
+  activeSegment: ActiveSegment;
+
+  // Match actions
   setMatches: (matches: TradeMatch[], unseenCount: number) => void;
   addMatch: (match: TradeMatch) => void;
   clearUnseen: () => void;
   setSortBy: (sort: MatchSort) => void;
   setLoading: (loading: boolean) => void;
   markSeen: (matchId: string) => void;
+
+  // Proposal actions
+  setProposals: (proposals: TradeProposal[]) => void;
+  addProposal: (proposal: TradeProposal) => void;
+  updateProposal: (id: string, updates: Partial<TradeProposal>) => void;
+  setProposalDirection: (dir: ProposalDirection) => void;
+  setActiveSegment: (seg: ActiveSegment) => void;
+
   reset: () => void;
 }
 
-export const useTradesStore = create<TradesState>((set) => ({
-  matches: [],
+const initialState = {
+  matches: [] as TradeMatch[],
   unseenCount: 0,
-  sortBy: 'priority',
+  sortBy: 'priority' as MatchSort,
   isLoading: false,
-  lastRefreshed: null,
+  lastRefreshed: null as number | null,
+  proposals: [] as TradeProposal[],
+  proposalsLoading: false,
+  proposalDirection: 'all' as ProposalDirection,
+  activeSegment: 'matches' as ActiveSegment,
+};
 
+export const useTradesStore = create<TradesState>((set) => ({
+  ...initialState,
+
+  // Match actions
   setMatches: (matches, unseenCount) =>
     set({ matches, unseenCount, lastRefreshed: Date.now() }),
 
@@ -52,12 +79,24 @@ export const useTradesStore = create<TradesState>((set) => ({
       };
     }),
 
-  reset: () =>
-    set({
-      matches: [],
-      unseenCount: 0,
-      sortBy: 'priority',
-      isLoading: false,
-      lastRefreshed: null,
-    }),
+  // Proposal actions
+  setProposals: (proposals) => set({ proposals }),
+
+  addProposal: (proposal) =>
+    set((state) => ({
+      proposals: [proposal, ...state.proposals],
+    })),
+
+  updateProposal: (id, updates) =>
+    set((state) => ({
+      proposals: state.proposals.map((p) =>
+        p.id === id ? { ...p, ...updates } : p,
+      ),
+    })),
+
+  setProposalDirection: (dir) => set({ proposalDirection: dir }),
+
+  setActiveSegment: (seg) => set({ activeSegment: seg }),
+
+  reset: () => set(initialState),
 }));
