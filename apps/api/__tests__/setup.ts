@@ -11,6 +11,8 @@ import userRoutes from '../src/routes/users';
 import cardRoutes from '../src/routes/cards';
 import adminRoutes from '../src/routes/admin';
 import notificationRoutes from '../src/routes/notifications';
+import collectionRoutes from '../src/routes/collection';
+import wantedRoutes from '../src/routes/wanted';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 let testSql: ReturnType<typeof postgres>;
@@ -59,6 +61,8 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   await app.register(cardRoutes);
   await app.register(adminRoutes);
   await app.register(notificationRoutes);
+  await app.register(collectionRoutes);
+  await app.register(wantedRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));
@@ -70,7 +74,7 @@ export async function cleanDb() {
   if (!testDb) return;
   // Truncate all tables in reverse dependency order
   await testDb.execute(
-    rawSql`TRUNCATE TABLE push_tokens, cards, sets, password_reset_tokens, refresh_tokens, users CASCADE`
+    rawSql`TRUNCATE TABLE user_collection_items, user_wanted_cards, push_tokens, cards, sets, password_reset_tokens, refresh_tokens, users CASCADE`
   );
 }
 
