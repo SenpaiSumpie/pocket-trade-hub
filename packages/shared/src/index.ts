@@ -31,3 +31,24 @@ export type {
   CardImportInput,
   CardSearchParams,
 } from './schemas/card';
+
+export {
+  priorityValues,
+  addToCollectionSchema,
+  updateQuantitySchema,
+  bulkCollectionSchema,
+  collectionItemSchema,
+  collectionProgressSchema,
+  addToWantedSchema,
+  updateWantedSchema,
+} from './schemas/collection';
+export type {
+  AddToCollectionInput,
+  UpdateQuantityInput,
+  BulkCollectionInput,
+  CollectionItem,
+  CollectionProgress,
+  AddToWantedInput,
+  UpdateWantedInput,
+  Priority,
+} from './schemas/collection';

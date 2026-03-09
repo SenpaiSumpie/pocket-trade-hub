@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, integer, boolean, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, boolean, jsonb, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -74,6 +74,42 @@ export const cards = pgTable('cards', {
   index('cards_set_id_idx').on(table.setId),
   index('cards_rarity_idx').on(table.rarity),
   index('cards_type_idx').on(table.type),
+]);
+
+export const priorityEnum = pgEnum('priority', ['high', 'medium', 'low']);
+
+export const userCollectionItems = pgTable('user_collection_items', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  cardId: text('card_id')
+    .notNull()
+    .references(() => cards.id),
+  quantity: integer('quantity').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('user_collection_items_user_card_idx').on(table.userId, table.cardId),
+  index('user_collection_items_user_id_idx').on(table.userId),
+  index('user_collection_items_card_id_idx').on(table.cardId),
+]);
+
+export const userWantedCards = pgTable('user_wanted_cards', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  cardId: text('card_id')
+    .notNull()
+    .references(() => cards.id),
+  priority: priorityEnum('priority').default('medium').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('user_wanted_cards_user_card_idx').on(table.userId, table.cardId),
+  index('user_wanted_cards_user_id_idx').on(table.userId),
+  index('user_wanted_cards_card_id_idx').on(table.cardId),
 ]);
 
 export const pushTokens = pgTable('push_tokens', {
