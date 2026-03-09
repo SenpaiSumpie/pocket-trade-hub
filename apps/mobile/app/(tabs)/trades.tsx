@@ -12,6 +12,7 @@ import { MatchDetailModal } from '@/src/components/trades/MatchDetailModal';
 import { MatchSortToggle } from '@/src/components/trades/MatchSortToggle';
 import { ProposalCard } from '@/src/components/trades/ProposalCard';
 import { ProposalDetailModal } from '@/src/components/trades/ProposalDetailModal';
+import { RatingModal } from '@/src/components/trades/RatingModal';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradeMatch, TradeProposal } from '@pocket-trade-hub/shared';
 
@@ -36,6 +37,9 @@ export default function TradesScreen() {
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [proposalModalVisible, setProposalModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
+  const [ratingProposalId, setRatingProposalId] = useState('');
+  const [ratingPartnerName, setRatingPartnerName] = useState('');
 
   // Clear unseen count and background refresh when tab is focused
   useFocusEffect(
@@ -93,6 +97,18 @@ export default function TradesScreen() {
     }
     setRefreshing(false);
   }, [activeSegment, refresh, fetchProposals]);
+
+  const handleRatePartner = useCallback((proposalId: string, _partnerId: string) => {
+    setRatingProposalId(proposalId);
+    setRatingPartnerName('your trade partner');
+    setRatingModalVisible(true);
+  }, []);
+
+  const handleCloseRatingModal = useCallback(() => {
+    setRatingModalVisible(false);
+    setRatingProposalId('');
+    setRatingPartnerName('');
+  }, []);
 
   const handleDirectionChange = useCallback(
     (dir: ProposalDirection) => {
@@ -251,6 +267,14 @@ export default function TradesScreen() {
         onClose={handleCloseProposalModal}
         proposalId={selectedProposalId}
         currentUserId={currentUserId}
+        onRatePartner={handleRatePartner}
+      />
+
+      <RatingModal
+        visible={ratingModalVisible}
+        onClose={handleCloseRatingModal}
+        proposalId={ratingProposalId}
+        partnerName={ratingPartnerName}
       />
     </View>
   );
