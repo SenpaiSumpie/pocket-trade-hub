@@ -52,3 +52,14 @@ export type {
   UpdateWantedInput,
   Priority,
 } from './schemas/collection';
+
+export {
+  matchCardPairSchema,
+  tradeMatchSchema,
+  matchSortSchema,
+} from './schemas/match';
+export type {
+  MatchCardPair,
+  TradeMatch,
+  MatchSort,
+} from './schemas/match';

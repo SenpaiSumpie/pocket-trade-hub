@@ -112,6 +112,28 @@ export const userWantedCards = pgTable('user_wanted_cards', {
   index('user_wanted_cards_card_id_idx').on(table.cardId),
 ]);
 
+export const tradeMatches = pgTable('trade_matches', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  partnerId: text('partner_id')
+    .notNull()
+    .references(() => users.id),
+  userGives: jsonb('user_gives').notNull(),
+  userGets: jsonb('user_gets').notNull(),
+  score: integer('score').notNull(),
+  starRating: integer('star_rating').notNull(),
+  cardCount: integer('card_count').notNull(),
+  seen: boolean('seen').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('trade_matches_user_partner_idx').on(table.userId, table.partnerId),
+  index('trade_matches_user_id_idx').on(table.userId),
+  index('trade_matches_user_seen_idx').on(table.userId, table.seen),
+]);
+
 export const pushTokens = pgTable('push_tokens', {
   id: text('id').primaryKey(),
   userId: text('user_id')

@@ -3,6 +3,8 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import dbPlugin from './plugins/db';
 import authPlugin from './plugins/auth';
+import redisPlugin from './plugins/redis';
+import socketPlugin from './plugins/socket';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import cardRoutes from './routes/cards';
@@ -10,6 +12,7 @@ import adminRoutes from './routes/admin';
 import notificationRoutes from './routes/notifications';
 import collectionRoutes from './routes/collection';
 import wantedRoutes from './routes/wanted';
+import matchRoutes from './routes/matches';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -18,6 +21,8 @@ export async function buildApp(opts = {}) {
   await app.register(cors, { origin: true });
   await app.register(dbPlugin);
   await app.register(authPlugin);
+  await app.register(redisPlugin);
+  await app.register(socketPlugin);
 
   // Routes
   await app.register(authRoutes);
@@ -27,6 +32,7 @@ export async function buildApp(opts = {}) {
   await app.register(notificationRoutes);
   await app.register(collectionRoutes);
   await app.register(wantedRoutes);
+  await app.register(matchRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));
