@@ -14,6 +14,7 @@ import collectionRoutes from './routes/collection';
 import wantedRoutes from './routes/wanted';
 import matchRoutes from './routes/matches';
 import proposalRoutes from './routes/proposals';
+import premiumRoutes from './routes/premium';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -35,6 +36,7 @@ export async function buildApp(opts = {}) {
   await app.register(wantedRoutes);
   await app.register(matchRoutes);
   await app.register(proposalRoutes);
+  await app.register(premiumRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));

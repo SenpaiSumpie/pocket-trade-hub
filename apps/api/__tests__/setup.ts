@@ -15,6 +15,7 @@ import collectionRoutes from '../src/routes/collection';
 import wantedRoutes from '../src/routes/wanted';
 import matchRoutes from '../src/routes/matches';
 import proposalRoutes from '../src/routes/proposals';
+import premiumRoutes from '../src/routes/premium';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 let testSql: ReturnType<typeof postgres>;
@@ -67,6 +68,7 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   await app.register(wantedRoutes);
   await app.register(matchRoutes);
   await app.register(proposalRoutes);
+  await app.register(premiumRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));

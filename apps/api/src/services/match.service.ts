@@ -368,6 +368,14 @@ async function sendMatchPushNotification(
 }
 
 /**
+ * Apply premium boost to match score. 25% additive boost for premium partners.
+ */
+export function applyPremiumBoost(score: number, isPremium: boolean): number {
+  if (!isPremium || score === 0) return score;
+  return Math.round(score * 1.25);
+}
+
+/**
  * Returns hydrated match objects for a user.
  */
 export async function getMatchesForUser(
@@ -400,7 +408,7 @@ export async function getMatchesForUser(
     return { matches: [], unseenCount: 0 };
   }
 
-  // Get partner profiles
+  // Get partner profiles (including isPremium for boost)
   const partnerIds = matchRows.map((m: any) => m.partnerId);
   const partners = await db
     .select({
@@ -408,11 +416,12 @@ export async function getMatchesForUser(
       displayName: users.displayName,
       avatarId: users.avatarId,
       friendCode: users.friendCode,
+      isPremium: users.isPremium,
     })
     .from(users)
     .where(inArray(users.id, partnerIds));
 
-  const partnerMap = new Map<string, { id: string; displayName: string | null; avatarId: string | null; friendCode: string | null }>(partners.map((p: any) => [p.id, p]));
+  const partnerMap = new Map<string, { id: string; displayName: string | null; avatarId: string | null; friendCode: string | null; isPremium: boolean }>(partners.map((p: any) => [p.id, p]));
 
   // Collect all card IDs for batch lookup
   const allCardIds = new Set<string>();
@@ -471,17 +480,21 @@ export async function getMatchesForUser(
 
     if (!match.seen) unseenCount++;
 
+    const partnerIsPremium = partner?.isPremium ?? false;
+    const boostedScore = applyPremiumBoost(match.score, partnerIsPremium);
+
     return {
       id: match.id,
       partnerId: match.partnerId,
       partnerDisplayName: partner?.displayName || null,
       partnerAvatarId: partner?.avatarId || null,
       partnerFriendCode: partner?.friendCode || null,
+      partnerIsPremium,
       partnerTradeCount: reputationMap.get(match.partnerId)?.tradeCount ?? 0,
       partnerAvgRating: reputationMap.get(match.partnerId)?.avgRating ?? 0,
       userGives: gives,
       userGets: gets,
-      score: match.score,
+      score: boostedScore,
       starRating: match.starRating,
       cardCount: match.cardCount,
       seen: match.seen,
@@ -489,6 +502,11 @@ export async function getMatchesForUser(
       updatedAt: match.updatedAt.toISOString(),
     };
   });
+
+  // Re-sort by boosted score for priority sort
+  if (sort === 'priority') {
+    hydratedMatches.sort((a: any, b: any) => b.score - a.score || b.cardCount - a.cardCount);
+  }
 
   return { matches: hydratedMatches, unseenCount };
 }
