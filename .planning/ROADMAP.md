@@ -111,11 +111,12 @@ Plans:
   2. Premium user can view card demand analytics showing most wanted, least available, and trending cards
   3. Premium user's trade offers appear before free-tier offers in search results
   4. Premium user receives advanced alerts when someone lists a card on their wanted list
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Backend premium infrastructure: shared types, DB schema (users premium fields, cardAnalytics, cardAlertEvents), premium/analytics/card-alert services, routes, match boost
+- [ ] 06-02-PLAN.md — Background workers: analytics daily cron, card alert 2-hour batch, collection mutation alert triggers
+- [ ] 06-03-PLAN.md — Mobile premium experience: RevenueCat SDK, premium store, paywall, analytics dashboard, soft upsells, gold crown badge
 
 ## Progress
 
@@ -129,4 +130,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Collection Management | 3/3 | Complete   | 2026-03-09 |
 | 4. Trade Matching Engine | 2/2 | Complete   | 2026-03-09 |
 | 5. Trade Proposals and Reputation | 3/4 | In Progress | - |
-| 6. Premium Tier | 0/2 | Not started | - |
+| 6. Premium Tier | 0/3 | Not started | - |
