@@ -8,6 +8,7 @@ import {
   getCollectionProgress,
   getUserCollection,
 } from '../services/collection.service';
+import { checkCardAlerts } from '../services/card-alert.service';
 
 export default async function collectionRoutes(fastify: FastifyInstance) {
   // POST /collection — add card to collection
@@ -22,6 +23,8 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
 
       const userId = request.user.sub;
       const result = await addToCollection(fastify.db, userId, parsed.data.cardId, parsed.data.quantity);
+      // Fire-and-forget: check if any premium users want this card
+      checkCardAlerts(fastify.db, userId, parsed.data.cardId).catch(() => {});
       return reply.code(200).send(result);
     }
   );
@@ -84,6 +87,10 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
         parsed.data.additions,
         parsed.data.removals,
       );
+      // Fire-and-forget: check card alerts for each added card
+      for (const cardId of parsed.data.additions) {
+        checkCardAlerts(fastify.db, userId, cardId).catch(() => {});
+      }
       return reply.code(200).send(result);
     }
   );

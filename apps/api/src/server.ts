@@ -15,6 +15,8 @@ import wantedRoutes from './routes/wanted';
 import matchRoutes from './routes/matches';
 import proposalRoutes from './routes/proposals';
 import premiumRoutes from './routes/premium';
+import { initAnalyticsWorker, closeAnalyticsWorker } from './jobs/analytics-worker';
+import { initCardAlertWorker, closeCardAlertWorker } from './jobs/card-alert-worker';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -53,6 +55,21 @@ if (require.main === module) {
 
     try {
       await app.listen({ port, host });
+
+      // Initialize background workers
+      initAnalyticsWorker(app.db);
+      initCardAlertWorker(app.db);
+
+      // Graceful shutdown
+      const shutdown = async () => {
+        await closeAnalyticsWorker();
+        await closeCardAlertWorker();
+        await app.close();
+        process.exit(0);
+      };
+
+      process.on('SIGTERM', shutdown);
+      process.on('SIGINT', shutdown);
     } catch (err) {
       app.log.error(err);
       process.exit(1);
