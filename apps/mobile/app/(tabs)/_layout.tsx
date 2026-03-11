@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
 import { useNotificationStore } from '@/src/stores/notifications';
+import { usePremiumStore } from '@/src/stores/premium';
 import { apiFetch } from '@/src/hooks/useApi';
 import { fetchUnreadCount } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/stores/auth';
@@ -12,6 +13,14 @@ import { NotificationBell } from '@/src/components/notifications/NotificationBel
 
 export default function TabLayout() {
   const unseenCount = useTradesStore((s) => s.unseenCount);
+  const pendingProposals = useTradesStore((s) => {
+    try {
+      return (s.proposals ?? []).filter((p) => p && p.status === 'pending').length;
+    } catch {
+      return 0;
+    }
+  });
+  const tradesBadge = unseenCount + pendingProposals;
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const lastRefreshed = useTradesStore((s) => s.lastRefreshed);
 
@@ -30,14 +39,16 @@ export default function TabLayout() {
         // Non-critical
       }
     })();
-    // Also fetch unread notification count
+    // Also fetch unread notification count and premium status
     fetchUnreadCount();
+    usePremiumStore.getState().fetchStatus();
   }, [isLoggedIn, lastRefreshed]);
 
-  // Reset notification store on logout
+  // Reset notification and premium stores on logout
   useEffect(() => {
     if (!isLoggedIn) {
       useNotificationStore.getState().reset();
+      usePremiumStore.getState().reset();
     }
   }, [isLoggedIn]);
 
@@ -85,7 +96,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal" size={size} color={color} />
           ),
-          tabBarBadge: unseenCount > 0 ? unseenCount : undefined,
+          tabBarBadge: tradesBadge > 0 ? tradesBadge : undefined,
           tabBarBadgeStyle: { backgroundColor: '#e53e3e', fontSize: 10 },
         }}
       />

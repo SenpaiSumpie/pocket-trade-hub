@@ -102,7 +102,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isHydrated) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [isHydrated]);
 
@@ -128,6 +128,24 @@ export default function RootLayout() {
             options={{
               headerShown: true,
               headerTitle: 'Edit Profile',
+              headerStyle: { backgroundColor: '#0f0f1a' },
+              headerTintColor: '#ffffff',
+            }}
+          />
+          <Stack.Screen
+            name="notifications"
+            options={{
+              headerShown: true,
+              headerTitle: 'Notifications',
+              headerStyle: { backgroundColor: '#0f0f1a' },
+              headerTintColor: '#ffffff',
+            }}
+          />
+          <Stack.Screen
+            name="analytics"
+            options={{
+              headerShown: true,
+              headerTitle: 'Card Analytics',
               headerStyle: { backgroundColor: '#0f0f1a' },
               headerTintColor: '#ffffff',
             }}

@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
+import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
 import type { TradeMatch } from '@pocket-trade-hub/shared';
 
 interface MatchCardProps {
@@ -23,9 +24,12 @@ export function MatchCard({ match, onPress }: MatchCardProps) {
         <View style={[styles.avatarCircle, { backgroundColor: avatar?.color ?? colors.surfaceLight }]}>
           <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
         </View>
-        <Text style={styles.partnerName} numberOfLines={1}>
-          {match.partnerDisplayName ?? 'Trainer'}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.partnerName} numberOfLines={1}>
+            {match.partnerDisplayName ?? 'Trainer'}
+          </Text>
+          {match.partnerIsPremium && <PremiumBadge size={14} />}
+        </View>
         {match.partnerAvgRating > 0 ? (
           <View style={styles.partnerRepRow}>
             <Ionicons name="star" size={10} color="#f0c040" />
@@ -111,6 +115,12 @@ const styles = StyleSheet.create({
   },
   avatarEmoji: {
     fontSize: 20,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    maxWidth: 60,
   },
   partnerName: {
     ...typography.caption,

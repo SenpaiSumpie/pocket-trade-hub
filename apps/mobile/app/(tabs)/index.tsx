@@ -1,8 +1,11 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useAuthStore } from '@/src/stores/auth';
 import SetupChecklist from '@/src/components/SetupChecklist';
 import CollectionSummary from '@/src/components/cards/CollectionSummary';
+import { LockedFeatureCard } from '@/src/components/premium/LockedFeatureCard';
+import { usePremiumStore } from '@/src/stores/premium';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 interface PreviewCard {
@@ -37,6 +40,7 @@ export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const displayName = user?.displayName || 'Trainer';
+  const isPremium = usePremiumStore((s) => s.isPremium);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -54,6 +58,37 @@ export default function HomeScreen() {
       {isLoggedIn && (
         <View style={styles.section}>
           <CollectionSummary />
+        </View>
+      )}
+
+      {/* Analytics Section */}
+      {isLoggedIn && (
+        <View style={styles.section}>
+          {isPremium ? (
+            <TouchableOpacity
+              style={styles.analyticsCard}
+              onPress={() => router.push('/analytics' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.previewIcon, { backgroundColor: '#f0c04020' }]}>
+                <Ionicons name="analytics" size={28} color={colors.primary} />
+              </View>
+              <View style={styles.previewContent}>
+                <Text style={styles.previewTitle}>Card Analytics</Text>
+                <Text style={styles.previewDescription}>
+                  See which cards are most wanted, least available, and trending
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          ) : (
+            <LockedFeatureCard
+              title="Card Analytics"
+              description="See which cards are most wanted, least available, and trending"
+              icon="analytics"
+              onPress={() => router.push('/(tabs)/profile')}
+            />
+          )}
         </View>
       )}
 
@@ -98,6 +133,16 @@ const styles = StyleSheet.create({
   previewsTitle: {
     ...typography.subheading,
     marginBottom: spacing.md,
+  },
+  analyticsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
   },
   previewCard: {
     backgroundColor: colors.surface,

@@ -25,6 +25,7 @@ export const tradeMatchSchema = z.object({
   seen: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  partnerIsPremium: z.boolean().optional(),
 });
 
 export const matchSortSchema = z.enum(['priority', 'cards', 'newest']).default('priority');

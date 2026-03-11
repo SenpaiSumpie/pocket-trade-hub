@@ -7,6 +7,9 @@ import { getAvatarById } from '@/src/constants/avatars';
 import FriendCodeBadge from '@/src/components/FriendCodeBadge';
 import { apiFetch } from '@/src/hooks/useApi';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+import { PaywallCard } from '@/src/components/premium/PaywallCard';
+import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
+import { usePremiumStore } from '@/src/stores/premium';
 
 interface UserReputation {
   avgRating: number;
@@ -45,6 +48,8 @@ export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [reputation, setReputation] = useState<UserReputation>({ avgRating: 0, tradeCount: 0 });
+  const isPremium = usePremiumStore((s) => s.isPremium);
+  const fetchPremiumStatus = usePremiumStore((s) => s.fetchStatus);
 
   useEffect(() => {
     if (!isLoggedIn || !user?.id) return;
@@ -53,6 +58,7 @@ export default function ProfileScreen() {
         setReputation({ avgRating: data.avgRating, tradeCount: data.tradeCount });
       })
       .catch(() => {});
+    fetchPremiumStatus();
   }, [isLoggedIn, user?.id]);
 
   const handleLogout = () => {
@@ -94,9 +100,12 @@ export default function ProfileScreen() {
             <Ionicons name="person" size={48} color={colors.textMuted} />
           )}
         </View>
-        <Text style={styles.displayName}>
-          {user?.displayName || 'No display name'}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.displayName}>
+            {user?.displayName || 'No display name'}
+          </Text>
+          {isPremium && <PremiumBadge size={18} />}
+        </View>
         <Text style={styles.email}>{user?.email}</Text>
         <View style={styles.reputationSection}>
           <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} />
@@ -109,6 +118,9 @@ export default function ProfileScreen() {
           <FriendCodeBadge code={user.friendCode} />
         </View>
       )}
+
+      {/* Premium Section */}
+      <PaywallCard />
 
       {/* Info Cards */}
       <View style={styles.infoCard}>
@@ -171,6 +183,11 @@ const styles = StyleSheet.create({
   },
   avatarEmoji: {
     fontSize: 44,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   displayName: {
     ...typography.subheading,
