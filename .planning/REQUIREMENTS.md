@@ -65,10 +65,10 @@
 
 ### Premium
 
-- [ ] **PREM-01**: User can subscribe to premium tier via in-app purchase ($5/month)
-- [ ] **PREM-02**: Premium users see card demand analytics (most wanted, least available, trending)
-- [ ] **PREM-03**: Premium users' trade offers appear first in search results
-- [ ] **PREM-04**: Premium users receive advanced card alerts for wanted cards
+- [x] **PREM-01**: User can subscribe to premium tier via in-app purchase ($5/month)
+- [x] **PREM-02**: Premium users see card demand analytics (most wanted, least available, trending)
+- [x] **PREM-03**: Premium users' trade offers appear first in search results
+- [x] **PREM-04**: Premium users receive advanced card alerts for wanted cards
 
 ### Notifications
 
@@ -149,10 +149,10 @@
 | NOTIF-01 | Phase 5 | Backend Complete |
 | NOTIF-02 | Phase 5 | Backend Complete |
 | NOTIF-03 | Phase 5 | Backend Complete |
-| PREM-01 | Phase 6 | Pending |
-| PREM-02 | Phase 6 | Pending |
-| PREM-03 | Phase 6 | Pending |
-| PREM-04 | Phase 6 | Pending |
+| PREM-01 | Phase 6 | Complete |
+| PREM-02 | Phase 6 | Complete |
+| PREM-03 | Phase 6 | Complete |
+| PREM-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 41 total

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-11T02:46:39.090Z"
-last_activity: 2026-03-09 -- Plan 05-03 complete (notification inbox, rating modal, reputation display)
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-11T03:21:36.000Z"
+last_activity: 2026-03-11 -- Plan 06-01 complete (premium backend infrastructure)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  total_plans: 16
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** Phase 5: Trade Proposals and Reputation -- All plans complete
+**Current focus:** Phase 6: Premium Tier -- Plan 01 complete
 
 ## Current Position
 
-Phase: 5 of 6 (Trade Proposals and Reputation)
-Plan: 3 of 3 in current phase
+Phase: 6 of 6 (Premium Tier)
+Plan: 1 of 3 in current phase
 Status: In Progress
-Last activity: 2026-03-09 -- Plan 05-03 complete (notification inbox, rating modal, reputation display)
+Last activity: 2026-03-11 -- Plan 06-01 complete (premium backend infrastructure)
 
-Progress: [##########] 100% (13/13 plans complete)
+Progress: [#########-] 94% (15/16 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 7.8 min
-- Total execution time: 1.68 hours
+- Total plans completed: 14
+- Average duration: 7.9 min
+- Total execution time: 1.81 hours
 
 **By Phase:**
 
@@ -48,14 +48,14 @@ Progress: [##########] 100% (13/13 plans complete)
 | 03-collection-management | 3/3 | 26 min | 8.7 min |
 | 04-trade-matching-engine | 2/2 | 21 min | 10.5 min |
 | 05-trade-proposals-and-reputation | 3/3 | 19 min | 6.3 min |
+| 06-premium-tier | 1/3 | 8 min | 8.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 9min, 12min, 7min, 6min, 6min
+- Last 5 plans: 12min, 7min, 6min, 6min, 8min
 - Trend: stable
 
 *Updated after each plan completion*
-| Phase 05 P02 | 7min | 3 tasks | 9 files |
-| Phase 05 P04 | 1min | 1 tasks | 1 files |
+| Phase 06 P01 | 8min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -117,6 +117,11 @@ Recent decisions affecting current work:
 - [Phase 05]: Segment pill toggle for Matches/Proposals tab switching
 - [Phase 05]: Nullable rarity defaults to diamond1 for fairness calculation
 - [Phase 05]: Generic 'your trade partner' label for RatingModal partnerName to avoid interface changes
+- [Phase 06]: RevenueCat webhook uses Bearer token auth header (not HMAC signature)
+- [Phase 06]: CANCELLATION event is no-op: user paid through period, premium not revoked
+- [Phase 06]: Analytics pre-computed into cardAnalytics table for fast reads
+- [Phase 06]: Premium boost is 25% additive (Math.round(score * 1.25)) applied after DB read, before sort
+- [Phase 06]: Card alert batch processing creates grouped notifications per user
 
 ### Pending Todos
 
@@ -129,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T02:46:39.088Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-premium-tier/06-CONTEXT.md
+Last session: 2026-03-11T03:21:36.000Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: .planning/phases/06-premium-tier/06-01-SUMMARY.md
