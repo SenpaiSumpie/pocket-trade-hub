@@ -9,6 +9,9 @@ export const users = pgTable('users', {
   avatarId: varchar('avatar_id', { length: 50 }),
   friendCode: varchar('friend_code', { length: 19 }),
   isAdmin: boolean('is_admin').default(false).notNull(),
+  isPremium: boolean('is_premium').default(false).notNull(),
+  premiumExpiresAt: timestamp('premium_expires_at'),
+  revenuecatId: varchar('revenuecat_id', { length: 100 }),
   emailVerified: timestamp('email_verified'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -192,6 +195,37 @@ export const tradeRatings = pgTable('trade_ratings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
   uniqueIndex('trade_ratings_proposal_rater_idx').on(table.proposalId, table.raterId),
+]);
+
+export const cardAnalytics = pgTable('card_analytics', {
+  id: text('id').primaryKey(),
+  cardId: text('card_id')
+    .notNull()
+    .references(() => cards.id),
+  metric: varchar('metric', { length: 30 }).notNull(),
+  value: integer('value').notNull(),
+  rank: integer('rank').notNull(),
+  computedAt: timestamp('computed_at').defaultNow().notNull(),
+}, (table) => [
+  index('card_analytics_metric_rank_idx').on(table.metric, table.rank),
+  uniqueIndex('card_analytics_card_metric_idx').on(table.cardId, table.metric),
+]);
+
+export const cardAlertEvents = pgTable('card_alert_events', {
+  id: text('id').primaryKey(),
+  premiumUserId: text('premium_user_id')
+    .notNull()
+    .references(() => users.id),
+  cardId: text('card_id')
+    .notNull()
+    .references(() => cards.id),
+  addedByUserId: text('added_by_user_id')
+    .notNull()
+    .references(() => users.id),
+  processed: boolean('processed').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('card_alert_events_user_processed_idx').on(table.premiumUserId, table.processed),
 ]);
 
 export const notifications = pgTable('notifications', {

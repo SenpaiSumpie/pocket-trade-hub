@@ -78,7 +78,7 @@ export async function cleanDb() {
   if (!testDb) return;
   // Truncate all tables in reverse dependency order
   await testDb.execute(
-    rawSql`TRUNCATE TABLE notifications, trade_ratings, trade_proposals, trade_matches, user_collection_items, user_wanted_cards, push_tokens, cards, sets, password_reset_tokens, refresh_tokens, users CASCADE`
+    rawSql`TRUNCATE TABLE card_alert_events, card_analytics, notifications, trade_ratings, trade_proposals, trade_matches, user_collection_items, user_wanted_cards, push_tokens, cards, sets, password_reset_tokens, refresh_tokens, users CASCADE`
   );
 }
 
