@@ -1,330 +1,383 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Pokemon TCG Pocket Trading/Matchmaking Platform
-**Researched:** 2026-03-07
-**Confidence:** MEDIUM (based on training data patterns from trading platforms, TCG ecosystems, React Native apps, and billing systems; web verification unavailable)
+**Domain:** Pokemon TCG Pocket Trading Platform -- v2.0 Feature Additions
+**Researched:** 2026-03-11
+**Confidence:** HIGH (based on codebase analysis, competitor research, and established patterns)
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, user exodus, or fundamental product failure.
+### Pitfall 1: Post-Based Model Migration Destroys Existing Matching/Proposal Chain
+
+**What goes wrong:**
+The v1.0 schema tightly couples proposals to matches via `tradeProposals.matchId` referencing `tradeMatches.id`. The `createProposalSchema` in `packages/shared` requires `matchId` as a non-optional string. Moving to a post-based model (Offering/Seeking posts) means matches no longer originate from the automatic engine -- they originate from posts. If the migration drops or restructures `tradeMatches` without accounting for existing proposals, all in-progress proposals lose their context. Worse, the mobile app's `ProposalCreationModal` and `ProposalDetailModal` depend on match data to display what each party offers/wants.
+
+**Why it happens:**
+Developers treat the post-based model as a replacement for matching rather than an evolution. The automatic matching system in `match.service.ts` computes two-way matches from collection/wanted data, stores them in `tradeMatches`, and proposals reference those matches. The temptation is to rip out `tradeMatches` entirely, but proposals in-flight depend on that data.
+
+**How to avoid:**
+- Use the expand-contract pattern: add `tradePosts` table and `postId` column on `tradeProposals` alongside existing `matchId`. Make `matchId` nullable in the schema (it is already nullable in the DB column definition but required in the Zod schema).
+- Keep automatic matching running in parallel during transition. Let it coexist with posts -- users who have not adopted posts still get matched automatically.
+- Migrate the `createProposalSchema` to accept either `matchId` or `postId` (union type) so proposals can originate from either source.
+- Only deprecate automatic matching after post adoption is confirmed via analytics.
+
+**Warning signs:**
+- Proposals failing validation because `matchId` is missing.
+- Mobile app crashes when opening old proposals that reference deleted matches.
+- Users report "my trades disappeared" after update.
+
+**Phase to address:**
+Phase 1 (Post Model) -- must be the FIRST feature built because it is an architecture overhaul that every subsequent feature depends on.
 
 ---
 
-### Pitfall 1: Trade Matching Becomes O(n^2) and Kills Your Server
+### Pitfall 2: Card Language Mismatch in Trades (The PokeHub Problem)
 
-**What goes wrong:** The naive approach to trade matching checks every user's "have" list against every other user's "want" list. At 1,000 users with 50 cards each, that is 2.5 billion comparisons. The matching engine either times out, eats all server memory, or produces stale results that frustrate users.
+**What goes wrong:**
+Users post cards in one language (e.g., Japanese Pikachu) but partners expect another language (e.g., English Pikachu). Pokemon TCG Pocket restricts trades to same-language cards. If the app does not enforce or clearly display card language at every step -- post creation, search results, proposal creation, proposal review -- users complete the coordination flow only to discover they cannot execute the trade in-game. This is PokeHub's most-reported UX failure.
 
-**Why it happens:** Developers build matching as a simple nested loop in early development when there are 10 test users. It works perfectly. Then real users arrive and the system collapses.
+**Why it happens:**
+The current `cards` table has a single `name` field with no `language` column. Card IDs from TCGdex are language-agnostic (same card, different language = different TCGdex ID). When adding multi-language support, developers add the language column to the database but forget to propagate it through every UI surface -- search filters, post creation, proposal cards display, and match results.
 
-**Consequences:** Server costs explode. Matches take minutes instead of seconds. Users see "no matches found" because the job timed out before reaching them. Premium users paying for "priority matching" get the same slow experience.
+**How to avoid:**
+- Add `language` column to `cards` table and `userCollectionItems` (users may own cards in multiple languages).
+- Display language badges on EVERY card surface -- collection, search, posts, proposals.
+- Add a language filter that defaults to the user's game language and prominently warns when viewing cross-language results.
+- Validate at proposal creation that both sides' cards share the same language.
+- The card seed script must import cards per-language from TCGdex, not just English.
 
-**Prevention:**
-- Use an inverted index approach: maintain a lookup table of `card_id -> [users_who_want_it]` and `card_id -> [users_who_have_it]`. Finding matches becomes set intersections, not brute-force scans.
-- When a user updates their inventory or want list, only recompute matches for the changed cards, not the entire database.
-- Pre-compute and cache match results. Invalidate only affected pairs when inventories change.
-- Use database-level operations (SQL joins or indexed queries) instead of application-level loops.
+**Warning signs:**
+- Cards display without language indicators anywhere in the UI.
+- No language filter on search or post browsing screens.
+- Proposals can be created between cards of different languages with no warning.
 
-**Detection:** Monitor matching job duration. If it grows linearly with user count, the algorithm is O(n^2). Set alerts at 5-second and 30-second thresholds.
-
-**Phase:** Must be addressed in the initial trade matching engine design (Phase 1/2). Retrofitting an efficient algorithm onto a naive one requires a full rewrite of the matching layer.
-
----
-
-### Pitfall 2: Card Data Rot and Set Release Chaos
-
-**What goes wrong:** Pokemon TCG Pocket releases new card sets multiple times per year. Each release changes the trading landscape overnight. If the card database update process is manual, slow, or error-prone, users cannot trade new cards, the app feels abandoned, and users leave for competitors who update faster.
-
-**Why it happens:** Teams underestimate the operational burden. The initial card database is treated as a one-time import. No pipeline exists for rapid updates. Card IDs or naming conventions change between sets. Variant cards (alternate art, full art, immersive) are modeled as the same card when they should be distinct tradeable items.
-
-**Consequences:** Users cannot list newly released cards for days or weeks. Inventory data becomes inconsistent when card schema changes. Duplicate entries appear. Users lose trust in the platform's reliability.
-
-**Prevention:**
-- Design the card data model to handle variants from day one. Each unique tradeable item needs its own ID, not just each Pokemon. A "Pikachu" base card and "Pikachu Full Art" are different tradeable assets.
-- Build an admin pipeline (JSON import tool as specified in PROJECT.md) that can ingest a new set in under an hour, not days.
-- Version the card database schema. Include a `set_release_date` field to support filtering and to identify stale data.
-- Include a `card_hash` or `external_id` field that maps to whatever source you use, so updates can be reconciled without duplicating.
-- Plan for card errata and corrections (name changes, rarity reclassifications).
-
-**Detection:** Track time-to-publish for each new set release. If it takes more than 24 hours after a set launches in-game, the pipeline is too slow.
-
-**Phase:** Card data model design in Phase 1. Import pipeline in Phase 2. Must be solid before any real users arrive.
+**Phase to address:**
+Phase 1 or 2 (Multi-Language Card Database) -- must ship BEFORE or WITH the post-based model, not after. Language-blind trading is the single biggest user complaint in the competitor app.
 
 ---
 
-### Pitfall 3: Stale Inventory Leading to Failed Trades and User Frustration
+### Pitfall 3: OAuth Account Linking Creates Duplicate/Orphaned Accounts
 
-**What goes wrong:** User A lists a card as available. User B gets matched and sends a trade proposal. By the time User B proposes, User A has already traded that card in-game or to another user on the platform. User B wasted time. This happens repeatedly and users stop trusting matches.
+**What goes wrong:**
+A user who registered with email/password tries to sign in with Google using the same email. The app creates a new account instead of linking to the existing one, resulting in duplicate accounts with split collection data. Conversely, Apple Sign-In's "Hide My Email" feature generates a `privaterelay.appleid.com` proxy email that never matches any existing account, so the user cannot link their Apple ID to their existing account.
 
-**Why it happens:** The app coordinates trades but cannot verify in-game state. There is no API from Pokemon TCG Pocket to confirm a user actually holds a card. Users forget to update their inventory after trading in-game.
+**Why it happens:**
+The current `users` table stores `email` and `passwordHash` with no OAuth provider columns. Adding OAuth without an account-linking flow means the app has no way to associate a Google/Apple identity with an existing email/password user. Developers add OAuth as a separate registration path without considering existing users.
 
-**Consequences:** High proposal rejection rates. Users stop responding to proposals because "most are stale anyway." The matching engine's value proposition erodes. This is the single biggest trust problem for a coordination-only platform.
+**How to avoid:**
+- Add `authProviders` junction table: `userId, provider (google|apple|email), providerUserId, providerEmail`.
+- On OAuth sign-in, check if an email match exists (for Google where email is available). If yes, prompt the user to link accounts by verifying their existing password.
+- For Apple's hidden email: store the Apple user ID as the linking key, not email. On first Apple sign-in, require the user to confirm their existing account (enter email + password) to link.
+- Never auto-merge accounts silently -- always require user confirmation.
+- Add an account settings screen where users can view/manage linked providers.
 
-**Prevention:**
-- Implement a "card lock" system: when a user accepts a trade proposal, lock that card from appearing in other matches until the trade is confirmed or expires.
-- Add a "confirm trade completed" flow with a timeout (e.g., 24 hours). If not confirmed, unlock the card and flag the trade as expired.
-- Show "last inventory update" timestamps prominently. Matches against stale inventories (not updated in 7+ days) should be deprioritized or flagged.
-- Nudge users to update inventory with periodic reminders ("Your inventory hasn't been updated in 5 days. Are these cards still available?").
-- Track per-user trade completion rate. Users who frequently fail to complete trades should have their matches deprioritized (a soft reputation score).
+**Warning signs:**
+- Users report "I can't find my cards" after signing in with Google.
+- Database shows duplicate emails or users with zero collection who should have data.
+- Support requests about "lost accounts."
 
-**Detection:** Monitor trade proposal acceptance rate and completion rate. If acceptance drops below 40% or completion drops below 60%, stale inventory is the likely cause.
-
-**Phase:** Core trade flow design (Phase 2). Reputation/staleness signals in Phase 3.
-
----
-
-### Pitfall 4: Subscription Billing Edge Cases That Lose Money or Lose Users
-
-**What goes wrong:** Subscription billing with Apple App Store and Google Play has dozens of edge cases: failed renewals, grace periods, refunds, family sharing, promotional offers, price changes, sandbox vs production environments. Teams implement the "happy path" and ship, then discover 15-20% of subscribers hit edge cases that either give them free access or wrongfully revoke paid access.
-
-**Why it happens:** Apple and Google have different billing APIs, different webhook/notification systems, different grace period behaviors, and different refund policies. Testing is difficult because sandbox environments behave differently from production. The StoreKit 2 / Google Play Billing Library APIs change annually.
-
-**Consequences:** Revenue leakage from users who cancel but retain access. User complaints from paid subscribers who lose access during a grace period. App store rejection for non-compliant subscription flows. Chargebacks and refund fraud.
-
-**Prevention:**
-- Use a subscription management SDK like RevenueCat or Adapty rather than implementing StoreKit 2 and Google Play Billing directly. These handle cross-platform receipt validation, grace periods, refund detection, and entitlement management. The cost (typically percentage of revenue) is vastly cheaper than building and maintaining this yourself.
-- Implement server-side receipt validation. Never trust the client for entitlement status.
-- Handle these specific states: active, expired, grace period, billing retry, paused, revoked, refunded. Each needs a distinct UX response.
-- Test every state in sandbox before launch. Maintain a test matrix of subscription states.
-- Store subscription status server-side with a webhook-driven update model. Do not poll.
-
-**Detection:** Compare active subscriber count against expected revenue. If they diverge by more than 5%, there is a billing state bug. Monitor webhook delivery failures.
-
-**Phase:** Subscription implementation phase (Phase 3 or whenever premium is built). Must be tested thoroughly before launch. Do not defer edge cases to "after launch."
+**Phase to address:**
+Phase 2 (OAuth) -- design the linking flow BEFORE implementing the OAuth providers. The database schema change (authProviders table) should be in the same migration.
 
 ---
 
-### Pitfall 5: Push Notification Delivery Failures Breaking Real-Time Matching
+### Pitfall 4: Web App Shares Too Much or Too Little with Mobile
 
-**What goes wrong:** The "killer feature" is real-time match notifications. Users expect to be notified immediately when a compatible trade partner appears. But push notifications are unreliable: they can be delayed, throttled, dropped, or disabled by the OS. Building the core experience around push notifications means building on an unreliable foundation.
+**What goes wrong:**
+Adding a web app (`apps/web`) to the Turborepo monorepo leads to one of two failure modes. (A) Over-sharing: importing mobile components that use React Native APIs (`Animated`, `FlatList`, `TouchableOpacity`, platform-specific storage) into the web app, causing build failures or runtime crashes. (B) Under-sharing: duplicating all business logic and Zod schemas instead of using the shared package, leading to divergent behavior between web and mobile.
 
-**Why it happens:** Developers test on their own devices with notifications enabled and assume that experience is universal. In reality, Android aggressively kills background processes and throttles notifications (especially on Chinese OEM devices like Xiaomi, Oppo, Huawei). iOS is more reliable but still throttles high-volume senders. Users disable notifications for apps they perceive as spammy.
+**Why it happens:**
+The current monorepo has `apps/mobile` (Expo/React Native) and `packages/shared` (Zod schemas). The shared package only contains schemas -- no hooks, no API client, no business logic. When building the web app, developers either try to import from `apps/mobile/src` directly (breaks) or rebuild everything from scratch (diverges).
 
-**Consequences:** Users miss trade matches. They open the app and see nothing, not knowing a match was sent and dropped. They conclude the app "doesn't work" and leave. Premium users paying for alerts feel cheated.
+**How to avoid:**
+- Extract shared business logic into `packages/shared` BEFORE building the web app: API client, Zod schemas (already there), type definitions, fairness calculation, constants.
+- Keep UI components platform-specific: `apps/mobile/src/components` and `apps/web/src/components` -- do NOT try to share React Native components with web.
+- Use React Native for Web (via Expo) only if committing to a single codebase. If building a separate Next.js/React web app, do not import anything from `react-native`.
+- Shared hooks that use platform-agnostic APIs (fetch, Zod validation) go in `packages/shared`. Hooks that use AsyncStorage, SecureStore, or React Native modules stay in `apps/mobile`.
+- Zustand stores can be shared IF they do not import platform-specific persistence.
 
-**Prevention:**
-- Design a dual-delivery system: push notifications for immediacy PLUS an in-app notification inbox that persists matches. When a user opens the app, always check the server for pending matches regardless of push notification state.
-- Batch low-priority notifications. Do not send a push for every single match; instead, send "You have 3 new trade matches" periodically. Reserve individual pushes for high-priority events (someone accepted your proposal, a high-demand card match).
-- Implement notification delivery tracking: send a push, log it server-side, confirm client receipt via a silent callback. If delivery rate drops below 70%, alert.
-- Respect user preferences. Let users configure notification frequency and types. Users who feel spammed will disable all notifications, which is worse than fewer notifications.
-- On Android, guide users through battery optimization exemptions for the app (with a non-intrusive prompt, not a blocking modal).
+**Warning signs:**
+- Web build fails with "Cannot resolve module react-native."
+- Same API endpoint behaves differently on web vs mobile.
+- Bug fixes applied to one platform but not the other.
+- Shared package imports growing to include React Native dependencies.
 
-**Detection:** Track push delivery rate and in-app open rate after notification send. If delivery rate is below 80% on Android, battery optimization is likely killing your service.
-
-**Phase:** Notification architecture must be designed in Phase 1 (dual-delivery model). Push notification implementation in Phase 2. Delivery monitoring in Phase 3.
-
----
-
-### Pitfall 6: Trade Fairness Evaluation That Angers the Community
-
-**What goes wrong:** The app includes a "trade fairness evaluation system." Any attempt to assign value to cards will be controversial. If the system says a trade is "unfair" and blocks or warns against it, users who want to make that trade will be angry. If the system says nothing about unfair trades, new users will get scammed.
-
-**Why it happens:** Card value in TCG Pocket is subjective and contextual. A card that is "worth less" by rarity metrics might be the last card someone needs for a set completion, making it highly valuable to them personally. Community-driven pricing is volatile. Any static valuation model becomes wrong within weeks of a new set release.
-
-**Consequences:** If too aggressive: power users leave because the app is "telling them what their cards are worth." If too passive: new users get exploited and leave. Either way, the fairness system becomes the most complained-about feature.
-
-**Prevention:**
-- Make fairness evaluation informational, never blocking. Show a "trade analysis" with data points (rarity comparison, community demand, recent trade activity) but never prevent a user from making a trade they want to make.
-- Use relative signals, not absolute values. "This card is wanted by 5x more users than the card you're receiving" is more useful and less controversial than "This card is worth $2 and that card is worth $0.50."
-- Let users dismiss fairness warnings permanently for specific trades. Power users will opt out; new users will appreciate the guidance.
-- Update fairness signals based on actual trade data on the platform (what trades are being accepted vs rejected), not external price guides.
-- Display fairness as a spectrum ("You're giving more" / "Roughly even" / "You're receiving more") rather than a binary "fair/unfair."
-
-**Detection:** If more than 20% of trades are flagged as "unfair" by the system, the threshold is miscalibrated. Monitor user complaints about the fairness system specifically.
-
-**Phase:** Design the fairness model philosophy in Phase 1. Implement basic rarity comparison in Phase 2. Add demand-based signals in Phase 3 once trade data exists.
+**Phase to address:**
+Dedicated phase for shared package refactoring BEFORE the web app phase. Extract the API client and business logic first, then build the web app consuming those shared packages.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 5: Card Scanning Frustration Loop -- Low Accuracy Kills Trust
+
+**What goes wrong:**
+Card scanning using camera/screenshot recognition achieves 80-85% accuracy in initial implementation. Users scan a card, get the wrong result, manually correct it, and after 3-4 bad scans, abandon the feature entirely. Worse, if incorrect scans silently add wrong cards to inventory, users discover errors later when trades fail. Pokemon TCG Pocket cards have subtle visual differences (same art, different rarity symbols) that trip up image recognition.
+
+**Why it happens:**
+Pokemon cards in the same set often share artwork across rarity variants (e.g., a regular Pikachu and a full-art Pikachu look nearly identical in photos). OCR struggles with the small rarity diamonds/stars. Developers ship the feature targeting the happy path (good lighting, flat card, clear shot) but real-world usage involves glare, angles, and screenshots with UI overlays.
+
+**How to avoid:**
+- Always show a confirmation screen after scan with the detected card prominently displayed. NEVER auto-add to collection.
+- Show top-3 candidate matches with confidence scores, letting the user tap the correct one.
+- Support screenshot import (from game's collection screen) as the PRIMARY flow -- it is more reliable than camera because it eliminates lighting/angle variables.
+- Use fuzzy matching against the card database (name + set + rarity) rather than pure image matching. A 97% accuracy rate was achieved by combining fuzzy text search with probability analysis.
+- Implement a "report wrong scan" button that feeds back into accuracy improvement.
+- Gate the feature as "Beta" at launch to set expectations.
+
+**Warning signs:**
+- Users scanning same card repeatedly getting different results.
+- High abandonment rate on the scan screen (analytics).
+- Inventory contains cards the user does not actually own (from silent mis-scans).
+
+**Phase to address:**
+Later phase (Phase 4+) -- this is a differentiator, not table stakes. Ship it when the core trading flow is solid, and ship it as beta with confirmation-first UX.
 
 ---
 
-### Pitfall 7: React Native List Performance with Large Card Collections
+### Pitfall 6: AI Trade Suggestions Feel Random Without Enough Data
 
-**What goes wrong:** Users with 200+ cards in their inventory experience janky scrolling, slow search filtering, and UI freezes when rendering card grids with images. The app feels sluggish compared to native apps.
+**What goes wrong:**
+AI-powered trade suggestions require understanding card value, user preferences, and market dynamics. With a small user base (early v2.0), collaborative filtering has no signal. The system suggests trades that are technically valid (rarity matches) but feel random -- suggesting a user trade away a card they are actively using in their competitive deck, or suggesting low-demand cards nobody wants.
 
-**Why it happens:** FlatList in React Native re-renders visible items on scroll. Card images are typically high-resolution. Without proper optimization (image caching, virtualization tuning, memoization), the JavaScript thread bottlenecks and frames drop.
+**Why it happens:**
+Cold start problem. The v1.0 matching engine uses a simple priority-weighted scoring system (`high=3, medium=2, low=1`). Upgrading to "AI suggestions" without sufficient training data means the model falls back to rule-based heuristics that are barely better than the existing system. Users expect "AI" to be magic, and when it is not, they distrust the feature permanently.
 
-**Prevention:**
-- Use FlashList (by Shopify) instead of FlatList. It is a drop-in replacement with significantly better performance for large lists.
-- Implement aggressive image caching with a library like react-native-fast-image (or expo-image if using Expo). Serve card images in WebP format at multiple resolutions. Load thumbnails in lists, full images on detail views.
-- Use `React.memo` on card list items. Pass primitive props, not objects, to avoid unnecessary re-renders.
-- Implement search filtering with debouncing (300ms) so the list does not re-render on every keystroke.
-- For bulk add operations (adding 50+ cards at once), use a batch update pattern that updates state once, not 50 times.
+**How to avoid:**
+- Start with enhanced rule-based suggestions, not ML. Use card demand analytics (already in v1.0's `cardAnalytics` table), rarity balance, and community-wide want/have ratios.
+- Label it "Smart Suggestions" not "AI" to manage expectations.
+- Incorporate deck meta data: never suggest trading away cards that are core to popular competitive decks.
+- Add a "Not interested" / "Good suggestion" feedback mechanism to improve over time.
+- Only graduate to ML-based recommendations when you have 1000+ completed trades as training data.
 
-**Detection:** Profile with React Native Performance Monitor. If JS thread drops below 40fps during scrolling, optimization is needed.
+**Warning signs:**
+- Users consistently dismissing suggestions (track dismiss rate).
+- Suggestions that propose trading crown-rarity cards for diamond-1 cards.
+- Suggestions involving cards the user has in their competitive deck.
 
-**Phase:** Must be considered from Phase 1 when building card list components. Much harder to retrofit.
-
----
-
-### Pitfall 8: No Rate Limiting on Trade Proposals Enables Spam
-
-**What goes wrong:** Without rate limiting, a single user can spam hundreds of trade proposals, flooding other users' inboxes with low-quality offers. Bots scrape the platform and send automated proposals.
-
-**Why it happens:** Rate limiting is not glamorous and gets deprioritized. The initial assumption is "our users are nice TCG players."
-
-**Consequences:** Users get buried in spam proposals. They stop checking proposals. Legitimate matches get lost. The platform becomes unusable for popular card holders.
-
-**Prevention:**
-- Rate limit trade proposals: free tier gets 10 proposals per day, premium gets 50 (or similar tiered limits). This also creates a natural premium upsell.
-- Implement a cooldown between proposals to the same user (e.g., cannot propose to the same person within 24 hours of a rejection).
-- Add basic bot detection: IP-based rate limiting, device fingerprinting, account age requirements before proposing.
-- Allow users to block specific users from sending proposals.
-
-**Detection:** Monitor proposals-per-user distribution. If the top 1% of users send more than 20% of all proposals, spam is occurring.
-
-**Phase:** Rate limiting infrastructure in Phase 2 alongside trade proposals. Block/report features in Phase 3.
+**Phase to address:**
+Phase 5+ -- after deck meta, after post-based trading has generated enough trade completion data. The "smart" part requires data that does not exist yet.
 
 ---
 
-### Pitfall 9: Card Search That Does Not Handle Pokemon Naming Quirks
+### Pitfall 7: Local Trade Finder Exposes Precise User Locations
 
-**What goes wrong:** Pokemon names have special characters (Nidoran male/female symbols, accented e in Pokemon itself, Mr. Mime, Farfetch'd, Type: Null, Ho-Oh). Search that relies on exact string matching fails for real users who type "nidoran" or "farfetchd" or "mr mime."
+**What goes wrong:**
+Implementing "nearby traders" by storing and sharing precise GPS coordinates. Users can be stalked or harassed if their exact location is visible. Even city-level granularity can be problematic for smaller towns. Under GDPR, location data is classified as personal data (and potentially sensitive data), requiring explicit opt-in consent, purpose limitation, and data minimization.
 
-**Why it happens:** Developers use simple `LIKE '%query%'` SQL or basic string matching without considering the actual data.
+**Why it happens:**
+The simplest implementation stores lat/lng on the user profile and queries by distance. Developers forget that showing "User X is 0.3km away" reveals approximate location, and repeated queries can triangulate exact position. The Pokemon TCG community includes minors, adding child safety concerns under regulations like the UK's Age Appropriate Design Code.
 
-**Consequences:** Users cannot find cards they know exist. They assume the card is not in the database and report bugs or leave.
+**How to avoid:**
+- Never store precise coordinates. Snap to a grid (e.g., geohash at 5-character precision = ~5km area).
+- Display distance in ranges ("< 1km", "1-5km", "5-25km") not exact distances.
+- Location sharing must be opt-in, off by default, and easily toggled per-session.
+- Do NOT show location on profile -- only use it for filtering trade results.
+- Add a "city/region" text field as an alternative to GPS for users who refuse location access.
+- Implement server-side distance calculation so raw coordinates are never sent to other clients.
+- Auto-expire location data after 24 hours unless refreshed.
+- Privacy policy must explicitly cover location data collection, purpose, and retention.
 
-**Prevention:**
-- Store a normalized search field alongside the display name. Strip accents, special characters, and punctuation. Convert to lowercase.
-- Implement fuzzy search (Levenshtein distance or trigram matching) for typo tolerance. "Charzard" should find "Charizard."
-- Support common abbreviations and alternate names where applicable.
-- Index search fields properly in the database. Full-text search with PostgreSQL `tsvector` or similar.
+**Warning signs:**
+- Location data visible in API responses to other users.
+- No opt-in flow before location is requested.
+- Location persists indefinitely in database.
+- No alternative for users who decline location access.
 
-**Detection:** Log search queries with zero results. If more than 10% of searches return nothing, search normalization is insufficient.
-
-**Phase:** Card data model and search implementation in Phase 1/2.
-
----
-
-### Pitfall 10: Ignoring Time Zones in Trade Coordination
-
-**What goes wrong:** User A in Tokyo matches with User B in New York. A sends a proposal at their morning (B's evening). B accepts the next morning (A's evening). They need to be online simultaneously in Pokemon TCG Pocket to execute the trade, but their windows barely overlap.
-
-**Why it happens:** Trade matching only considers card compatibility, not practical executability. The coordination aspect of "coordination platform" is ignored.
-
-**Consequences:** Matched trades that are technically valid but practically impossible to execute. Users get frustrated by matches they cannot act on.
-
-**Prevention:**
-- Optionally collect user time zone (or infer from device).
-- Show "likely online hours" overlap when presenting matches. Surface matches with better overlap first.
-- Include a "preferred trading times" profile field.
-- For Phase 1, at minimum display the matched user's general time zone so users can self-coordinate.
-
-**Detection:** If trade completion rates are significantly lower for cross-timezone matches (more than 12 hours apart), this is a factor.
-
-**Phase:** Basic time zone awareness in Phase 2 (display). Smart matching factoring in Phase 3.
+**Phase to address:**
+Phase 4+ -- requires careful privacy design. Should be designed with legal/privacy review before implementation.
 
 ---
 
-### Pitfall 11: Database Schema That Cannot Evolve with Game Updates
+### Pitfall 8: i18n Retrofit Breaks Existing UI Layouts
 
-**What goes wrong:** Pokemon TCG Pocket adds new mechanics: new card types, new rarities, new trade restrictions (e.g., certain cards become untradeable, trade costs change). A rigid database schema requires migrations that break existing data or require downtime.
+**What goes wrong:**
+Retrofitting internationalization into an existing app with 232 files and 20,382 LOC means touching nearly every component that displays text. German translations are 30-40% longer than English. Japanese/Chinese characters have different line-break rules. The gold-on-dark theme's carefully sized buttons, headers, and card labels overflow or truncate when text length changes. RTL languages (Arabic, Hebrew) break layouts that assume left-to-right flow.
 
-**Why it happens:** The schema is designed around the current game state without considering that the game will change.
+**Why it happens:**
+The v1.0 app hardcodes all strings directly in JSX. Extracting to translation keys is mechanical but tedious, and developers inevitably miss strings in error messages, alerts, placeholder text, and accessibility labels. Layout testing only happens in English, so translation-length issues are discovered in production.
 
-**Consequences:** Emergency database migrations when the game updates. Potential data loss or corruption. Extended downtime during critical update periods (when users want the app most).
+**How to avoid:**
+- Use a systematic extraction tool (e.g., `i18next-scanner`) to find all hardcoded strings rather than manual search.
+- Adopt `i18next` + `react-i18next` with namespace-per-screen organization.
+- Use pseudo-localization (extended characters that expand text by 40%) during development to catch layout overflow before real translations exist.
+- Set `numberOfLines` and `adjustsFontSizeToFit` on all text-constrained components.
+- If RTL is not in the initial language set (Pokemon TCG Pocket does not have Arabic/Hebrew releases), defer RTL support -- but do not write code that actively breaks it.
+- Store the language preference in user profile (server-side) and Zustand store (client-side), NOT just device locale, so web and mobile can share the setting.
 
-**Prevention:**
-- Use a flexible attributes pattern for card properties that might change. Core fields (id, name, set) are columns; variable properties (rarity tier, trade cost, tradeable status) can use a JSON column or EAV pattern for extensibility.
-- Version your card data. Do not mutate historical records; create new versions.
-- Design migrations to be backward-compatible and runnable without downtime (add columns before removing old ones, use feature flags).
-- Maintain a staging environment where game updates can be tested before hitting production.
+**Warning signs:**
+- Strings found in components without translation function wrapping.
+- Buttons that clip text in any non-English language.
+- Mixed translated/untranslated strings on the same screen.
+- Date/number formats not localized (e.g., showing "3/11/2026" to European users).
 
-**Detection:** If a game update requires more than 2 hours of development to reflect in the app, the schema is too rigid.
-
-**Phase:** Database design in Phase 1. This is foundational and very costly to fix later.
-
----
-
-### Pitfall 12: Building Social Features Before Core Trading Works
-
-**What goes wrong:** Teams get excited about community features (chat, friend lists, user profiles, reviews, forums) before the core trade matching and proposal flow is robust. Social features consume development time but do not contribute to the core value proposition.
-
-**Why it happens:** Social features are fun to build and feel like progress. They also seem like they increase retention. But users come for trade matching, not for another social platform.
-
-**Consequences:** Core trading is buggy or incomplete while social features work perfectly. Users leave because the app does not solve their actual problem. Development velocity on the core product slows.
-
-**Prevention:**
-- Define a strict MVP: inventory management, trade matching, trade proposals, trade completion tracking. Nothing else until these work reliably.
-- Social features (friend lists, messaging, reviews) belong in Phase 3 or later.
-- The PROJECT.md already has good scope boundaries. Enforce them ruthlessly.
-
-**Detection:** If more than 30% of development time in Phase 1-2 goes to non-core features, scope creep is occurring.
-
-**Phase:** This is a meta-pitfall about Phase 1-2 planning discipline.
+**Phase to address:**
+Phase 3 (Multi-Language UI) -- should be done AFTER the post-based model and multi-language cards are stable, but BEFORE the web app so the web app is built i18n-first.
 
 ---
 
-## Minor Pitfalls
+### Pitfall 9: TCGdex Multi-Language Card Data Has Gaps
+
+**What goes wrong:**
+TCGdex supports 14 languages but completion varies dramatically. English is near-complete, but less common languages (Thai, Indonesian, Polish, Russian) may be missing entire sets. When the app queries TCGdex for a card in Portuguese and gets no result, it either shows a blank card, crashes, or silently falls back to English without telling the user -- all bad outcomes.
+
+**Why it happens:**
+Developers test with English and maybe one other language (French, Japanese) and assume all languages are equally populated. The card seed script (`seed-cards.ts`) currently imports only one language. Expanding to multi-language without handling missing translations means the card database has holes.
+
+**How to avoid:**
+- Query TCGdex's status endpoint to know which languages have complete data for which sets.
+- Implement a graceful fallback chain: requested language -> English -> null with "translation unavailable" indicator.
+- Store the source language for each card record so the UI can show "Shown in English (Japanese unavailable)".
+- Limit supported languages to those with 90%+ completion in TCGdex for the sets that Pokemon TCG Pocket actually uses.
+- Run a data completeness check as part of the card seed job and log/alert on gaps.
+
+**Warning signs:**
+- Blank card names or images for non-English languages.
+- Users in non-English locales seeing a mix of English and localized card names.
+- Card counts per set differ across languages (indicates missing data).
+
+**Phase to address:**
+Phase 2 (Multi-Language Card Database) -- the seed script must be updated to multi-language import before any user-facing language selection is available.
 
 ---
 
-### Pitfall 13: Not Handling App Store Review Rejection for "Marketplace" Classification
+### Pitfall 10: Deck Meta Data Becomes Stale or Unreliable
 
-**What goes wrong:** Apple and Google may classify the app as a "marketplace" or "trading platform" which triggers additional review requirements, especially around user safety, age verification (Pokemon audience includes minors), and in-app purchase requirements.
+**What goes wrong:**
+Deck meta data (competitive decks, win rates, tier lists) is only as good as its data source. If sourcing from community sites like Limitless TCG, the data may be tournament-focused and not reflect casual play. If scraping third-party sites, they may change their format or block the scraper. Win rates shift dramatically with each new expansion release (monthly in Pokemon TCG Pocket), making cached data misleading within days of a new set.
 
-**Prevention:**
-- Frame the app as a "collection tracker with trade coordination" in store listings, not a "marketplace."
-- Ensure all premium features use in-app purchases (not external payment links). This is mandatory for App Store compliance.
-- Include content moderation capabilities before submission.
-- Review Apple's App Store Review Guidelines Section 3 (Business) and Google's Families Policy if targeting users under 13.
+**Why it happens:**
+Developers build the deck meta feature assuming a stable, reliable data pipeline. In reality, Pokemon TCG Pocket's meta shifts rapidly, community data sources have no SLA, and aggregating win rates from different sources (tournament vs. ladder) produces conflicting numbers.
 
-**Phase:** Pre-launch compliance review. Plan for 1-2 rejection cycles on first submission.
+**How to avoid:**
+- Display the "as of" date prominently on all meta data.
+- Use multiple data sources and show confidence levels ("High confidence -- based on 5000+ games" vs. "Limited data -- based on 200 games").
+- Build the deck meta as a curated editorial feature initially, not a fully automated pipeline. Manual curation with data backing is more trustworthy than pure automation.
+- Cache aggressively but show staleness indicators. Meta data older than 7 days after a new set release should display a warning.
+- If using Limitless TCG data, their API terms must be checked -- scraping may violate ToS.
 
----
+**Warning signs:**
+- Tier list unchanged after a major expansion release.
+- Win rates that do not add up (both sides of a matchup showing >50%).
+- Data source returning errors silently, serving cached stale data.
 
-### Pitfall 14: Underestimating the Need for Onboarding and Initial Inventory Population
-
-**What goes wrong:** New users download the app, see an empty inventory, realize they need to manually add 50-200 cards one by one, and uninstall.
-
-**Prevention:**
-- Build a "quick add" flow: show all cards in a set as a visual grid, let users tap to add. Much faster than search-and-add.
-- Support bulk operations from the start: "add all commons from this set" with one tap.
-- Consider a checklist-style set completion view where users simply check off cards they own.
-- Show value immediately: even before inventory is complete, show partial matches ("based on what you've added so far, here are 3 potential trades").
-
-**Phase:** UX design in Phase 1. Bulk add tooling in Phase 2.
+**Phase to address:**
+Phase 5 (Deck Meta System) -- this is a content feature that requires ongoing maintenance, not just initial development.
 
 ---
 
-### Pitfall 15: Treating Free and Premium as Separate Codepaths
+## Technical Debt Patterns
 
-**What goes wrong:** Premium features are implemented as entirely separate screens, APIs, and database queries rather than as feature flags on shared infrastructure. This doubles maintenance burden and creates divergent user experiences.
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Keeping automatic matching AND post-based trading | Faster migration, no data loss | Two code paths to maintain, double the matching logic | During transition period only (3-6 months), then deprecate |
+| Hardcoding English fallback for missing translations | Feature ships faster | Users in non-English locales see mixed languages, feels broken | MVP only -- must add proper fallback UI before production |
+| Storing OAuth tokens in AsyncStorage instead of SecureStore | Simple implementation | Tokens accessible if device is compromised | Never -- use expo-secure-store for all auth tokens |
+| Single-language card seed then "add languages later" | Faster initial v2.0 launch | Users cannot trade cross-language cards, core feature blocked | Never -- multi-language cards are table stakes for v2.0 |
+| Screenshot scanning only (no camera) | Avoids camera permission complexity | Users expect camera scanning, feels incomplete | Acceptable for initial release, add camera in follow-up |
+| City-text field instead of GPS geolocation | No privacy concerns, no permissions | Less precise matching, worse UX than GPS-based | Acceptable as the ONLY option until privacy design is validated |
 
-**Prevention:**
-- Use a feature flag / entitlement check system. One codebase, one API, with conditional access based on subscription state.
-- Design the free experience as a natural subset of premium, not a separate product.
-- Make the upgrade path contextual: when a free user hits a premium feature, show what they would see with a "Upgrade to unlock" CTA, not a generic paywall.
+## Integration Gotchas
 
-**Phase:** Architecture decision in Phase 1. Premium implementation in Phase 3.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| TCGdex API (multi-language) | Assuming all languages have same card coverage | Check completion per language per set; implement fallback chain |
+| Google OAuth | Not handling email mismatch between Google account and existing account | Check email match first, prompt account linking with password verification |
+| Apple Sign-In | Treating Apple's relay email as a real email for account lookup | Store Apple user ID as primary key; email is unreliable for linking |
+| Limitless TCG / meta sources | Scraping without checking API terms, no error handling | Verify ToS, implement circuit breaker pattern, cache with staleness indicators |
+| RevenueCat (existing) | Not gating new premium features behind entitlement checks | All new premium features must check `isPremium` -- use the existing premium middleware |
+| Expo Camera/Image Picker | Requesting camera permission on app launch | Request only when user taps "Scan Card", explain why in the permission prompt |
+| Geolocation APIs | Using `getCurrentPosition` in foreground with no timeout | Set timeout (10s), use `getLastKnownPosition` as fallback, handle permission denied gracefully |
 
----
+## Performance Traps
 
-## Phase-Specific Warnings
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Post-based browsing without pagination | Scroll jank, memory pressure, crashes on older devices | Cursor-based pagination from day 1 (already used for notifications) | 500+ active posts |
+| Recomputing matches for all users when a post is created | API timeout, BullMQ queue backlog | Only compute matches for posts that overlap with the new post's cards | 1000+ users |
+| Loading all card images for multi-language card browser | Massive bandwidth on mobile data | Lazy-load images, use thumbnails for list views, CDN with aggressive caching | 5000+ cards across languages |
+| Full-text search across multi-language card names | Slow queries, wrong results for non-Latin scripts | PostgreSQL `pg_trgm` extension with GIN indexes per language, or dedicated search (Meilisearch) | 50,000+ card records |
+| AI suggestion computation on every app open | Slow cold start, server load spikes | Pre-compute suggestions in BullMQ job (already the pattern), cache results, refresh on collection change only | 5000+ users opening app simultaneously |
+| Geolocation distance queries on every search | O(n) scan of all users with location | PostGIS extension with spatial indexes, or geohash-based bucketing | 10,000+ users with location enabled |
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Card database design | Rigid schema that cannot handle game updates (Pitfall 11) | Use flexible attributes pattern, version card data |
-| Card database design | Poor variant modeling (Pitfall 2) | Each tradeable variant gets its own ID from day one |
-| Trade matching engine | O(n^2) algorithm (Pitfall 1) | Inverted index with incremental updates |
-| Trade matching engine | Stale inventory matches (Pitfall 3) | Card locking, staleness signals, completion tracking |
-| Trade proposals | Spam and abuse (Pitfall 8) | Rate limiting, tiered limits, cooldowns |
-| Trade fairness | Community backlash (Pitfall 6) | Informational only, never blocking, relative signals |
-| Real-time notifications | Delivery unreliability (Pitfall 5) | Dual-delivery: push + in-app inbox |
-| Subscription billing | Edge case revenue leakage (Pitfall 4) | Use RevenueCat, server-side validation |
-| Card search | Pokemon naming quirks (Pitfall 9) | Normalized search field, fuzzy matching |
-| React Native UI | List performance (Pitfall 7) | FlashList, image caching, memoization |
-| User onboarding | Empty state abandonment (Pitfall 14) | Visual grid bulk-add, partial matching |
-| App store submission | Marketplace classification (Pitfall 13) | "Collection tracker" framing, compliance review |
-| Scope management | Feature creep into social features (Pitfall 12) | Enforce MVP scope ruthlessly |
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Storing precise GPS coordinates in user profile accessible via API | Stalking, harassment, child safety violation | Never expose coordinates in API responses; compute distance server-side; return only distance ranges |
+| OAuth tokens stored in AsyncStorage instead of SecureStore | Token theft on rooted/jailbroken devices | Use `expo-secure-store` for all auth tokens; AsyncStorage is for non-sensitive data only |
+| Card scanning uploads sent to third-party AI without consent | Privacy violation, GDPR issue | Process scans on-device if possible; if server-side, obtain explicit consent and delete images after processing |
+| No rate limiting on post creation | Spam posts flooding the trading feed | Rate limit: max 10 posts per hour per user; premium gets higher limit |
+| Deck meta scraper credentials in client bundle | API keys exposed | All scraping/API calls happen server-side; client only receives processed data |
+| Gift/promo codes brute-forceable | Free premium access exploitation | Rate limit code attempts (5/hour), use cryptographically random codes (16+ chars), log attempts |
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Removing automatic matching without clear migration path | Existing users lose their workflow, feel abandoned | Keep matches visible as "Legacy Matches" for 30 days, guide users to create posts from their existing collection/wanted list |
+| Card language shown only in card detail, not in lists | Users browse, create posts, and proposals without realizing language mismatch | Language badge on EVERY card thumbnail in EVERY list/grid view |
+| AI suggestions with no explanation | Users see "Trade your Charizard for their Pikachu" with no reasoning, feels arbitrary | Show WHY: "This card is trending down, you have 3 copies, and Pikachu fits the Raichu deck you're building" |
+| Scan feature requires perfect conditions | Users in dim rooms or with glare get repeated failures | Support screenshot import as primary; show "Tips for better scans" before camera opens |
+| Local finder shows traders but no way to coordinate | Users see nearby traders but still have to use the normal post/proposal flow | Local finder should pre-filter posts to nearby users, not be a separate feature |
+| i18n switches language but dates/numbers stay English-formatted | Feels half-translated, reduces trust | Use `Intl.DateTimeFormat` and `Intl.NumberFormat` everywhere, not manual formatting |
+| Deck meta shows win rates without sample size | Users trust a "95% win rate" based on 20 games | Always show sample size: "95% win rate (20 games)" vs "52% win rate (5,000 games)" |
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Post-based trading:** Often missing the "create post from existing collection" flow -- verify users can bulk-create Offering posts from their inventory, not just manual card picking
+- [ ] **Multi-language cards:** Often missing the card seed for non-English languages -- verify card counts match across all supported languages
+- [ ] **OAuth:** Often missing the account-linking flow for existing users -- verify a user with email/password can link Google/Apple and sign in both ways
+- [ ] **Card scanning:** Often missing the confirmation/correction step -- verify users ALWAYS see what was detected and can correct before it hits their collection
+- [ ] **AI suggestions:** Often missing the "dismiss" feedback loop -- verify dismissed suggestions do not reappear and feed back into the algorithm
+- [ ] **Local finder:** Often missing the privacy settings screen -- verify users can toggle location sharing on/off and see what data is being shared
+- [ ] **Web app:** Often missing the shared API client -- verify web and mobile use identical API calling code from the shared package
+- [ ] **i18n:** Often missing error messages and system alerts -- verify ALL user-facing strings are translated, including error toasts, empty states, and loading messages
+- [ ] **Deck meta:** Often missing the "data freshness" indicator -- verify users can see when the meta data was last updated
+- [ ] **Gift codes:** Often missing the redemption history -- verify users can see which codes they have redeemed and admins can see redemption analytics
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Duplicate accounts from OAuth | HIGH | Manual account merge tool for support team; SQL migration to merge collection/proposals/ratings by user confirmation |
+| Wrong cards from silent scan import | MEDIUM | Add "Recently Scanned" section in collection with undo; bulk-review screen for scan history |
+| Language mismatch in completed proposals | HIGH | Cannot undo in-game trade; add post-trade survey "Did the in-game trade succeed?" to detect mismatches |
+| Stale deck meta data | LOW | Manual refresh trigger for admins; "Report outdated" button for users |
+| i18n layout overflow in production | MEDIUM | Hot-fix with `numberOfLines` and `adjustsFontSizeToFit`; add pseudo-localization to CI pipeline |
+| Location data breach | HIGH | Incident response plan required; ability to purge all location data with single command; notify affected users |
+| AI suggestions destroyed trust | MEDIUM | Rebrand feature, add explanations, add "Why this suggestion?" deep link; reset user's suggestion history |
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Post-based migration breaks proposals | Phase 1 (Post Model) | Existing proposals still load and display correctly after migration |
+| Card language mismatch | Phase 1-2 (Multi-Lang Cards) | Language badge visible on every card surface; cross-language proposal blocked |
+| OAuth duplicate accounts | Phase 2 (OAuth) | User with email account can link Google, sign out, sign in with Google, see same data |
+| Web/mobile code divergence | Pre-Web-App phase (Shared Package Refactor) | Shared package has zero react-native imports; web builds without native dependencies |
+| Card scanning frustration | Phase 4 (Scanning) | Scan always shows confirmation; top-3 candidates displayed; abandon rate below 30% |
+| AI suggestions cold start | Phase 5 (AI Suggestions) | Suggestions include explanation text; dismiss rate tracked; rule-based until 1000+ trades |
+| Location privacy exposure | Phase 4 (Local Finder) | API responses contain no raw coordinates; privacy toggle exists; 24h data expiry |
+| i18n layout breakage | Phase 3 (i18n) | Pseudo-localization passes with 40% text expansion; all strings in translation files |
+| TCGdex data gaps | Phase 2 (Multi-Lang Cards) | Fallback chain tested for each supported language; completeness report generated |
+| Deck meta staleness | Phase 5 (Deck Meta) | "Updated" timestamp visible; staleness warning after 7 days post-expansion |
 
 ## Sources
 
-- Training data knowledge of trading platform architecture patterns (MEDIUM confidence)
-- React Native performance optimization patterns from Shopify FlashList documentation, React Native core docs (MEDIUM confidence)
-- Apple App Store Review Guidelines and Google Play policies (MEDIUM confidence -- guidelines may have updated since training cutoff)
-- RevenueCat subscription management patterns (MEDIUM confidence)
-- Pokemon TCG naming conventions and game mechanics (HIGH confidence -- well-documented in training data)
-- Note: Web search was unavailable for this research session. All findings are based on training data through May 2025. Recommend verifying subscription billing and app store policy details against current documentation before implementation.
+- Codebase analysis: `apps/api/src/db/schema.ts`, `apps/api/src/services/match.service.ts`, `packages/shared/src/schemas/proposal.ts`
+- [How I Built a Pokemon Card Scanner App with AI - 50,000 Users](https://pokescope.app/blog/how-i-built-pokemon-card-scanner-ai-50000-users/)
+- [PokeHub - Trade PTCG Pocket Reviews (Google Play)](https://play.google.com/store/apps/details?id=com.mi.poketrade&hl=en)
+- [PokeHub - for TCG Pocket Reviews (App Store)](https://apps.apple.com/us/app/pokehub-for-tcg-pocket/id6740797484?see-all=reviews&platform=iphone)
+- [TCGdex API - Multi-Language Pokemon TCG Database](https://tcgdex.dev)
+- [TCGdex Status - Language Completion Tracking](https://tcgdex.dev/status)
+- [Limitless TCG - Pokemon TCG Pocket Competitive Data](https://play.limitlesstcg.com/decks?game=POCKET)
+- [Pokemon Meta - Win Rates Updated Daily](https://www.pokemonmeta.com/winrates)
+- [Common Mistakes When Implementing i18n in React Apps](https://infinitejs.com/posts/common-mistakes-i18n-react)
+- [20 i18n Mistakes Developers Make in React Apps](https://www.translatedright.com/blog/20-i18n-mistakes-developers-make-in-react-apps-and-how-to-fix-them/)
+- [Geolocation Data and the GDPR](https://22academy.com/blog/geolocation-data-and-the-gdpr)
+- [ICO Age Appropriate Design Code - Geolocation](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/10-geolocation/)
+- [The Cold Start Problem in Recommender Systems](https://www.synaptiq.ai/library/the-cold-start-problem)
+- [Database Migrations: Safe, Downtime-Free Strategies](https://vadimkravcenko.com/shorts/database-migrations/)
+- [Reflecting on Code Sharing Between React and React Native](https://matthewwolfe.github.io/blog/code-sharing-react-and-react-native)
+
+---
+*Pitfalls research for: Pokemon TCG Pocket Trading Platform v2.0 Feature Additions*
+*Researched: 2026-03-11*
