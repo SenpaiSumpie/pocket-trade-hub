@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A React Native mobile app that is the primary trade coordination platform for Pokemon TCG Pocket players. Users track their card inventory, manage wanted lists with priority levels, get automatically matched with compatible trade partners via a two-way matching engine, negotiate trades with fairness evaluation, rate partners, and access premium analytics — then execute the actual trades in-game.
+A React Native mobile app (with companion web app) that is the primary trade coordination platform for Pokemon TCG Pocket players. Users create Offering and Seeking trade posts to get matched with compatible partners, negotiate via structured proposals with fairness evaluation, rate partners, track multi-language card collections, access deck meta analytics, and use AI-powered trade suggestions — then execute the actual trades in-game.
 
 ## Core Value
 
@@ -31,22 +31,42 @@ Players can instantly find other players who have cards they want AND want cards
 
 ### Active
 
-(None — awaiting v1.1 milestone definition)
+- [ ] Offering/Seeking post-based trade model (replaces automatic inventory matching)
+- [ ] Multi-language card database and card language selection in collection
+- [ ] OAuth login (Google/Apple)
+- [ ] Card scanning via camera/screenshot recognition
+- [ ] AI-powered trade suggestions
+- [ ] Local trade finder (nearby traders)
+- [ ] Web app companion
+- [ ] Smart trade suggestions (pre-computed on app open)
+- [ ] Multi-language UI support
+- [ ] Deck meta system (competitive decks, win rates, tournament results)
+- [ ] Luck calculator (pack opening statistics)
+- [ ] Tier list system (deck sharing/recommendations)
+- [ ] Image export (shareable collection images)
+- [ ] Gift/promo code system
 
 ### Out of Scope
 
-- Deck meta system (competitive decks, win rates, tournament results) — deferred to v2
-- OAuth login (Google/Apple) — v2 feature, email/password sufficient for v1
-- Web app — mobile-first, web version deferred
 - In-game trade execution — app coordinates trades, players execute in Pokemon TCG Pocket
-- Card scanning via camera — future feature
-- AI trade suggestions — future feature
-- Local trade finder — future feature
-- Chat/messaging system — moderation liability; structured proposals + Discord links sufficient
+- Chat/messaging system — moderation liability; structured proposals are the differentiator
 - Real-money marketplace — legal/ToS minefield for digital cards
 - Social feed / timeline — scope bloat; users come to trade, not scroll
 - Gamification / badges / leaderboards — encourages fake trades; simple reputation sufficient
 - Other TCGs (Magic, Yu-Gi-Oh) — long-term expansion only
+
+## Current Milestone: v2.0 Full Platform
+
+**Goal:** Transform Pocket Trade Hub from MVP into a full-featured trading platform with competitive parity to PokeHub plus unique differentiators (deck meta, AI suggestions, fairness eval, local finder, structured proposals over chat).
+
+**Target features:**
+- Post-based Offering/Seeking trade model (architecture overhaul)
+- Multi-language card database + card language selection
+- OAuth login, card scanning, AI trade suggestions, local trade finder
+- Web app companion
+- Deck meta system, luck calculator, tier lists
+- Image export, gift/promo codes
+- Multi-language UI, smart trade suggestions
 
 ## Context
 
@@ -56,9 +76,12 @@ Monorepo via Turborepo with pnpm workspaces and shared Zod schemas.
 Dark theme with Pokemon-inspired gold accent (#f0c040).
 Built in 5 days (2026-03-07 → 2026-03-11), 109 commits, 2.0 hours execution time.
 
+Competitor analysis: PokeHub (4.72 stars, 35k ratings) is the primary competitor. Weaknesses: excessive ads, aggressive VIP popups, poor filtering, language mismatches. Our advantages: no ads, structured proposals (cleaner than chat), fairness evaluation, deck meta, AI suggestions.
+
 Known issues:
 - App Store/Google Play IAP policies need verification before production launch
 - Some Phase 5 traceability shows "Backend Complete" — mobile UI was built in plans 05-02/03/04
+- Existing proposal/rating service tests have FK constraint failures needing seed data fixes
 
 ## Constraints
 
@@ -75,7 +98,10 @@ Known issues:
 |----------|-----------|---------|
 | Mobile-first (React Native/Expo) | Players are on their phones, matches the game platform | ✓ Good |
 | Trade coordination, not execution | Actual trades happen in Pokemon TCG Pocket | ✓ Good |
-| Deck meta deferred to v2 | Keep v1 focused on core trading loop | ✓ Good |
+| Deck meta deferred to v2 | Keep v1 focused on core trading loop | ✓ Good — now building in v2 |
+| Post-based trading model for v2 | Replace automatic matching with Offering/Seeking posts (PokeHub model) — gives users more control | — Pending |
+| No chat, keep structured proposals | Moderation liability avoided; proposals are cleaner than freeform chat; differentiator vs PokeHub | — Pending |
+| Web app companion for v2 | Expand beyond mobile-only; web complements mobile | — Pending |
 | Free + Premium in v1 | Monetization from launch, premium adds analytics and priority | ✓ Good |
 | Background + real-time matching | Suggested trades on open + live notifications for new matches | ✓ Good |
 | Turborepo monorepo with shared Zod schemas | Type safety across API and mobile with single source of truth | ✓ Good |
@@ -92,4 +118,4 @@ Known issues:
 | Dark theme with gold accent | Branded, immersive Pokemon feel | ✓ Good |
 
 ---
-*Last updated: 2026-03-11 after v1.0 milestone*
+*Last updated: 2026-03-11 after v2.0 milestone start*

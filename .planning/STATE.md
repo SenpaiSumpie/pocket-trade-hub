@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: MVP
-status: shipped
-stopped_at: Milestone v1.0 complete
-last_updated: "2026-03-11T23:55:00.000Z"
-last_activity: 2026-03-11 -- v1.0 MVP milestone archived
+milestone: v2.0
+milestone_name: Full Platform
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-11T00:00:00.000Z"
+last_activity: 2026-03-11 -- Milestone v2.0 started
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,12 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** v1.0 shipped — planning next milestone
+**Current focus:** v2.0 Full Platform — defining requirements
 
 ## Current Position
 
-Milestone: v1.0 MVP — SHIPPED 2026-03-11
-Next step: `/gsd:new-milestone` to define v1.1
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-11 — Milestone v2.0 started
 
 ## Performance Metrics
 
@@ -41,6 +43,7 @@ Next step: `/gsd:new-milestone` to define v1.1
 ### Decisions
 
 All v1.0 decisions documented in PROJECT.md Key Decisions table.
+v2.0: Post-based trading model replaces automatic matching. No chat — structured proposals only. Web app companion added.
 
 ### Pending Todos
 
@@ -49,9 +52,10 @@ None.
 ### Blockers/Concerns
 
 - App Store/Google Play IAP policies need verification before production launch
+- Existing proposal/rating service tests have FK constraint failures needing seed data fixes
 
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Milestone v1.0 complete
+Stopped at: Defining v2.0 requirements
 Resume file: None
