@@ -49,12 +49,14 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   3. User can filter and search cards by language across the card database
   4. User can sign up and log in using their Google or Apple account
   5. Existing email user can link their Google or Apple account without losing data
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md -- DB schema, shared types, and multi-language seed script
+- [ ] 07-02-PLAN.md -- Card API language support and collection language tracking
+- [ ] 07-03-PLAN.md -- OAuth API backend (Google + Apple token verification, account linking)
+- [ ] 07-04-PLAN.md -- Mobile card language UI (browsing, detail, collection)
+- [ ] 07-05-PLAN.md -- Mobile OAuth UI (sign-in buttons, linking modal, profile)
 
 ### Phase 8: Post-Based Trading
 **Goal**: Users can create Offering and Seeking trade posts and get matched with complementary traders
@@ -160,7 +162,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 4. Trade Matching Engine | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. Multi-Language Cards and OAuth | v2.0 | 0/TBD | Not started | - |
+| 7. Multi-Language Cards and OAuth | v2.0 | 0/5 | Not started | - |
 | 8. Post-Based Trading | v2.0 | 0/TBD | Not started | - |
 | 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |
