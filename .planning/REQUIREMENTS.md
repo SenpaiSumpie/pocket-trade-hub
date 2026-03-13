@@ -26,10 +26,10 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 
 ### Auth
 
-- [ ] **AUTH-01**: User can sign up/login with Google account
-- [ ] **AUTH-02**: User can sign up/login with Apple account
-- [ ] **AUTH-03**: Existing email users can link Google/Apple accounts
-- [ ] **AUTH-04**: OAuth accounts that match existing email prompt for account linking (no silent merge)
+- [x] **AUTH-01**: User can sign up/login with Google account
+- [x] **AUTH-02**: User can sign up/login with Apple account
+- [x] **AUTH-03**: Existing email users can link Google/Apple accounts
+- [x] **AUTH-04**: OAuth accounts that match existing email prompt for account linking (no silent merge)
 
 ### Intelligence
 
@@ -99,10 +99,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CARD-02 | Phase 7 | Pending |
 | CARD-03 | Phase 7 | Pending |
 | CARD-04 | Phase 7 | Pending |
-| AUTH-01 | Phase 7 | Pending |
-| AUTH-02 | Phase 7 | Pending |
-| AUTH-03 | Phase 7 | Pending |
-| AUTH-04 | Phase 7 | Pending |
+| AUTH-01 | Phase 7 | Complete |
+| AUTH-02 | Phase 7 | Complete |
+| AUTH-03 | Phase 7 | Complete |
+| AUTH-04 | Phase 7 | Complete |
 | TRAD-01 | Phase 8 | Pending |
 | TRAD-02 | Phase 8 | Pending |
 | TRAD-03 | Phase 8 | Pending |

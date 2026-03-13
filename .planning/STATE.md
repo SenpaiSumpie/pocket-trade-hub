@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-13T03:03:00Z"
-last_activity: 2026-03-13 -- Completed 07-01 schema foundation
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-03-13T03:13:00Z"
+last_activity: 2026-03-13 -- Completed 07-03 OAuth API
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 4
+  completed_plans: 3
+  percent: 12
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 7 of 13 (Multi-Language Cards and OAuth)
-Plan: 1 of 5 complete
+Plan: 3 of 5 complete
 Status: Executing
-Last activity: 2026-03-13 -- Completed 07-01 schema foundation
+Last activity: 2026-03-13 -- Completed 07-03 OAuth API
 
-Progress: [▓░░░░░░░░░] 4%
+Progress: [▓▓░░░░░░░░] 12%
 
 ## Performance Metrics
 
@@ -41,9 +41,9 @@ Progress: [▓░░░░░░░░░] 4%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 1
-- Average duration: 4.0 min
-- Total execution time: 0.1 hours
+- Total plans completed: 3
+- Average duration: 5.0 min
+- Total execution time: 0.3 hours
 
 ## Accumulated Context
 
@@ -61,6 +61,8 @@ Phase 7 decisions:
 - 9 languages in schema constant but only 6 seedable from TCGdex currently (ja, ko, zh return 404)
 - Translation ID format: {cardId}-{lang} for deterministic IDs
 - OAuth providers limited to Google and Apple
+- jose ESM-only: OAuth routes registered per-test-file with mocks, excluded from shared test setup
+- needs_linking returns 200 with { needsLinking: true } rather than error status
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T03:03:00Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-multi-language-cards-and-oauth/07-01-SUMMARY.md
+Last session: 2026-03-13T03:13:00Z
+Stopped at: Completed 07-03-PLAN.md
+Resume file: .planning/phases/07-multi-language-cards-and-oauth/07-03-SUMMARY.md
