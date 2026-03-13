@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const cardLanguageValues = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pt', 'zh'] as const;
+export type CardLanguage = typeof cardLanguageValues[number];
+
 export const rarityValues = [
   'diamond1', 'diamond2', 'diamond3', 'diamond4',
   'star1', 'star2', 'star3', 'crown',
@@ -48,11 +51,26 @@ export const cardSearchSchema = z.object({
   set: z.string().optional(),
   rarity: z.enum(rarityValues).optional(),
   type: z.string().optional(),
+  language: z.enum(cardLanguageValues).optional(),
   limit: z.coerce.number().min(1).max(100).default(50),
   offset: z.coerce.number().min(0).default(0),
+});
+
+export const cardTranslationSchema = z.object({
+  cardId: z.string(),
+  language: z.enum(cardLanguageValues),
+  name: z.string(),
+  imageUrl: z.string().url(),
+  attacks: z.array(z.object({
+    name: z.string(),
+    damage: z.string().nullable(),
+    energyCost: z.array(z.string()),
+    description: z.string().nullable(),
+  })).nullable(),
 });
 
 export type Card = z.infer<typeof cardSchema>;
 export type CardSet = z.infer<typeof setSchema>;
 export type CardImportInput = z.infer<typeof cardImportSchema>;
 export type CardSearchParams = z.infer<typeof cardSearchSchema>;
+export type CardTranslation = z.infer<typeof cardTranslationSchema>;

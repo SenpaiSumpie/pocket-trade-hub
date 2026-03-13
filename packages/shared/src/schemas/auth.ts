@@ -25,7 +25,22 @@ export const resetConfirmSchema = z.object({
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
+export const oauthProviderValues = ['google', 'apple'] as const;
+
+export const oauthLoginSchema = z.object({
+  provider: z.enum(oauthProviderValues),
+  idToken: z.string().min(1, 'ID token is required'),
+});
+
+export const linkAccountSchema = z.object({
+  provider: z.enum(oauthProviderValues),
+  idToken: z.string().min(1, 'ID token is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ResetRequestInput = z.infer<typeof resetRequestSchema>;
 export type ResetConfirmInput = z.infer<typeof resetConfirmSchema>;
+export type OAuthLoginInput = z.infer<typeof oauthLoginSchema>;
+export type LinkAccountInput = z.infer<typeof linkAccountSchema>;

@@ -3,12 +3,17 @@ export {
   loginSchema,
   resetRequestSchema,
   resetConfirmSchema,
+  oauthProviderValues,
+  oauthLoginSchema,
+  linkAccountSchema,
 } from './schemas/auth';
 export type {
   SignupInput,
   LoginInput,
   ResetRequestInput,
   ResetConfirmInput,
+  OAuthLoginInput,
+  LinkAccountInput,
 } from './schemas/auth';
 
 export {
@@ -19,17 +24,21 @@ export {
 export type { UpdateProfileInput, UserProfile } from './schemas/user';
 
 export {
+  cardLanguageValues,
   rarityValues,
   cardSchema,
   setSchema,
   cardImportSchema,
   cardSearchSchema,
+  cardTranslationSchema,
 } from './schemas/card';
 export type {
+  CardLanguage,
   Card,
   CardSet,
   CardImportInput,
   CardSearchParams,
+  CardTranslation,
 } from './schemas/card';
 
 export {
