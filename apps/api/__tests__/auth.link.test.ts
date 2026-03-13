@@ -20,10 +20,14 @@ jest.mock('jose', () => {
   };
 });
 
+// Import after mocks are set up (jest.mock is hoisted)
+import oauthRoutes from '../src/routes/oauth';
+
 let app: FastifyInstance;
 
 beforeAll(async () => {
   app = await buildTestApp();
+  await app.register(oauthRoutes);
   await app.ready();
 });
 
