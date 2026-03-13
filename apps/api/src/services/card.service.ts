@@ -1,5 +1,5 @@
 import { eq, ilike, and, sql, count } from 'drizzle-orm';
-import { cards, sets } from '../db/schema';
+import { cards, sets, cardTranslations } from '../db/schema';
 import type { CardSearchParams, CardImportInput } from '@pocket-trade-hub/shared';
 
 type Db = any;
@@ -7,6 +7,68 @@ type Db = any;
 export async function searchCards(db: Db, params: CardSearchParams) {
   const conditions: any[] = [];
 
+  // When language is provided, INNER JOIN with cardTranslations to filter and use translated data
+  if (params.language) {
+    const langConditions: any[] = [
+      eq(cardTranslations.language, params.language),
+    ];
+
+    if (params.q) {
+      langConditions.push(ilike(cardTranslations.name, `%${params.q}%`));
+    }
+    if (params.set) {
+      langConditions.push(eq(cards.setId, params.set));
+    }
+    if (params.rarity) {
+      langConditions.push(eq(cards.rarity, params.rarity));
+    }
+    if (params.type) {
+      langConditions.push(eq(cards.type, params.type));
+    }
+
+    const whereClause = and(...langConditions);
+
+    const [cardResults, totalResult] = await Promise.all([
+      db
+        .select({
+          id: cards.id,
+          setId: cards.setId,
+          localId: cards.localId,
+          name: cardTranslations.name,
+          rarity: cards.rarity,
+          type: cards.type,
+          category: cards.category,
+          hp: cards.hp,
+          stage: cards.stage,
+          imageUrl: cardTranslations.imageUrl,
+          attacks: cardTranslations.attacks,
+          weakness: cards.weakness,
+          resistance: cards.resistance,
+          retreatCost: cards.retreatCost,
+          illustrator: cards.illustrator,
+          cardNumber: cards.cardNumber,
+          createdAt: cards.createdAt,
+          language: cardTranslations.language,
+        })
+        .from(cards)
+        .innerJoin(cardTranslations, eq(cardTranslations.cardId, cards.id))
+        .where(whereClause)
+        .limit(params.limit)
+        .offset(params.offset),
+      db
+        .select({ count: count() })
+        .from(cards)
+        .innerJoin(cardTranslations, eq(cardTranslations.cardId, cards.id))
+        .where(whereClause),
+    ]);
+
+    return {
+      cards: cardResults,
+      total: totalResult[0]?.count ?? 0,
+    };
+  }
+
+  // Default: no language, use English canonical data from cards table
   if (params.q) {
     conditions.push(ilike(cards.name, `%${params.q}%`));
   }
@@ -41,7 +103,62 @@ export async function searchCards(db: Db, params: CardSearchParams) {
   };
 }
 
-export async function getCardById(db: Db, id: string) {
+export async function getCardTranslations(db: Db, cardId: string) {
+  const results = await db
+    .select({
+      language: cardTranslations.language,
+      name: cardTranslations.name,
+      imageUrl: cardTranslations.imageUrl,
+      attacks: cardTranslations.attacks,
+    })
+    .from(cardTranslations)
+    .where(eq(cardTranslations.cardId, cardId));
+
+  return results;
+}
+
+export async function getCardById(db: Db, id: string, language?: string) {
+  if (language) {
+    // Try to get translated version
+    const result = await db
+      .select({
+        id: cards.id,
+        setId: cards.setId,
+        localId: cards.localId,
+        name: cardTranslations.name,
+        rarity: cards.rarity,
+        type: cards.type,
+        category: cards.category,
+        hp: cards.hp,
+        stage: cards.stage,
+        imageUrl: cardTranslations.imageUrl,
+        attacks: cardTranslations.attacks,
+        weakness: cards.weakness,
+        resistance: cards.resistance,
+        retreatCost: cards.retreatCost,
+        illustrator: cards.illustrator,
+        cardNumber: cards.cardNumber,
+        createdAt: cards.createdAt,
+        language: cardTranslations.language,
+      })
+      .from(cards)
+      .innerJoin(
+        cardTranslations,
+        and(
+          eq(cardTranslations.cardId, cards.id),
+          eq(cardTranslations.language, language),
+        ),
+      )
+      .where(eq(cards.id, id))
+      .limit(1);
+
+    if (result[0]) {
+      return result[0];
+    }
+
+    // Fall back to English base card if no translation exists
+  }
+
   const result = await db
     .select()
     .from(cards)
