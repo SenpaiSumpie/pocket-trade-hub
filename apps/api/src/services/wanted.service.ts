@@ -5,15 +5,15 @@ import type { Priority } from '@pocket-trade-hub/shared';
 
 type Db = any;
 
-export async function addToWanted(db: Db, userId: string, cardId: string, priority: Priority = 'medium') {
+export async function addToWanted(db: Db, userId: string, cardId: string, priority: Priority = 'medium', language = 'en') {
   const id = randomUUID();
   const now = new Date();
 
   const result = await db
     .insert(userWantedCards)
-    .values({ id, userId, cardId, priority, createdAt: now, updatedAt: now })
+    .values({ id, userId, cardId, language, priority, createdAt: now, updatedAt: now })
     .onConflictDoUpdate({
-      target: [userWantedCards.userId, userWantedCards.cardId],
+      target: [userWantedCards.userId, userWantedCards.cardId, userWantedCards.language],
       set: {
         priority,
         updatedAt: now,
@@ -24,20 +24,28 @@ export async function addToWanted(db: Db, userId: string, cardId: string, priori
   return result[0];
 }
 
-export async function removeFromWanted(db: Db, userId: string, cardId: string) {
+export async function removeFromWanted(db: Db, userId: string, cardId: string, language = 'en') {
   const result = await db
     .delete(userWantedCards)
-    .where(and(eq(userWantedCards.userId, userId), eq(userWantedCards.cardId, cardId)))
+    .where(and(
+      eq(userWantedCards.userId, userId),
+      eq(userWantedCards.cardId, cardId),
+      eq(userWantedCards.language, language),
+    ))
     .returning();
 
   return result.length > 0;
 }
 
-export async function updatePriority(db: Db, userId: string, cardId: string, priority: Priority) {
+export async function updatePriority(db: Db, userId: string, cardId: string, priority: Priority, language = 'en') {
   const result = await db
     .update(userWantedCards)
     .set({ priority, updatedAt: new Date() })
-    .where(and(eq(userWantedCards.userId, userId), eq(userWantedCards.cardId, cardId)))
+    .where(and(
+      eq(userWantedCards.userId, userId),
+      eq(userWantedCards.cardId, cardId),
+      eq(userWantedCards.language, language),
+    ))
     .returning();
 
   return result[0] ?? null;
@@ -51,6 +59,7 @@ export async function getUserWanted(db: Db, userId: string, setId?: string) {
     return db
       .select({
         cardId: userWantedCards.cardId,
+        language: userWantedCards.language,
         priority: userWantedCards.priority,
       })
       .from(userWantedCards)
@@ -61,6 +70,7 @@ export async function getUserWanted(db: Db, userId: string, setId?: string) {
   return db
     .select({
       cardId: userWantedCards.cardId,
+      language: userWantedCards.language,
       priority: userWantedCards.priority,
     })
     .from(userWantedCards)

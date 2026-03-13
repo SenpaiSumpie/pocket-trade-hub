@@ -22,7 +22,7 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
       }
 
       const userId = request.user.sub;
-      const result = await addToCollection(fastify.db, userId, parsed.data.cardId, parsed.data.quantity);
+      const result = await addToCollection(fastify.db, userId, parsed.data.cardId, parsed.data.quantity, parsed.data.language);
       // Fire-and-forget: check if any premium users want this card
       checkCardAlerts(fastify.db, userId, parsed.data.cardId).catch(() => {});
       return reply.code(200).send(result);
@@ -53,7 +53,8 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
 
       const userId = request.user.sub;
       const { cardId } = request.params as { cardId: string };
-      const result = await updateQuantity(fastify.db, userId, cardId, parsed.data.quantity);
+      const { language = 'en' } = request.query as { language?: string };
+      const result = await updateQuantity(fastify.db, userId, cardId, parsed.data.quantity, language);
       return reply.code(200).send(result);
     }
   );
@@ -65,7 +66,8 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const userId = request.user.sub;
       const { cardId } = request.params as { cardId: string };
-      await removeFromCollection(fastify.db, userId, cardId);
+      const { language = 'en' } = request.query as { language?: string };
+      await removeFromCollection(fastify.db, userId, cardId, language);
       return reply.code(200).send({ success: true });
     }
   );

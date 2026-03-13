@@ -362,6 +362,72 @@ describe('POST /collection/bulk', () => {
   });
 });
 
+describe('POST /collection with language (CARD-02)', () => {
+  it('adds card with language=fr', async () => {
+    const userId = await createTestUser();
+    const token = getAuthToken(userId);
+    await importCardSet(testDb, testImport);
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/collection',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { cardId: 'CS1-001', language: 'fr' },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.cardId).toBe('CS1-001');
+    expect(body.language).toBe('fr');
+  });
+
+  it('same card in different languages creates separate entries', async () => {
+    const userId = await createTestUser();
+    const token = getAuthToken(userId);
+    await importCardSet(testDb, testImport);
+
+    // Add in English
+    await app.inject({
+      method: 'POST',
+      url: '/collection',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { cardId: 'CS1-001', language: 'en' },
+    });
+
+    // Add in French
+    await app.inject({
+      method: 'POST',
+      url: '/collection',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { cardId: 'CS1-001', language: 'fr' },
+    });
+
+    const listRes = await app.inject({
+      method: 'GET',
+      url: '/collection',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const items = listRes.json();
+    expect(items).toHaveLength(2);
+    const languages = items.map((i: any) => i.language).sort();
+    expect(languages).toEqual(['en', 'fr']);
+  });
+
+  it('defaults to language=en when not specified', async () => {
+    const userId = await createTestUser();
+    const token = getAuthToken(userId);
+    await importCardSet(testDb, testImport);
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/collection',
+      headers: { authorization: `Bearer ${token}` },
+      payload: { cardId: 'CS1-001' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().language).toBe('en');
+  });
+});
+
 describe('GET /collection/progress', () => {
   it('returns 401 without auth token', async () => {
     const res = await app.inject({ method: 'GET', url: '/collection/progress' });

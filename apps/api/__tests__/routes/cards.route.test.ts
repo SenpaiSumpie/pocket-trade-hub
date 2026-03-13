@@ -1,5 +1,6 @@
 import { buildTestApp, cleanDb, closeDb, testDb } from '../setup';
 import { importCardSet } from '../../src/services/card.service';
+import { cardTranslations } from '../../src/db/schema';
 import type { CardImportInput } from '@pocket-trade-hub/shared';
 import type { FastifyInstance } from 'fastify';
 
@@ -204,5 +205,87 @@ describe('GET /cards/:id', () => {
   it('returns 404 for non-existent card', async () => {
     const res = await app.inject({ method: 'GET', url: '/cards/nonexistent' });
     expect(res.statusCode).toBe(404);
+  });
+});
+
+describe('GET /cards/search with language (CARD-03)', () => {
+  beforeEach(async () => {
+    await importCardSet(testDb, testImport);
+    await testDb.insert(cardTranslations).values([
+      {
+        id: 'T1-001-de',
+        cardId: 'T1-001',
+        language: 'de',
+        name: 'Glurak',
+        imageUrl: 'https://example.com/charizard-de.png',
+        attacks: null,
+      },
+      {
+        id: 'T1-002-de',
+        cardId: 'T1-002',
+        language: 'de',
+        name: 'Pikachu',
+        imageUrl: 'https://example.com/pikachu-de.png',
+        attacks: null,
+      },
+    ]);
+  });
+
+  it('returns German-translated card names when language=de', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/cards/search?language=de',
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    // Only 2 cards have German translations (Misty does not)
+    expect(body.cards).toHaveLength(2);
+    const names = body.cards.map((c: any) => c.name).sort();
+    expect(names).toEqual(['Glurak', 'Pikachu']);
+  });
+});
+
+describe('GET /cards/:id/translations (CARD-04)', () => {
+  beforeEach(async () => {
+    await importCardSet(testDb, testImport);
+    await testDb.insert(cardTranslations).values([
+      {
+        id: 'T1-001-de',
+        cardId: 'T1-001',
+        language: 'de',
+        name: 'Glurak',
+        imageUrl: 'https://example.com/charizard-de.png',
+        attacks: null,
+      },
+      {
+        id: 'T1-001-fr',
+        cardId: 'T1-001',
+        language: 'fr',
+        name: 'Dracaufeu',
+        imageUrl: 'https://example.com/charizard-fr.png',
+        attacks: null,
+      },
+    ]);
+  });
+
+  it('returns all translations for a card', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/cards/T1-001/translations',
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.translations).toHaveLength(2);
+    const languages = body.translations.map((t: any) => t.language).sort();
+    expect(languages).toEqual(['de', 'fr']);
+  });
+
+  it('returns empty translations for card with no translations', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/cards/T1-003/translations',
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().translations).toHaveLength(0);
   });
 });

@@ -4,15 +4,15 @@ import { userCollectionItems, cards, sets } from '../db/schema';
 
 type Db = any;
 
-export async function addToCollection(db: Db, userId: string, cardId: string, quantity = 1) {
+export async function addToCollection(db: Db, userId: string, cardId: string, quantity = 1, language = 'en') {
   const id = randomUUID();
   const now = new Date();
 
   const result = await db
     .insert(userCollectionItems)
-    .values({ id, userId, cardId, quantity, createdAt: now, updatedAt: now })
+    .values({ id, userId, cardId, language, quantity, createdAt: now, updatedAt: now })
     .onConflictDoUpdate({
-      target: [userCollectionItems.userId, userCollectionItems.cardId],
+      target: [userCollectionItems.userId, userCollectionItems.cardId, userCollectionItems.language],
       set: {
         quantity: sql`${userCollectionItems.quantity} + ${quantity}`,
         updatedAt: now,
@@ -23,24 +23,32 @@ export async function addToCollection(db: Db, userId: string, cardId: string, qu
   return result[0];
 }
 
-export async function removeFromCollection(db: Db, userId: string, cardId: string) {
+export async function removeFromCollection(db: Db, userId: string, cardId: string, language = 'en') {
   const result = await db
     .delete(userCollectionItems)
-    .where(and(eq(userCollectionItems.userId, userId), eq(userCollectionItems.cardId, cardId)))
+    .where(and(
+      eq(userCollectionItems.userId, userId),
+      eq(userCollectionItems.cardId, cardId),
+      eq(userCollectionItems.language, language),
+    ))
     .returning();
 
   return result.length > 0;
 }
 
-export async function updateQuantity(db: Db, userId: string, cardId: string, quantity: number) {
+export async function updateQuantity(db: Db, userId: string, cardId: string, quantity: number, language = 'en') {
   if (quantity <= 0) {
-    return removeFromCollection(db, userId, cardId);
+    return removeFromCollection(db, userId, cardId, language);
   }
 
   const result = await db
     .update(userCollectionItems)
     .set({ quantity, updatedAt: new Date() })
-    .where(and(eq(userCollectionItems.userId, userId), eq(userCollectionItems.cardId, cardId)))
+    .where(and(
+      eq(userCollectionItems.userId, userId),
+      eq(userCollectionItems.cardId, cardId),
+      eq(userCollectionItems.language, language),
+    ))
     .returning();
 
   return result[0] ?? null;
@@ -100,12 +108,10 @@ export async function getUserCollection(db: Db, userId: string, setId?: string) 
 
   if (setId) {
     conditions.push(eq(cards.setId, setId));
-  }
-
-  if (setId) {
     return db
       .select({
         cardId: userCollectionItems.cardId,
+        language: userCollectionItems.language,
         quantity: userCollectionItems.quantity,
       })
       .from(userCollectionItems)
@@ -116,6 +122,7 @@ export async function getUserCollection(db: Db, userId: string, setId?: string) 
   return db
     .select({
       cardId: userCollectionItems.cardId,
+      language: userCollectionItems.language,
       quantity: userCollectionItems.quantity,
     })
     .from(userCollectionItems)

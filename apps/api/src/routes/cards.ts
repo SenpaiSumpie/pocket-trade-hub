@@ -6,7 +6,9 @@ import {
   getCardById,
   getCardsBySet,
   getAllSets,
+  getCardTranslations,
 } from '../services/card.service';
+import { cardLanguageValues } from '@pocket-trade-hub/shared';
 
 const paginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(50),
@@ -42,10 +44,24 @@ export default async function cardRoutes(fastify: FastifyInstance) {
     return reply.send(result);
   });
 
-  // GET /cards/:id — single card
+  // GET /cards/:id/translations — get all translations for a card
+  fastify.get('/cards/:id/translations', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const translations = await getCardTranslations(fastify.db, id);
+    return reply.send({ translations });
+  });
+
+  // GET /cards/:id — single card (optional language query param)
   fastify.get('/cards/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const card = await getCardById(fastify.db, id);
+    const { language } = request.query as { language?: string };
+
+    // Validate language if provided
+    if (language && !(cardLanguageValues as readonly string[]).includes(language)) {
+      return reply.code(400).send({ error: 'Invalid language parameter' });
+    }
+
+    const card = await getCardById(fastify.db, id, language);
     if (!card) {
       return reply.code(404).send({ error: 'Card not found' });
     }

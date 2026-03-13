@@ -19,7 +19,7 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
       }
 
       const userId = request.user.sub;
-      const result = await addToWanted(fastify.db, userId, parsed.data.cardId, parsed.data.priority);
+      const result = await addToWanted(fastify.db, userId, parsed.data.cardId, parsed.data.priority, parsed.data.language);
       return reply.code(200).send(result);
     }
   );
@@ -48,7 +48,8 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
 
       const userId = request.user.sub;
       const { cardId } = request.params as { cardId: string };
-      const result = await updatePriority(fastify.db, userId, cardId, parsed.data.priority);
+      const { language = 'en' } = request.query as { language?: string };
+      const result = await updatePriority(fastify.db, userId, cardId, parsed.data.priority, language);
       return reply.code(200).send(result);
     }
   );
@@ -60,7 +61,8 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const userId = request.user.sub;
       const { cardId } = request.params as { cardId: string };
-      await removeFromWanted(fastify.db, userId, cardId);
+      const { language = 'en' } = request.query as { language?: string };
+      await removeFromWanted(fastify.db, userId, cardId, language);
       return reply.code(200).send({ success: true });
     }
   );
