@@ -48,6 +48,9 @@ export async function verifyCredentials(
     throw new Error('Invalid credentials');
   }
 
+  if (!user.passwordHash) {
+    throw new Error('Invalid credentials');
+  }
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
     throw new Error('Invalid credentials');

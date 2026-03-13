@@ -1,10 +1,14 @@
 import { pgTable, text, timestamp, varchar, integer, boolean, jsonb, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+// Supported card languages (TCGdex available: en, de, es, fr, it, pt; future: ja, ko, zh)
+export const supportedLanguages = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pt', 'zh'] as const;
+export type CardLanguage = typeof supportedLanguages[number];
+
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  passwordHash: text('password_hash'),
   displayName: varchar('display_name', { length: 30 }),
   avatarId: varchar('avatar_id', { length: 50 }),
   friendCode: varchar('friend_code', { length: 19 }),
@@ -12,6 +16,7 @@ export const users = pgTable('users', {
   isPremium: boolean('is_premium').default(false).notNull(),
   premiumExpiresAt: timestamp('premium_expires_at'),
   revenuecatId: varchar('revenuecat_id', { length: 100 }),
+  preferredCardLanguage: varchar('preferred_card_language', { length: 5 }).default('en'),
   emailVerified: timestamp('email_verified'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -27,6 +32,20 @@ export const refreshTokens = pgTable('refresh_tokens', {
   revokedAt: timestamp('revoked_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const oauthAccounts = pgTable('oauth_accounts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  provider: varchar('provider', { length: 20 }).notNull(),
+  providerUserId: text('provider_user_id').notNull(),
+  email: varchar('email', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('oauth_accounts_provider_user_idx').on(table.provider, table.providerUserId),
+  index('oauth_accounts_user_id_idx').on(table.userId),
+]);
 
 export const passwordResetTokens = pgTable('password_reset_tokens', {
   id: text('id').primaryKey(),
@@ -79,6 +98,22 @@ export const cards = pgTable('cards', {
   index('cards_type_idx').on(table.type),
 ]);
 
+export const cardTranslations = pgTable('card_translations', {
+  id: text('id').primaryKey(),
+  cardId: text('card_id')
+    .notNull()
+    .references(() => cards.id),
+  language: varchar('language', { length: 5 }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  imageUrl: text('image_url').notNull(),
+  attacks: jsonb('attacks'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('card_translations_card_lang_idx').on(table.cardId, table.language),
+  index('card_translations_language_idx').on(table.language),
+  index('card_translations_name_lower_idx').on(sql`lower(${table.name})`),
+]);
+
 export const priorityEnum = pgEnum('priority', ['high', 'medium', 'low']);
 
 export const userCollectionItems = pgTable('user_collection_items', {
@@ -89,11 +124,12 @@ export const userCollectionItems = pgTable('user_collection_items', {
   cardId: text('card_id')
     .notNull()
     .references(() => cards.id),
+  language: varchar('language', { length: 5 }).notNull().default('en'),
   quantity: integer('quantity').default(1).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [
-  uniqueIndex('user_collection_items_user_card_idx').on(table.userId, table.cardId),
+  uniqueIndex('user_collection_items_user_card_lang_idx').on(table.userId, table.cardId, table.language),
   index('user_collection_items_user_id_idx').on(table.userId),
   index('user_collection_items_card_id_idx').on(table.cardId),
 ]);
@@ -106,11 +142,12 @@ export const userWantedCards = pgTable('user_wanted_cards', {
   cardId: text('card_id')
     .notNull()
     .references(() => cards.id),
+  language: varchar('language', { length: 5 }).notNull().default('en'),
   priority: priorityEnum('priority').default('medium').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [
-  uniqueIndex('user_wanted_cards_user_card_idx').on(table.userId, table.cardId),
+  uniqueIndex('user_wanted_cards_user_card_lang_idx').on(table.userId, table.cardId, table.language),
   index('user_wanted_cards_user_id_idx').on(table.userId),
   index('user_wanted_cards_card_id_idx').on(table.cardId),
 ]);
