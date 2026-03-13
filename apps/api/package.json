@@ -10,6 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seeds/seed-cards.ts",
+    "seed:translations": "tsx src/db/seeds/seed-translations.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
