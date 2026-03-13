@@ -1,20 +1,24 @@
 import { buildTestApp, cleanDb, closeDb } from './setup';
 import type { FastifyInstance } from 'fastify';
 
-// Mock google-auth-library
+// Must use jest.fn() inline in the factory since jest.mock is hoisted
 const mockVerifyIdToken = jest.fn();
-jest.mock('google-auth-library', () => ({
-  OAuth2Client: jest.fn().mockImplementation(() => ({
-    verifyIdToken: mockVerifyIdToken,
-  })),
-}));
-
-// Mock jose
 const mockJwtVerify = jest.fn();
-jest.mock('jose', () => ({
-  createRemoteJWKSet: jest.fn().mockReturnValue('mock-jwks'),
-  jwtVerify: mockJwtVerify,
-}));
+
+jest.mock('google-auth-library', () => {
+  return {
+    OAuth2Client: jest.fn().mockImplementation(() => ({
+      verifyIdToken: (...args: any[]) => mockVerifyIdToken(...args),
+    })),
+  };
+});
+
+jest.mock('jose', () => {
+  return {
+    createRemoteJWKSet: jest.fn().mockReturnValue('mock-jwks'),
+    jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  };
+});
 
 let app: FastifyInstance;
 
