@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { RarityBadge } from './RarityBadge';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
-import type { Card } from '@pocket-trade-hub/shared';
+import { useCardsStore } from '@/src/stores/cards';
+import type { Card, CardTranslation, CardLanguage } from '@pocket-trade-hub/shared';
 
 type Priority = 'high' | 'medium' | 'low';
 
@@ -188,6 +189,134 @@ const statusStyles = StyleSheet.create({
 /*  CardDetailPage (single card view)                                  */
 /* ------------------------------------------------------------------ */
 
+function TranslationBadges({
+  cardId,
+  onSelectTranslation,
+  selectedLanguage,
+}: {
+  cardId: string;
+  onSelectTranslation: (translation: CardTranslation | null) => void;
+  selectedLanguage: string | null;
+}) {
+  const translations = useCardsStore((s) => s.translationsByCardId[cardId]);
+  const translationsLoading = useCardsStore((s) => s.translationsLoading);
+  const fetchTranslations = useCardsStore((s) => s.fetchTranslations);
+
+  useEffect(() => {
+    fetchTranslations(cardId);
+  }, [cardId, fetchTranslations]);
+
+  if (translationsLoading && !translations) return null;
+  if (!translations || translations.length === 0) return null;
+
+  const ALL_LANGUAGES: CardLanguage[] = ['en', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pt', 'zh'];
+  const availableCodes = new Set(translations.map((t) => t.language));
+
+  return (
+    <View style={translationStyles.container}>
+      <Text style={translationStyles.label}>Available in</Text>
+      <View style={translationStyles.badgeRow}>
+        {/* Original / EN badge */}
+        <Pressable
+          style={[
+            translationStyles.badge,
+            selectedLanguage === null && translationStyles.badgeActive,
+          ]}
+          onPress={() => onSelectTranslation(null)}
+        >
+          <Text
+            style={[
+              translationStyles.badgeText,
+              selectedLanguage === null && translationStyles.badgeTextActive,
+            ]}
+          >
+            Original
+          </Text>
+        </Pressable>
+        {ALL_LANGUAGES.map((lang) => {
+          const isAvailable = availableCodes.has(lang);
+          const isSelected = selectedLanguage === lang;
+          const translation = translations.find((t) => t.language === lang);
+
+          return (
+            <Pressable
+              key={lang}
+              style={[
+                translationStyles.badge,
+                isSelected && translationStyles.badgeActive,
+                !isAvailable && translationStyles.badgeDisabled,
+              ]}
+              onPress={() => {
+                if (isAvailable && translation) {
+                  onSelectTranslation(isSelected ? null : translation);
+                }
+              }}
+              disabled={!isAvailable}
+            >
+              <Text
+                style={[
+                  translationStyles.badgeText,
+                  isSelected && translationStyles.badgeTextActive,
+                  !isAvailable && translationStyles.badgeTextDisabled,
+                ]}
+              >
+                {lang.toUpperCase()}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const translationStyles = StyleSheet.create({
+  container: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  badge: {
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  badgeActive: {
+    backgroundColor: colors.primary + '30',
+    borderColor: colors.primary,
+  },
+  badgeDisabled: {
+    opacity: 0.35,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  badgeTextActive: {
+    color: colors.primary,
+  },
+  badgeTextDisabled: {
+    color: colors.textMuted,
+  },
+});
+
 function CardDetailPage({
   card,
   setName,
@@ -215,6 +344,15 @@ function CardDetailPage({
 }) {
   const qty = collectionQuantity?.(card.id) ?? 0;
   const priority = wantedPriority?.(card.id);
+  const [activeTranslation, setActiveTranslation] = useState<CardTranslation | null>(null);
+
+  // Reset translation when card changes
+  useEffect(() => {
+    setActiveTranslation(null);
+  }, [card.id]);
+
+  const displayName = activeTranslation?.name ?? card.name;
+  const displayImageUrl = activeTranslation?.imageUrl ?? card.imageUrl;
 
   return (
     <ScrollView
@@ -224,7 +362,7 @@ function CardDetailPage({
     >
       <View style={styles.imageWrapper}>
         <Image
-          source={{ uri: card.imageUrl }}
+          source={{ uri: displayImageUrl }}
           style={styles.cardImage}
           contentFit="contain"
           transition={300}
@@ -232,11 +370,23 @@ function CardDetailPage({
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.cardName}>{card.name}</Text>
+        <Text style={styles.cardName}>{displayName}</Text>
+        {activeTranslation && (
+          <Text style={styles.translationIndicator}>
+            {activeTranslation.language.toUpperCase()} translation
+          </Text>
+        )}
         <View style={styles.subtitleRow}>
           {setName && <Text style={styles.setName}>{setName}</Text>}
           <Text style={styles.cardNumber}>#{card.cardNumber}</Text>
         </View>
+
+        {/* Translation badges */}
+        <TranslationBadges
+          cardId={card.id}
+          onSelectTranslation={setActiveTranslation}
+          selectedLanguage={activeTranslation?.language ?? null}
+        />
 
         {/* Status banner -- always visible, shows cross-mode state */}
         <StatusBanner qty={qty} priority={priority} mode={mode} />
@@ -663,6 +813,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
+  },
+  translationIndicator: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.primary,
+    textAlign: 'center',
+    marginTop: 2,
   },
   subtitleRow: {
     flexDirection: 'row',

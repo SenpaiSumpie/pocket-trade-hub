@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SearchBar } from '@/src/components/cards/SearchBar';
@@ -14,6 +14,18 @@ import { useLoadCollection, useAddToCollection, useRemoveFromCollection, useUpda
 import { useLoadWanted, useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
+
+const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'EN (English)' },
+  { code: 'de', label: 'DE (German)' },
+  { code: 'es', label: 'ES (Spanish)' },
+  { code: 'fr', label: 'FR (French)' },
+  { code: 'it', label: 'IT (Italian)' },
+  { code: 'ja', label: 'JA (Japanese)' },
+  { code: 'ko', label: 'KO (Korean)' },
+  { code: 'pt', label: 'PT (Portuguese)' },
+  { code: 'zh', label: 'ZH (Chinese)' },
+];
 
 type Mode = 'browse' | 'collection' | 'wanted';
 
@@ -30,10 +42,12 @@ export default function CardsScreen() {
     searchQuery,
     activeFilters,
     isSearchMode,
+    selectedLanguage,
     setSelectedSet,
     setSearchQuery,
     setFilter,
     removeFilter,
+    setSelectedLanguage,
   } = useCardsStore();
 
   const mode = useCollectionStore((s) => s.mode);
@@ -57,6 +71,7 @@ export default function CardsScreen() {
   // Set filter dropdown state ('' means All sets)
   const [setFilterId, setSetFilterId] = useState<string>('');
   const [showSetDropdown, setShowSetDropdown] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   // Auto-select first set when sets load
   useEffect(() => {
@@ -249,7 +264,7 @@ export default function CardsScreen() {
       {/* Search bar */}
       <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
-      {/* Set filter dropdown */}
+      {/* Set filter dropdown + language chip */}
       {!isSearchMode && !setsLoading && (
         <View style={styles.setFilterRow}>
           <Pressable
@@ -265,6 +280,42 @@ export default function CardsScreen() {
               size={14}
               color={colors.textMuted}
             />
+          </Pressable>
+
+          {/* Language filter chip */}
+          <Pressable
+            style={[
+              styles.setDropdownBtn,
+              selectedLanguage && styles.langChipActive,
+            ]}
+            onPress={() => setShowLanguagePicker(true)}
+          >
+            <Ionicons
+              name="language-outline"
+              size={16}
+              color={selectedLanguage ? colors.primary : colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.setDropdownLabel,
+                selectedLanguage && styles.langChipText,
+              ]}
+              numberOfLines={1}
+            >
+              {selectedLanguage
+                ? selectedLanguage.toUpperCase()
+                : 'Language'}
+            </Text>
+            {selectedLanguage ? (
+              <Pressable
+                onPress={() => setSelectedLanguage(undefined)}
+                hitSlop={8}
+              >
+                <Ionicons name="close" size={14} color={colors.primary} />
+              </Pressable>
+            ) : (
+              <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+            )}
           </Pressable>
 
           {/* Progress indicator for selected set */}
@@ -424,6 +475,39 @@ export default function CardsScreen() {
         onRemoveFromWanted={(cardId) => removeFromWanted(cardId)}
         onUpdatePriority={(cardId, p) => updatePriority(cardId, p)}
       />
+
+      {/* Language picker modal (for browse mode) */}
+      <Modal
+        visible={showLanguagePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLanguagePicker(false)}
+      >
+        <Pressable style={styles.langOverlay} onPress={() => setShowLanguagePicker(false)}>
+          <View style={styles.langSheet}>
+            <Text style={styles.langSheetTitle}>Select Language</Text>
+            <FlatList
+              data={[{ code: '', label: 'All Languages' }, ...LANGUAGE_OPTIONS]}
+              keyExtractor={(item) => item.code || '__all__'}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.langOption}
+                  onPress={() => {
+                    setSelectedLanguage(item.code || undefined);
+                    setShowLanguagePicker(false);
+                  }}
+                >
+                  <Text style={styles.langOptionText}>{item.label}</Text>
+                  {(selectedLanguage === item.code || (!selectedLanguage && !item.code)) && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary} />
+                  )}
+                </Pressable>
+              )}
+              style={styles.langOptionList}
+            />
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -623,5 +707,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+  },
+
+  // Language chip active state
+  langChipActive: {
+    backgroundColor: colors.primary + '25',
+    borderColor: colors.primary,
+  },
+  langChipText: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+
+  // Language picker modal
+  langOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  langSheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+    maxHeight: '60%',
+  },
+  langSheetTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  langOptionList: {
+    paddingHorizontal: spacing.lg,
+  },
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  langOptionText: {
+    fontSize: 15,
+    color: colors.text,
+    flex: 1,
   },
 });

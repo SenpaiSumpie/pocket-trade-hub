@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from './useApi';
+import { useCardsStore } from '../stores/cards';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
 
 interface CardFilters {
@@ -47,14 +48,20 @@ export function useCardsBySet(setId: string | null, limit = 50) {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const offsetRef = useRef(0);
+  const selectedLanguage = useCardsStore((s) => s.selectedLanguage);
 
   const fetchCards = useCallback(
     async (offset: number, append: boolean) => {
       if (!setId) return;
       setLoading(true);
       try {
+        const params = new URLSearchParams();
+        params.set('limit', String(limit));
+        params.set('offset', String(offset));
+        if (selectedLanguage) params.set('language', selectedLanguage);
+
         const data = await apiFetch<PaginatedCards>(
-          `/sets/${setId}/cards?limit=${limit}&offset=${offset}`,
+          `/sets/${setId}/cards?${params.toString()}`,
           { skipAuth: true },
         );
         setCards((prev) => (append ? [...prev, ...data.cards] : data.cards));
@@ -66,7 +73,7 @@ export function useCardsBySet(setId: string | null, limit = 50) {
         setLoading(false);
       }
     },
-    [setId, limit],
+    [setId, limit, selectedLanguage],
   );
 
   useEffect(() => {
@@ -94,6 +101,7 @@ export function useCardSearch(query: string, filters: CardFilters) {
   const [results, setResults] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const selectedLanguage = useCardsStore((s) => s.selectedLanguage);
 
   useEffect(() => {
     const hasFilters =
@@ -112,6 +120,7 @@ export function useCardSearch(query: string, filters: CardFilters) {
         if (filters.set) params.set('set', filters.set);
         if (filters.rarity) params.set('rarity', filters.rarity);
         if (filters.type) params.set('type', filters.type);
+        if (selectedLanguage) params.set('language', selectedLanguage);
         params.set('limit', '50');
         params.set('offset', '0');
 
@@ -129,7 +138,7 @@ export function useCardSearch(query: string, filters: CardFilters) {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, filters.set, filters.rarity, filters.type]);
+  }, [query, filters.set, filters.rarity, filters.type, selectedLanguage]);
 
   return { results, loading, total };
 }

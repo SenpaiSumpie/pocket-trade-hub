@@ -3,6 +3,7 @@ import { View, Pressable, Text, Modal, FlatList, StyleSheet } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { RarityBadge } from './RarityBadge';
+import { useCardsStore } from '@/src/stores/cards';
 import type { CardSet } from '@pocket-trade-hub/shared';
 
 interface CardFilters {
@@ -28,10 +29,24 @@ const TYPE_OPTIONS = [
   'Fighting', 'Darkness', 'Metal', 'Dragon', 'Colorless', 'Normal',
 ];
 
+const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'EN (English)' },
+  { code: 'de', label: 'DE (German)' },
+  { code: 'es', label: 'ES (Spanish)' },
+  { code: 'fr', label: 'FR (French)' },
+  { code: 'it', label: 'IT (Italian)' },
+  { code: 'ja', label: 'JA (Japanese)' },
+  { code: 'ko', label: 'KO (Korean)' },
+  { code: 'pt', label: 'PT (Portuguese)' },
+  { code: 'zh', label: 'ZH (Chinese)' },
+];
+
 type FilterKey = keyof CardFilters;
 
 export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }: FilterChipsProps) {
-  const [pickerOpen, setPickerOpen] = useState<FilterKey | null>(null);
+  const [pickerOpen, setPickerOpen] = useState<FilterKey | 'language' | null>(null);
+  const selectedLanguage = useCardsStore((s) => s.selectedLanguage);
+  const setSelectedLanguage = useCardsStore((s) => s.setSelectedLanguage);
 
   const getOptions = (): { label: string; value: string; rarity?: string }[] => {
     switch (pickerOpen) {
@@ -41,6 +56,11 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
         return RARITY_OPTIONS.map((r) => ({ label: r, value: r, rarity: r }));
       case 'type':
         return TYPE_OPTIONS.map((t) => ({ label: t, value: t }));
+      case 'language':
+        return [
+          { label: 'All Languages', value: '' },
+          ...LANGUAGE_OPTIONS.map((l) => ({ label: l.label, value: l.code })),
+        ];
       default:
         return [];
     }
@@ -61,9 +81,56 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
     { key: 'type', label: 'Type' },
   ];
 
+  const languageLabel = selectedLanguage
+    ? LANGUAGE_OPTIONS.find((l) => l.code === selectedLanguage)?.code.toUpperCase() ?? selectedLanguage.toUpperCase()
+    : null;
+
+  const handlePickerSelect = (value: string) => {
+    if (pickerOpen === 'language') {
+      setSelectedLanguage(value || undefined);
+    } else if (pickerOpen) {
+      onSetFilter(pickerOpen, value);
+    }
+    setPickerOpen(null);
+  };
+
+  const getPickerTitle = (): string => {
+    if (pickerOpen === 'language') return 'Select Language';
+    if (pickerOpen) return `Select ${pickerOpen.charAt(0).toUpperCase() + pickerOpen.slice(1)}`;
+    return '';
+  };
+
+  const getActiveValue = (): string | undefined => {
+    if (pickerOpen === 'language') return selectedLanguage;
+    if (pickerOpen) return activeFilters[pickerOpen];
+    return undefined;
+  };
+
   return (
     <>
       <View style={styles.filterRow}>
+        {/* Language filter chip */}
+        <Pressable
+          style={[styles.chip, !!languageLabel && styles.chipActive]}
+          onPress={() => setPickerOpen('language')}
+        >
+          <Ionicons name="language-outline" size={16} color={languageLabel ? colors.primary : colors.textSecondary} />
+          <Text style={[styles.chipText, !!languageLabel && styles.chipTextActive]}>
+            {languageLabel || 'Language'}
+          </Text>
+          {languageLabel ? (
+            <Pressable
+              onPress={() => setSelectedLanguage(undefined)}
+              hitSlop={8}
+              style={styles.closeBtn}
+            >
+              <Ionicons name="close" size={16} color={colors.primary} />
+            </Pressable>
+          ) : (
+            <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+          )}
+        </Pressable>
+
         {filterDefs.map(({ key, label }) => {
           const activeLabel = getActiveLabel(key);
           const isActive = !!activeLabel;
@@ -101,23 +168,18 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
       >
         <Pressable style={styles.overlay} onPress={() => setPickerOpen(null)}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>
-              Select {pickerOpen ? pickerOpen.charAt(0).toUpperCase() + pickerOpen.slice(1) : ''}
-            </Text>
+            <Text style={styles.sheetTitle}>{getPickerTitle()}</Text>
             <FlatList
               data={getOptions()}
-              keyExtractor={(item) => item.value}
+              keyExtractor={(item) => item.value || '__all__'}
               renderItem={({ item }) => (
                 <Pressable
                   style={styles.option}
-                  onPress={() => {
-                    onSetFilter(pickerOpen!, item.value);
-                    setPickerOpen(null);
-                  }}
+                  onPress={() => handlePickerSelect(item.value)}
                 >
                   <Text style={styles.optionText}>{item.label}</Text>
                   {item.rarity && <RarityBadge rarity={item.rarity} />}
-                  {activeFilters[pickerOpen!] === item.value && (
+                  {getActiveValue() === item.value && (
                     <Ionicons name="checkmark" size={18} color={colors.primary} />
                   )}
                 </Pressable>
@@ -137,6 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    flexWrap: 'wrap',
   },
   chip: {
     flexDirection: 'row',
