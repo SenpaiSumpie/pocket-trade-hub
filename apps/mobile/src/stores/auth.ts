@@ -3,6 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { useCollectionStore } from './collection';
 import { useTradesStore } from './trades';
+import { configureGoogleSignIn, signInWithGoogle, signOutGoogle } from '../services/google-auth';
+import { signInWithApple } from '../services/apple-auth';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -15,17 +17,36 @@ interface User {
   createdAt?: string;
 }
 
+interface NeedsLinking {
+  email: string;
+  provider: 'google' | 'apple';
+  idToken: string;
+}
+
+interface OAuthResult {
+  success: boolean;
+  needsLinking?: boolean;
+}
+
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
   isLoggedIn: boolean;
   isHydrated: boolean;
+  needsLinking: NeedsLinking | null;
+  linkedProviders: string[];
   login: (accessToken: string, refreshToken: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   setUser: (user: User) => void;
   updateTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  loginWithGoogle: () => Promise<OAuthResult>;
+  loginWithApple: () => Promise<OAuthResult>;
+  linkAccount: (provider: string, idToken: string, password: string) => Promise<void>;
+  setNeedsLinking: (data: NeedsLinking) => void;
+  clearNeedsLinking: () => void;
+  setLinkedProviders: (providers: string[]) => void;
 }
 
 async function secureGet(key: string): Promise<string | null> {
@@ -51,12 +72,19 @@ async function secureDelete(key: string): Promise<void> {
   return SecureStore.deleteItemAsync(key);
 }
 
+// Configure Google Sign-In on module load (non-web only)
+if (Platform.OS !== 'web') {
+  configureGoogleSignIn();
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   refreshToken: null,
   user: null,
   isLoggedIn: false,
   isHydrated: false,
+  needsLinking: null,
+  linkedProviders: [],
 
   login: async (accessToken, refreshToken, user) => {
     await secureSet('accessToken', accessToken);
@@ -78,13 +106,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       // Ignore logout errors
     }
+    // Sign out from Google if previously signed in
+    await signOutGoogle();
     await secureDelete('accessToken');
     await secureDelete('refreshToken');
     await secureDelete('user');
     // Reset all data stores so next login starts fresh
     useCollectionStore.getState().reset();
     useTradesStore.getState().reset();
-    set({ accessToken: null, refreshToken: null, user: null, isLoggedIn: false });
+    set({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isLoggedIn: false,
+      needsLinking: null,
+      linkedProviders: [],
+    });
   },
 
   hydrate: async () => {
@@ -173,4 +210,103 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await secureSet('refreshToken', refreshToken);
     set({ accessToken, refreshToken });
   },
+
+  loginWithGoogle: async (): Promise<OAuthResult> => {
+    const idToken = await signInWithGoogle();
+    if (!idToken) return { success: false };
+
+    const res = await fetch(`${API_URL}/auth/oauth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: 'google', idToken }),
+    });
+
+    const data = await res.json();
+
+    if (data.needsLinking) {
+      set({
+        needsLinking: {
+          email: data.email,
+          provider: 'google',
+          idToken,
+        },
+      });
+      return { success: false, needsLinking: true };
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Google sign-in failed');
+    }
+
+    await get().login(data.accessToken, data.refreshToken, data.user);
+    return { success: true };
+  },
+
+  loginWithApple: async (): Promise<OAuthResult> => {
+    const result = await signInWithApple();
+    if (!result) return { success: false };
+
+    const res = await fetch(`${API_URL}/auth/oauth/apple`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: 'apple', idToken: result.idToken }),
+    });
+
+    const data = await res.json();
+
+    if (data.needsLinking) {
+      set({
+        needsLinking: {
+          email: data.email,
+          provider: 'apple',
+          idToken: result.idToken,
+        },
+      });
+      return { success: false, needsLinking: true };
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Apple sign-in failed');
+    }
+
+    await get().login(data.accessToken, data.refreshToken, data.user);
+    return { success: true };
+  },
+
+  linkAccount: async (provider: string, idToken: string, password: string) => {
+    const { accessToken } = get();
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const res = await fetch(`${API_URL}/auth/link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ provider, idToken, password }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || 'Failed to link account');
+    }
+
+    // After linking, retry the OAuth login to get tokens
+    const oauthRes = await fetch(`${API_URL}/auth/oauth/${provider}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, idToken }),
+    });
+
+    const oauthData = await oauthRes.json();
+    if (oauthRes.ok && oauthData.accessToken) {
+      await get().login(oauthData.accessToken, oauthData.refreshToken, oauthData.user);
+    }
+
+    set({ needsLinking: null });
+  },
+
+  setNeedsLinking: (data: NeedsLinking) => set({ needsLinking: data }),
+  clearNeedsLinking: () => set({ needsLinking: null }),
+  setLinkedProviders: (providers: string[]) => set({ linkedProviders: providers }),
 }));
