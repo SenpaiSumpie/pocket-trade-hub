@@ -14,6 +14,7 @@ interface User {
   displayName: string | null;
   avatarId: string | null;
   friendCode: string | null;
+  preferredCardLanguage?: string;
   createdAt?: string;
 }
 

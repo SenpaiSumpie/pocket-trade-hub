@@ -7,6 +7,7 @@ import { SetPicker } from '@/src/components/cards/SetPicker';
 import { FilterChips } from '@/src/components/cards/FilterChips';
 import { CardGrid } from '@/src/components/cards/CardGrid';
 import { CardDetailModal } from '@/src/components/cards/CardDetailModal';
+import { AddToCollectionModal } from '@/src/components/collection/AddToCollectionModal';
 import { useSets, useCardsBySet, useCardSearch } from '@/src/hooks/useCards';
 import { useCardsStore } from '@/src/stores/cards';
 import { useCollectionStore } from '@/src/stores/collection';
@@ -97,6 +98,12 @@ export default function CardsScreen() {
   // Detail modal state
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailIndex, setDetailIndex] = useState(0);
+
+  // Add-to-collection modal state
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addModalCardId, setAddModalCardId] = useState<string | null>(null);
+  const [addModalCardName, setAddModalCardName] = useState('');
+  const [addModalMode, setAddModalMode] = useState<'collection' | 'wanted'>('collection');
 
   // Multi-select mode state (replaces checklist)
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -210,6 +217,29 @@ export default function CardsScreen() {
       setMode(newMode);
     },
     [setMode, multiSelectMode, exitMultiSelect],
+  );
+
+  // Add to collection/wanted with language picker
+  const openAddModal = useCallback(
+    (cardId: string, modalMode: 'collection' | 'wanted') => {
+      const card = filteredCards.find((c) => c.id === cardId) ?? currentCards.find((c) => c.id === cardId);
+      setAddModalCardId(cardId);
+      setAddModalCardName(card?.name ?? 'Card');
+      setAddModalMode(modalMode);
+      setAddModalVisible(true);
+    },
+    [filteredCards, currentCards],
+  );
+
+  const handleAddConfirm = useCallback(
+    async (cardId: string, language: string, quantity: number) => {
+      if (addModalMode === 'collection') {
+        await addToCollection(cardId, quantity, language);
+      } else {
+        await addToWanted(cardId, 'medium', language);
+      }
+    },
+    [addModalMode, addToCollection, addToWanted],
   );
 
   // Progress data for SetPicker
@@ -468,10 +498,10 @@ export default function CardsScreen() {
         mode={mode}
         collectionQuantity={(cardId) => collectionByCardId[cardId] ?? 0}
         wantedPriority={(cardId) => wantedByCardId[cardId]}
-        onAddToCollection={(cardId) => addToCollection(cardId, 1)}
+        onAddToCollection={(cardId) => openAddModal(cardId, 'collection')}
         onRemoveFromCollection={(cardId) => removeFromCollection(cardId)}
         onUpdateQuantity={(cardId, qty) => updateQuantity(cardId, qty)}
-        onAddToWanted={(cardId) => addToWanted(cardId)}
+        onAddToWanted={(cardId) => openAddModal(cardId, 'wanted')}
         onRemoveFromWanted={(cardId) => removeFromWanted(cardId)}
         onUpdatePriority={(cardId, p) => updatePriority(cardId, p)}
       />
@@ -508,6 +538,16 @@ export default function CardsScreen() {
           </View>
         </Pressable>
       </Modal>
+
+      {/* Add to collection/wanted with language picker */}
+      <AddToCollectionModal
+        visible={addModalVisible}
+        cardId={addModalCardId}
+        cardName={addModalCardName}
+        onClose={() => setAddModalVisible(false)}
+        onConfirm={handleAddConfirm}
+        mode={addModalMode}
+      />
     </SafeAreaView>
   );
 }

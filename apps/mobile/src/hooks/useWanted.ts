@@ -5,6 +5,7 @@ import type { Priority } from '@pocket-trade-hub/shared';
 
 interface WantedItem {
   cardId: string;
+  language?: string;
   priority: Priority;
 }
 
@@ -38,18 +39,18 @@ export function useAddToWanted() {
   const { addToWanted, removeFromWanted } = useCollectionStore();
 
   return useCallback(
-    async (cardId: string, priority: Priority = 'medium') => {
-      addToWanted(cardId, priority);
+    async (cardId: string, priority: Priority = 'medium', language = 'en') => {
+      addToWanted(cardId, priority, language);
 
       try {
         await apiFetch('/wanted', {
           method: 'POST',
-          body: JSON.stringify({ cardId, priority }),
+          body: JSON.stringify({ cardId, language, priority }),
         });
         // Trigger background match recompute (non-blocking)
         refreshMatchesInBackground();
       } catch {
-        removeFromWanted(cardId);
+        removeFromWanted(cardId, language);
       }
     },
     [addToWanted, removeFromWanted],
@@ -58,38 +59,40 @@ export function useAddToWanted() {
 
 /** Remove a card from wanted list with optimistic update. */
 export function useRemoveFromWanted() {
-  const { removeFromWanted, addToWanted, wantedByCardId } = useCollectionStore();
+  const { removeFromWanted, addToWanted, wantedByKey } = useCollectionStore();
 
   return useCallback(
-    async (cardId: string) => {
-      const prev = wantedByCardId[cardId];
-      removeFromWanted(cardId);
+    async (cardId: string, language = 'en') => {
+      const key = `${cardId}:${language}`;
+      const prev = wantedByKey[key];
+      removeFromWanted(cardId, language);
 
       try {
-        await apiFetch(`/wanted/${cardId}`, { method: 'DELETE' });
+        await apiFetch(`/wanted/${cardId}?language=${language}`, { method: 'DELETE' });
         // Trigger background match recompute (non-blocking)
         refreshMatchesInBackground();
       } catch {
         if (prev) {
-          addToWanted(cardId, prev);
+          addToWanted(cardId, prev, language);
         }
       }
     },
-    [removeFromWanted, addToWanted, wantedByCardId],
+    [removeFromWanted, addToWanted, wantedByKey],
   );
 }
 
 /** Update wanted priority with optimistic update. */
 export function useUpdatePriority() {
-  const { updatePriority, wantedByCardId } = useCollectionStore();
+  const { updatePriority, wantedByKey } = useCollectionStore();
 
   return useCallback(
-    async (cardId: string, priority: Priority) => {
-      const prev = wantedByCardId[cardId];
-      updatePriority(cardId, priority);
+    async (cardId: string, priority: Priority, language = 'en') => {
+      const key = `${cardId}:${language}`;
+      const prev = wantedByKey[key];
+      updatePriority(cardId, priority, language);
 
       try {
-        await apiFetch(`/wanted/${cardId}`, {
+        await apiFetch(`/wanted/${cardId}?language=${language}`, {
           method: 'PUT',
           body: JSON.stringify({ priority }),
         });
@@ -97,10 +100,10 @@ export function useUpdatePriority() {
         refreshMatchesInBackground();
       } catch {
         if (prev) {
-          updatePriority(cardId, prev);
+          updatePriority(cardId, prev, language);
         }
       }
     },
-    [updatePriority, wantedByCardId],
+    [updatePriority, wantedByKey],
   );
 }

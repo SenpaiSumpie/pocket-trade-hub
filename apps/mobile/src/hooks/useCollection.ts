@@ -34,25 +34,26 @@ export function useLoadCollection() {
 
 /** Add a card to collection with optimistic update and debounced API call. */
 export function useAddToCollection() {
-  const { addToCollection, removeFromCollection, collectionByCardId, setProgress } = useCollectionStore();
+  const { addToCollection, removeFromCollection, collectionByKey, setProgress } = useCollectionStore();
   const pending = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   return useCallback(
-    async (cardId: string, quantity = 1) => {
-      const prev = collectionByCardId[cardId];
-      addToCollection(cardId, quantity);
+    async (cardId: string, quantity = 1, language = 'en') => {
+      const key = `${cardId}:${language}`;
+      const prev = collectionByKey[key];
+      addToCollection(cardId, quantity, language);
 
-      // Debounce rapid adds for the same card
-      const existing = pending.current.get(cardId);
+      // Debounce rapid adds for the same card+language
+      const existing = pending.current.get(key);
       if (existing) clearTimeout(existing);
 
       return new Promise<void>((resolve) => {
         const timer = setTimeout(async () => {
-          pending.current.delete(cardId);
+          pending.current.delete(key);
           try {
             await apiFetch('/collection', {
               method: 'POST',
-              body: JSON.stringify({ cardId, quantity }),
+              body: JSON.stringify({ cardId, language, quantity }),
             });
             // Refresh progress from server to keep in sync
             try {
@@ -66,31 +67,32 @@ export function useAddToCollection() {
           } catch {
             // Revert optimistic update
             if (prev != null) {
-              useCollectionStore.getState().updateQuantity(cardId, prev);
+              useCollectionStore.getState().updateQuantity(cardId, prev, language);
             } else {
-              removeFromCollection(cardId);
+              removeFromCollection(cardId, language);
             }
           }
           resolve();
         }, 300);
-        pending.current.set(cardId, timer);
+        pending.current.set(key, timer);
       });
     },
-    [addToCollection, removeFromCollection, collectionByCardId, setProgress],
+    [addToCollection, removeFromCollection, collectionByKey, setProgress],
   );
 }
 
 /** Remove a card from collection with optimistic update. */
 export function useRemoveFromCollection() {
-  const { removeFromCollection, addToCollection, collectionByCardId, setProgress } = useCollectionStore();
+  const { removeFromCollection, addToCollection, collectionByKey, setProgress } = useCollectionStore();
 
   return useCallback(
-    async (cardId: string) => {
-      const prev = collectionByCardId[cardId];
-      removeFromCollection(cardId);
+    async (cardId: string, language = 'en') => {
+      const key = `${cardId}:${language}`;
+      const prev = collectionByKey[key];
+      removeFromCollection(cardId, language);
 
       try {
-        await apiFetch(`/collection/${cardId}`, { method: 'DELETE' });
+        await apiFetch(`/collection/${cardId}?language=${language}`, { method: 'DELETE' });
         // Refresh progress from server
         try {
           const progress = await apiFetch<CollectionProgress[]>('/collection/progress');
@@ -100,35 +102,36 @@ export function useRemoveFromCollection() {
         refreshMatchesInBackground();
       } catch {
         if (prev != null) {
-          addToCollection(cardId, prev);
+          addToCollection(cardId, prev, language);
         }
       }
     },
-    [removeFromCollection, addToCollection, collectionByCardId, setProgress],
+    [removeFromCollection, addToCollection, collectionByKey, setProgress],
   );
 }
 
 /** Update card quantity with optimistic update. */
 export function useUpdateQuantity() {
-  const { updateQuantity, collectionByCardId } = useCollectionStore();
+  const { updateQuantity, collectionByKey } = useCollectionStore();
 
   return useCallback(
-    async (cardId: string, quantity: number) => {
-      const prev = collectionByCardId[cardId];
-      updateQuantity(cardId, quantity);
+    async (cardId: string, quantity: number, language = 'en') => {
+      const key = `${cardId}:${language}`;
+      const prev = collectionByKey[key];
+      updateQuantity(cardId, quantity, language);
 
       try {
-        await apiFetch(`/collection/${cardId}`, {
+        await apiFetch(`/collection/${cardId}?language=${language}`, {
           method: 'PUT',
           body: JSON.stringify({ quantity }),
         });
       } catch {
         if (prev != null) {
-          updateQuantity(cardId, prev);
+          updateQuantity(cardId, prev, language);
         }
       }
     },
-    [updateQuantity, collectionByCardId],
+    [updateQuantity, collectionByKey],
   );
 }
 

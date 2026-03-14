@@ -3,51 +3,128 @@ import type { Priority } from '@pocket-trade-hub/shared';
 
 type Mode = 'browse' | 'collection' | 'wanted';
 
+/** A collection entry keyed by cardId:language */
+interface CollectionEntry {
+  cardId: string;
+  language: string;
+  quantity: number;
+}
+
+/** A wanted entry keyed by cardId:language */
+interface WantedEntry {
+  cardId: string;
+  language: string;
+  priority: Priority;
+}
+
+/** Composite key for cardId + language */
+function compositeKey(cardId: string, language: string): string {
+  return `${cardId}:${language}`;
+}
+
 interface CollectionState {
   mode: Mode;
+  /** Composite-keyed: cardId:language -> quantity */
+  collectionByKey: Record<string, number>;
+  /** Language-agnostic lookup: cardId -> total quantity (across all languages). Used for card grid badges. */
   collectionByCardId: Record<string, number>;
+  /** Composite-keyed: cardId:language -> priority */
+  wantedByKey: Record<string, Priority>;
+  /** Language-agnostic lookup: cardId -> priority (first found). Used for card grid badges. */
   wantedByCardId: Record<string, Priority>;
+  /** Language info per key */
+  collectionLanguages: Record<string, string>;
+  wantedLanguages: Record<string, string>;
   progressBySet: Record<string, { owned: number; total: number; setName: string }>;
   collectionLoaded: boolean;
   wantedLoaded: boolean;
 
   // Actions
   setMode: (mode: Mode) => void;
-  setCollection: (items: Array<{ cardId: string; quantity: number }>) => void;
-  setWanted: (items: Array<{ cardId: string; priority: Priority }>) => void;
+  setCollection: (items: Array<{ cardId: string; language?: string; quantity: number }>) => void;
+  setWanted: (items: Array<{ cardId: string; language?: string; priority: Priority }>) => void;
   setProgress: (progress: Array<{ setId: string; setName: string; owned: number; total: number }>) => void;
 
-  // Optimistic update actions
-  addToCollection: (cardId: string, quantity?: number) => void;
-  removeFromCollection: (cardId: string) => void;
-  updateQuantity: (cardId: string, quantity: number) => void;
-  addToWanted: (cardId: string, priority?: Priority) => void;
-  removeFromWanted: (cardId: string) => void;
-  updatePriority: (cardId: string, priority: Priority) => void;
+  // Optimistic update actions (with language)
+  addToCollection: (cardId: string, quantity?: number, language?: string) => void;
+  removeFromCollection: (cardId: string, language?: string) => void;
+  updateQuantity: (cardId: string, quantity: number, language?: string) => void;
+  addToWanted: (cardId: string, priority?: Priority, language?: string) => void;
+  removeFromWanted: (cardId: string, language?: string) => void;
+  updatePriority: (cardId: string, priority: Priority, language?: string) => void;
   reset: () => void;
+}
+
+/** Build language-agnostic cardId -> total quantity map from composite-keyed map */
+function buildCardIdMap(byKey: Record<string, number>): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const [key, qty] of Object.entries(byKey)) {
+    const cardId = key.split(':')[0];
+    result[cardId] = (result[cardId] ?? 0) + qty;
+  }
+  return result;
+}
+
+/** Build language-agnostic cardId -> priority map (first found) */
+function buildWantedCardIdMap(byKey: Record<string, Priority>): Record<string, Priority> {
+  const result: Record<string, Priority> = {};
+  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  for (const [key, priority] of Object.entries(byKey)) {
+    const cardId = key.split(':')[0];
+    if (!(cardId in result) || priorityOrder[priority] < priorityOrder[result[cardId]]) {
+      result[cardId] = priority;
+    }
+  }
+  return result;
 }
 
 export const useCollectionStore = create<CollectionState>((set) => ({
   mode: 'browse',
+  collectionByKey: {},
   collectionByCardId: {},
+  wantedByKey: {},
   wantedByCardId: {},
+  collectionLanguages: {},
+  wantedLanguages: {},
   progressBySet: {},
   collectionLoaded: false,
   wantedLoaded: false,
 
   setMode: (mode) => set({ mode }),
 
-  setCollection: (items) =>
+  setCollection: (items) => {
+    const byKey: Record<string, number> = {};
+    const langs: Record<string, string> = {};
+    for (const item of items) {
+      const lang = item.language ?? 'en';
+      const key = compositeKey(item.cardId, lang);
+      byKey[key] = item.quantity;
+      langs[key] = lang;
+    }
     set({
-      collectionByCardId: Object.fromEntries(items.map((i) => [i.cardId, i.quantity])),
+      collectionByKey: byKey,
+      collectionByCardId: buildCardIdMap(byKey),
+      collectionLanguages: langs,
       collectionLoaded: true,
-    }),
+    });
+  },
 
-  setWanted: (items) =>
+  setWanted: (items) => {
+    const byKey: Record<string, Priority> = {};
+    const langs: Record<string, string> = {};
+    for (const item of items) {
+      const lang = item.language ?? 'en';
+      const key = compositeKey(item.cardId, lang);
+      byKey[key] = item.priority;
+      langs[key] = lang;
+    }
     set({
-      wantedByCardId: Object.fromEntries(items.map((i) => [i.cardId, i.priority])),
+      wantedByKey: byKey,
+      wantedByCardId: buildWantedCardIdMap(byKey),
+      wantedLanguages: langs,
       wantedLoaded: true,
-    }),
+    });
+  },
 
   setProgress: (progress) =>
     set({
@@ -56,15 +133,19 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       ),
     }),
 
-  addToCollection: (cardId, quantity = 1) =>
+  addToCollection: (cardId, quantity = 1, language = 'en') =>
     set((state) => {
-      const wasNew = !(cardId in state.collectionByCardId);
-      const newCollection = {
-        ...state.collectionByCardId,
-        [cardId]: (state.collectionByCardId[cardId] ?? 0) + quantity,
+      const key = compositeKey(cardId, language);
+      const wasNewCard = !Object.keys(state.collectionByKey).some((k) => k.startsWith(cardId + ':'));
+      const newByKey = {
+        ...state.collectionByKey,
+        [key]: (state.collectionByKey[key] ?? 0) + quantity,
       };
-      // Optimistically update progress if this is a newly added card
-      if (wasNew) {
+      const newLangs = { ...state.collectionLanguages, [key]: language };
+      const newByCardId = buildCardIdMap(newByKey);
+
+      // Optimistically update progress if this card was not in collection at all
+      if (wasNewCard) {
         const setId = cardId.split('-').slice(0, -1).join('-');
         const updatedProgress = { ...state.progressBySet };
         if (updatedProgress[setId]) {
@@ -73,17 +154,30 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             owned: updatedProgress[setId].owned + 1,
           };
         }
-        return { collectionByCardId: newCollection, progressBySet: updatedProgress };
+        return {
+          collectionByKey: newByKey,
+          collectionByCardId: newByCardId,
+          collectionLanguages: newLangs,
+          progressBySet: updatedProgress,
+        };
       }
-      return { collectionByCardId: newCollection };
+      return {
+        collectionByKey: newByKey,
+        collectionByCardId: newByCardId,
+        collectionLanguages: newLangs,
+      };
     }),
 
-  removeFromCollection: (cardId) =>
+  removeFromCollection: (cardId, language = 'en') =>
     set((state) => {
-      const wasOwned = cardId in state.collectionByCardId;
-      const { [cardId]: _, ...rest } = state.collectionByCardId;
-      // Optimistically update progress when removing a card
-      if (wasOwned) {
+      const key = compositeKey(cardId, language);
+      const { [key]: _, ...restByKey } = state.collectionByKey;
+      const { [key]: _l, ...restLangs } = state.collectionLanguages;
+      const newByCardId = buildCardIdMap(restByKey);
+
+      // Check if card is no longer in collection at all
+      const stillHasCard = Object.keys(restByKey).some((k) => k.startsWith(cardId + ':'));
+      if (!stillHasCard) {
         const setId = cardId.split('-').slice(0, -1).join('-');
         const updatedProgress = { ...state.progressBySet };
         if (updatedProgress[setId]) {
@@ -92,17 +186,29 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             owned: Math.max(0, updatedProgress[setId].owned - 1),
           };
         }
-        return { collectionByCardId: rest, progressBySet: updatedProgress };
+        return {
+          collectionByKey: restByKey,
+          collectionByCardId: newByCardId,
+          collectionLanguages: restLangs,
+          progressBySet: updatedProgress,
+        };
       }
-      return { collectionByCardId: rest };
+      return {
+        collectionByKey: restByKey,
+        collectionByCardId: newByCardId,
+        collectionLanguages: restLangs,
+      };
     }),
 
-  updateQuantity: (cardId, quantity) =>
+  updateQuantity: (cardId, quantity, language = 'en') =>
     set((state) => {
+      const key = compositeKey(cardId, language);
       if (quantity <= 0) {
-        const wasOwned = cardId in state.collectionByCardId;
-        const { [cardId]: _, ...rest } = state.collectionByCardId;
-        if (wasOwned) {
+        const { [key]: _, ...restByKey } = state.collectionByKey;
+        const { [key]: _l, ...restLangs } = state.collectionLanguages;
+        const newByCardId = buildCardIdMap(restByKey);
+        const stillHasCard = Object.keys(restByKey).some((k) => k.startsWith(cardId + ':'));
+        if (!stillHasCard) {
           const setId = cardId.split('-').slice(0, -1).join('-');
           const updatedProgress = { ...state.progressBySet };
           if (updatedProgress[setId]) {
@@ -111,36 +217,69 @@ export const useCollectionStore = create<CollectionState>((set) => ({
               owned: Math.max(0, updatedProgress[setId].owned - 1),
             };
           }
-          return { collectionByCardId: rest, progressBySet: updatedProgress };
+          return {
+            collectionByKey: restByKey,
+            collectionByCardId: newByCardId,
+            collectionLanguages: restLangs,
+            progressBySet: updatedProgress,
+          };
         }
-        return { collectionByCardId: rest };
+        return {
+          collectionByKey: restByKey,
+          collectionByCardId: newByCardId,
+          collectionLanguages: restLangs,
+        };
       }
+      const newByKey = { ...state.collectionByKey, [key]: quantity };
       return {
-        collectionByCardId: { ...state.collectionByCardId, [cardId]: quantity },
+        collectionByKey: newByKey,
+        collectionByCardId: buildCardIdMap(newByKey),
       };
     }),
 
-  addToWanted: (cardId, priority = 'medium') =>
-    set((state) => ({
-      wantedByCardId: { ...state.wantedByCardId, [cardId]: priority },
-    })),
-
-  removeFromWanted: (cardId) =>
+  addToWanted: (cardId, priority = 'medium', language = 'en') =>
     set((state) => {
-      const { [cardId]: _, ...rest } = state.wantedByCardId;
-      return { wantedByCardId: rest };
+      const key = compositeKey(cardId, language);
+      const newByKey = { ...state.wantedByKey, [key]: priority };
+      const newLangs = { ...state.wantedLanguages, [key]: language };
+      return {
+        wantedByKey: newByKey,
+        wantedByCardId: buildWantedCardIdMap(newByKey),
+        wantedLanguages: newLangs,
+      };
     }),
 
-  updatePriority: (cardId, priority) =>
-    set((state) => ({
-      wantedByCardId: { ...state.wantedByCardId, [cardId]: priority },
-    })),
+  removeFromWanted: (cardId, language = 'en') =>
+    set((state) => {
+      const key = compositeKey(cardId, language);
+      const { [key]: _, ...restByKey } = state.wantedByKey;
+      const { [key]: _l, ...restLangs } = state.wantedLanguages;
+      return {
+        wantedByKey: restByKey,
+        wantedByCardId: buildWantedCardIdMap(restByKey),
+        wantedLanguages: restLangs,
+      };
+    }),
+
+  updatePriority: (cardId, priority, language = 'en') =>
+    set((state) => {
+      const key = compositeKey(cardId, language);
+      const newByKey = { ...state.wantedByKey, [key]: priority };
+      return {
+        wantedByKey: newByKey,
+        wantedByCardId: buildWantedCardIdMap(newByKey),
+      };
+    }),
 
   reset: () =>
     set({
       mode: 'browse',
+      collectionByKey: {},
       collectionByCardId: {},
+      wantedByKey: {},
       wantedByCardId: {},
+      collectionLanguages: {},
+      wantedLanguages: {},
       progressBySet: {},
       collectionLoaded: false,
       wantedLoaded: false,
