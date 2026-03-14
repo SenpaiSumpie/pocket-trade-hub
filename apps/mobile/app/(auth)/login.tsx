@@ -18,6 +18,8 @@ import type { z } from 'zod';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
+import { OAuthButtons } from '@/src/components/auth/OAuthButtons';
+import { LinkAccountModal } from '@/src/components/auth/LinkAccountModal';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -148,7 +150,13 @@ export default function LoginScreen() {
               <Text style={styles.linkText}>Forgot Password?</Text>
             </TouchableOpacity>
           </Link>
+
+          {/* OAuth Buttons */}
+          <OAuthButtons />
         </View>
+
+        {/* Account Linking Modal */}
+        <LinkAccountModal />
 
         {/* Footer */}
         <View style={styles.footer}>

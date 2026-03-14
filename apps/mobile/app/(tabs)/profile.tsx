@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/src/stores/auth';
 import { getAvatarById } from '@/src/constants/avatars';
 import FriendCodeBadge from '@/src/components/FriendCodeBadge';
 import { apiFetch } from '@/src/hooks/useApi';
+import { signInWithGoogle } from '@/src/services/google-auth';
+import { signInWithApple, isAppleSignInAvailable } from '@/src/services/apple-auth';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { PaywallCard } from '@/src/components/premium/PaywallCard';
 import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
@@ -47,7 +50,11 @@ export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const linkedProviders = useAuthStore((s) => s.linkedProviders);
+  const setLinkedProviders = useAuthStore((s) => s.setLinkedProviders);
+  const linkAccount = useAuthStore((s) => s.linkAccount);
   const [reputation, setReputation] = useState<UserReputation>({ avgRating: 0, tradeCount: 0 });
+  const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const isPremium = usePremiumStore((s) => s.isPremium);
   const fetchPremiumStatus = usePremiumStore((s) => s.fetchStatus);
 
@@ -59,7 +66,123 @@ export default function ProfileScreen() {
       })
       .catch(() => {});
     fetchPremiumStatus();
+    // Fetch linked providers
+    apiFetch<{ providers: string[] }>('/auth/providers')
+      .then((data) => setLinkedProviders(data.providers))
+      .catch(() => {});
   }, [isLoggedIn, user?.id]);
+
+  const handleLinkGoogle = async () => {
+    setLinkingProvider('google');
+    try {
+      const idToken = await signInWithGoogle();
+      if (!idToken) return;
+      // Prompt for password to confirm linking
+      if (Platform.OS === 'web') {
+        const password = window.prompt('Enter your password to link your Google account:');
+        if (!password) return;
+        await linkAccount('google', idToken, password);
+      } else {
+        Alert.prompt(
+          'Link Google Account',
+          'Enter your password to confirm:',
+          async (password) => {
+            if (!password) return;
+            try {
+              await linkAccount('google', idToken, password);
+              setLinkedProviders([...linkedProviders, 'google']);
+              Toast.show({ type: 'success', text1: 'Google account linked' });
+            } catch (err) {
+              Toast.show({
+                type: 'error',
+                text1: 'Link Failed',
+                text2: err instanceof Error ? err.message : 'Something went wrong',
+              });
+            }
+          },
+          'secure-text',
+        );
+      }
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Google Sign-In Failed',
+        text2: err instanceof Error ? err.message : 'Something went wrong',
+      });
+    } finally {
+      setLinkingProvider(null);
+    }
+  };
+
+  const handleLinkApple = async () => {
+    setLinkingProvider('apple');
+    try {
+      const result = await signInWithApple();
+      if (!result) return;
+      if (Platform.OS === 'web') return; // Apple only on iOS
+      Alert.prompt(
+        'Link Apple Account',
+        'Enter your password to confirm:',
+        async (password) => {
+          if (!password) return;
+          try {
+            await linkAccount('apple', result.idToken, password);
+            setLinkedProviders([...linkedProviders, 'apple']);
+            Toast.show({ type: 'success', text1: 'Apple account linked' });
+          } catch (err) {
+            Toast.show({
+              type: 'error',
+              text1: 'Link Failed',
+              text2: err instanceof Error ? err.message : 'Something went wrong',
+            });
+          }
+        },
+        'secure-text',
+      );
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Apple Sign-In Failed',
+        text2: err instanceof Error ? err.message : 'Something went wrong',
+      });
+    } finally {
+      setLinkingProvider(null);
+    }
+  };
+
+  const handleUnlink = (provider: string) => {
+    // Guard: don't allow unlinking the only auth method
+    const hasPassword = true; // Assume user has password if they have email/password account
+    if (linkedProviders.length <= 1 && !hasPassword) {
+      Alert.alert(
+        'Cannot Unlink',
+        'This is your only sign-in method. Set a password first before unlinking.',
+      );
+      return;
+    }
+
+    const label = provider === 'google' ? 'Google' : 'Apple';
+    Alert.alert(`Unlink ${label}`, `Are you sure you want to unlink your ${label} account?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Unlink',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await apiFetch(`/auth/unlink/${provider}`, { method: 'DELETE' });
+            setLinkedProviders(linkedProviders.filter((p) => p !== provider));
+            Toast.show({ type: 'success', text1: `${label} account unlinked` });
+          } catch (err) {
+            Toast.show({
+              type: 'error',
+              text1: 'Unlink Failed',
+              text2: err instanceof Error ? err.message : 'Something went wrong',
+            });
+          }
+        },
+      },
+    ]);
+  };
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
@@ -121,6 +244,67 @@ export default function ProfileScreen() {
 
       {/* Premium Section */}
       <PaywallCard />
+
+      {/* Linked Accounts */}
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>Linked Accounts</Text>
+        <View style={styles.divider} />
+
+        {/* Google */}
+        <View style={styles.providerRow}>
+          <View style={styles.providerInfo}>
+            <Ionicons name="logo-google" size={20} color={colors.text} />
+            <Text style={styles.providerLabel}>Google</Text>
+          </View>
+          {linkedProviders.includes('google') ? (
+            <TouchableOpacity onPress={() => handleUnlink('google')}>
+              <Text style={styles.unlinkText}>Unlink</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.linkProviderButton}
+              onPress={handleLinkGoogle}
+              disabled={linkingProvider !== null}
+            >
+              {linkingProvider === 'google' ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={styles.linkProviderText}>Link</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Apple (iOS only) */}
+        {isAppleSignInAvailable() && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.providerRow}>
+              <View style={styles.providerInfo}>
+                <Ionicons name="logo-apple" size={20} color={colors.text} />
+                <Text style={styles.providerLabel}>Apple</Text>
+              </View>
+              {linkedProviders.includes('apple') ? (
+                <TouchableOpacity onPress={() => handleUnlink('apple')}>
+                  <Text style={styles.unlinkText}>Unlink</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.linkProviderButton}
+                  onPress={handleLinkApple}
+                  disabled={linkingProvider !== null}
+                >
+                  {linkingProvider === 'apple' ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text style={styles.linkProviderText}>Link</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        )}
+      </View>
 
       {/* Info Cards */}
       <View style={styles.infoCard}>
@@ -243,10 +427,49 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
   },
+  sectionTitle: {
+    ...typography.label,
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border,
     marginVertical: spacing.xs,
+  },
+  providerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  providerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  providerLabel: {
+    ...typography.body,
+    color: colors.text,
+  },
+  linkProviderButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  linkProviderText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  unlinkText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: '500',
   },
   editButton: {
     backgroundColor: colors.primary,
