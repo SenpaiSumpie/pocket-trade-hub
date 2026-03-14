@@ -162,7 +162,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 4. Trade Matching Engine | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. Multi-Language Cards and OAuth | 2/5 | In Progress|  | - |
+| 7. Multi-Language Cards and OAuth | v2.0 | 3/5 | In Progress | - |
 | 8. Post-Based Trading | v2.0 | 0/TBD | Not started | - |
 | 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |

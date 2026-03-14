@@ -20,9 +20,9 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 ### Cards
 
 - [x] **CARD-01**: Card database supports 9 languages (EN, DE, ES, FR, IT, JA, KO, PT, ZH)
-- [ ] **CARD-02**: User can select card language when adding to collection
-- [ ] **CARD-03**: User can filter/search cards by language
-- [ ] **CARD-04**: Card detail view shows available languages and translations
+- [x] **CARD-02**: User can select card language when adding to collection
+- [x] **CARD-03**: User can filter/search cards by language
+- [x] **CARD-04**: Card detail view shows available languages and translations
 
 ### Auth
 
@@ -96,9 +96,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CARD-01 | Phase 7 | Complete |
-| CARD-02 | Phase 7 | Pending |
-| CARD-03 | Phase 7 | Pending |
-| CARD-04 | Phase 7 | Pending |
+| CARD-02 | Phase 7 | Complete |
+| CARD-03 | Phase 7 | Complete |
+| CARD-04 | Phase 7 | Complete |
 | AUTH-01 | Phase 7 | Complete |
 | AUTH-02 | Phase 7 | Complete |
 | AUTH-03 | Phase 7 | Complete |
