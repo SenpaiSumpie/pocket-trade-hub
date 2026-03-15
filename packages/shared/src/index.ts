@@ -125,3 +125,20 @@ export type {
   AnalyticsResponse,
   SubscriptionStatus,
 } from './schemas/premium';
+
+export {
+  postTypeValues,
+  postStatusValues,
+  postTypeSchema,
+  postStatusSchema,
+  postCardSchema,
+  createPostSchema,
+  tradePostSchema,
+} from './schemas/post';
+export type {
+  PostCard,
+  CreatePostInput,
+  TradePost,
+  PostType,
+  PostStatus,
+} from './schemas/post';

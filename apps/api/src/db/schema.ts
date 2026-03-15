@@ -280,3 +280,23 @@ export const notifications = pgTable('notifications', {
   index('notifications_user_read_idx').on(table.userId, table.read),
   index('notifications_user_created_idx').on(table.userId, table.createdAt),
 ]);
+
+export const postTypeEnum = pgEnum('post_type', ['offering', 'seeking']);
+export const postStatusEnum = pgEnum('post_status', ['active', 'closed', 'auto_closed']);
+
+export const tradePosts = pgTable('trade_posts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  type: postTypeEnum('type').notNull(),
+  status: postStatusEnum('status').default('active').notNull(),
+  cards: jsonb('cards').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('trade_posts_user_id_idx').on(table.userId),
+  index('trade_posts_type_status_idx').on(table.type, table.status),
+  index('trade_posts_created_at_idx').on(table.createdAt),
+  index('trade_posts_cards_gin_idx').using('gin', sql`${table.cards} jsonb_path_ops`),
+]);
