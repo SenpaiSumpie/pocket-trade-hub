@@ -16,6 +16,7 @@ import wantedRoutes from '../src/routes/wanted';
 import matchRoutes from '../src/routes/matches';
 import proposalRoutes from '../src/routes/proposals';
 import premiumRoutes from '../src/routes/premium';
+import postRoutes from '../src/routes/posts';
 // OAuth routes excluded from test setup: jose is ESM-only and incompatible with ts-jest
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
@@ -70,6 +71,7 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   await app.register(matchRoutes);
   await app.register(proposalRoutes);
   await app.register(premiumRoutes);
+  await app.register(postRoutes);
   // OAuth routes excluded: jose ESM incompatibility with ts-jest
 
   // Health check
