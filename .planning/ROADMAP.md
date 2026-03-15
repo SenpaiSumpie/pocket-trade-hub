@@ -29,7 +29,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - Integer phases (7, 8, 9...): Planned milestone work
 - Decimal phases (8.1, 8.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 7: Multi-Language Cards and OAuth** - Language-aware card database for 9 languages plus Google/Apple sign-in
+- [x] **Phase 7: Multi-Language Cards and OAuth** - Language-aware card database for 9 languages plus Google/Apple sign-in (completed 2026-03-14)
 - [ ] **Phase 8: Post-Based Trading** - Offering/Seeking trade posts replacing automatic-only matching
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
 - [ ] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection
@@ -162,7 +162,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 4. Trade Matching Engine | v1.0 | 2/2 | Complete | 2026-03-09 |
 | 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. Multi-Language Cards and OAuth | v2.0 | 3/5 | In Progress | - |
+| 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
 | 8. Post-Based Trading | v2.0 | 0/TBD | Not started | - |
 | 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |
