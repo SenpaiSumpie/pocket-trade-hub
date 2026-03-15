@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
-status: completed
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-15T15:52:00.412Z"
-last_activity: 2026-03-14 -- Completed 07-05 Mobile OAuth UI
+status: in-progress
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-15T16:35:26Z"
+last_activity: 2026-03-15 -- Completed 08-01 Post Backend
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 14
+  total_plans: 4
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** v2.0 Full Platform -- Phase 7 complete, ready for Phase 8
+**Current focus:** v2.0 Full Platform -- Phase 8 in progress
 
 ## Current Position
 
-Phase: 7 of 13 (Multi-Language Cards and OAuth) -- COMPLETE
-Plan: 5 of 5 complete
-Status: Phase 7 Complete
-Last activity: 2026-03-14 -- Completed 07-05 Mobile OAuth UI
+Phase: 8 of 13 (Post-Based Trading) -- IN PROGRESS
+Plan: 1 of 4 complete
+Status: Executing Phase 8
+Last activity: 2026-03-15 -- Completed 08-01 Post Backend
 
-Progress: [▓▓░░░░░░░░] 14%
+Progress: [▓▓░░░░░░░░] 17%
 
 ## Performance Metrics
 
@@ -41,9 +41,13 @@ Progress: [▓▓░░░░░░░░] 14%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 6.4 min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 08    | 01   | 6 min    | 2     | 9     |
 
 ## Accumulated Context
 
@@ -69,6 +73,12 @@ Phase 7 decisions:
 - OAuth buttons below email/password form (email/password remains primary, OAuth is convenient alternative)
 - Native OAuth over browser-based auth sessions for better UX and security
 
+Phase 8 decisions:
+- JSONB containment (@>) for language/rarity/setId filtering with GIN index
+- Free user post limit set to 15 active posts
+- isRelevant computed per-request from user wanted/collection in-memory sets
+- Case-insensitive card name search via jsonb_array_elements with lower()
+
 ### Pending Todos
 
 None.
@@ -82,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T15:52:00.410Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-post-based-trading/08-CONTEXT.md
+Last session: 2026-03-15T16:35:26Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-post-based-trading/08-01-SUMMARY.md
