@@ -68,12 +68,13 @@ Plans:
   3. User can browse and search posts with filters for card, set, rarity, and language
   4. User receives notifications when someone posts a complementary match to their posts
   5. User can send a trade proposal directly from a matched post and complete the proposal workflow
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
+- [ ] 08-01-PLAN.md -- DB schema, shared types, post service, and REST API routes
+- [ ] 08-02-PLAN.md -- Post matching worker, proposal adaptation, and auto-close
+- [ ] 08-03-PLAN.md -- Mobile Market tab with post browsing, filtering, and creation
+- [ ] 08-04-PLAN.md -- Trades tab refactor, real-time events, and end-to-end verification
 
 ### Phase 9: Engagement Quick Wins
 **Goal**: Users get high-value utility features that drive engagement and social sharing
@@ -163,7 +164,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
-| 8. Post-Based Trading | v2.0 | 0/TBD | Not started | - |
+| 8. Post-Based Trading | v2.0 | 0/4 | Not started | - |
 | 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |
 | 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |
