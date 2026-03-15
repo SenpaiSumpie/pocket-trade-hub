@@ -38,13 +38,13 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 09-01-01 | 01 | 1 | INTL-05 | unit | `cd apps/api && npx jest --testPathPattern="pull-rates" -x` | ❌ W0 | ⬜ pending |
-| 09-01-02 | 01 | 1 | INTL-05 | unit | `cd apps/api && npx jest --testPathPattern="pull-rates" -x` | ❌ W0 | ⬜ pending |
-| 09-02-01 | 02 | 1 | DISC-03 | manual-only | Manual: verify images render correctly on device | N/A | ⬜ pending |
-| 09-02-02 | 02 | 1 | DISC-03 | manual-only | Manual: visual check watermark on device | N/A | ⬜ pending |
-| 09-03-01 | 03 | 1 | DISC-04 | unit | `cd apps/api && npx jest --testPathPattern="promo" -x` | ❌ W0 | ⬜ pending |
-| 09-03-02 | 03 | 1 | DISC-04 | unit | `cd apps/api && npx jest --testPathPattern="promo" -x` | ❌ W0 | ⬜ pending |
-| 09-03-03 | 03 | 1 | DISC-04 | unit | `cd apps/api && npx jest --testPathPattern="promo" -x` | ❌ W0 | ⬜ pending |
+| 09-01-01 | 01 | 1 | INTL-05 | unit | `cd packages/shared && npx jest --testPathPattern="pull-rates" -x` | ❌ W0 | ⬜ pending |
+| 09-01-02 | 01 | 1 | INTL-05 | tsc | `cd apps/mobile && npx tsc --noEmit --pretty 2>&1 \| head -30` | ✅ | ⬜ pending |
+| 09-02-01 | 02 | 1 | DISC-04 | unit | `cd apps/api && npx jest --testPathPattern="promo" -x` | ❌ W0 | ⬜ pending |
+| 09-02-02 | 02 | 1 | DISC-04 | tsc | `cd apps/mobile && npx tsc --noEmit --pretty 2>&1 \| head -30` | ✅ | ⬜ pending |
+| 09-03-01 | 03 | 1 | DISC-03 | tsc | `cd apps/mobile && npx tsc --noEmit --pretty 2>&1 \| head -30` | ✅ | ⬜ pending |
+| 09-03-02 | 03 | 1 | DISC-03 | tsc | `cd apps/mobile && npx tsc --noEmit --pretty 2>&1 \| head -30` | ✅ | ⬜ pending |
+| 09-03-03 | 03 | 1 | DISC-03 | manual-only | checkpoint:human-verify (visual inspection) | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
