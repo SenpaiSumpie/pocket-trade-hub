@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 8 of 13 (Post-Based Trading) -- IN PROGRESS
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: Executing Phase 8
-Last activity: 2026-03-15 -- Completed 08-02 Post Matching and Proposal Adaptation
+Last activity: 2026-03-15 -- Completed 08-03 Mobile Market Tab
 
-Progress: [▓▓▓░░░░░░░] 33%
+Progress: [▓▓▓▓▓░░░░░] 50%
 
 ## Performance Metrics
 
@@ -41,14 +41,15 @@ Progress: [▓▓▓░░░░░░░] 33%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 7
-- Average duration: 6.6 min
-- Total execution time: 0.8 hours
+- Total plans completed: 8
+- Average duration: 6.8 min
+- Total execution time: 0.9 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 08    | 01   | 6 min    | 2     | 9     |
 | 08    | 02   | 8 min    | 2     | 10    |
+| 08    | 03   | 8 min    | 2     | 9     |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Phase 8 decisions:
 - Duplicated notification helpers in post-match service to avoid coupling with proposal service
 - 5-second BullMQ delay for post matching (shorter than 30s match-recompute for interactivity)
 - Per-user notification deduplication via Set-based grouping in processPostMatch
+- PostDetailModal sends proposals using post.id as matchId bridge until proper post-based proposals
+- MarketPost type extended with optional poster field for forward-compatible user profile display
+- Old matches fetch removed from tab layout; marketplace loads on Market tab focus
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:46:00Z
-Stopped at: Completed 08-02-PLAN.md
-Resume file: .planning/phases/08-post-based-trading/08-02-SUMMARY.md
+Last session: 2026-03-15T16:46:14Z
+Stopped at: Completed 08-03-PLAN.md
+Resume file: .planning/phases/08-post-based-trading/08-03-SUMMARY.md
