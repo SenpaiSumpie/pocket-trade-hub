@@ -84,11 +84,12 @@ Plans:
   1. User can calculate pack opening probabilities for any specific card they want
   2. User can export their collection or trade posts as a shareable image
   3. User can redeem a gift or promo code to receive premium time or other benefits
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md -- Luck calculator with pull rate math and CardDetailModal integration
+- [ ] 09-02-PLAN.md -- Promo code system (DB, API, service, mobile redemption UI)
+- [ ] 09-03-PLAN.md -- Image export with four templates and native share sheet
 
 ### Phase 10: Internationalization
 **Goal**: Users can use the entire app UI in their preferred language
@@ -165,7 +166,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
 | 8. Post-Based Trading | 4/4 | Complete   | 2026-03-15 | - |
-| 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
+| 9. Engagement Quick Wins | v2.0 | 0/3 | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |
 | 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |
 | 12. Intelligence | v2.0 | 0/TBD | Not started | - |
