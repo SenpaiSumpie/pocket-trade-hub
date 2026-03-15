@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import type { TradePost, PostType } from '@pocket-trade-hub/shared';
 
-export type MarketPost = TradePost & { isRelevant?: boolean };
+export type MarketPost = TradePost & {
+  isRelevant?: boolean;
+  /** Poster info (populated when API returns joined user data) */
+  poster?: {
+    displayName: string;
+    averageRating: number | null;
+    tradeCount: number;
+  };
+};
 
 type SortOption = 'newest' | 'relevant';
 

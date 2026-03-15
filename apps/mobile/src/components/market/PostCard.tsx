@@ -70,6 +70,22 @@ export function PostCard({ post, onPress }: PostCardProps) {
           )}
         </View>
 
+        {/* Poster info (when available) */}
+        {post.poster && (
+          <View style={styles.posterRow}>
+            <Text style={styles.posterName} numberOfLines={1}>{post.poster.displayName}</Text>
+            {post.poster.averageRating != null && (
+              <View style={styles.ratingRow}>
+                <Ionicons name="star" size={10} color={colors.primary} />
+                <Text style={styles.ratingText}>{post.poster.averageRating.toFixed(1)}</Text>
+              </View>
+            )}
+            {post.poster.tradeCount > 0 && (
+              <Text style={styles.tradeCountText}>{post.poster.tradeCount} trades</Text>
+            )}
+          </View>
+        )}
+
         <View style={styles.bottomRow}>
           <Text style={styles.languageBadge}>{card.language.toUpperCase()}</Text>
           <Text style={styles.timeText}>{timeAgo(post.createdAt)}</Text>
@@ -172,6 +188,32 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
     overflow: 'hidden',
+  },
+  posterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  posterName: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '500',
+    flex: 1,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  ratingText: {
+    fontSize: 10,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  tradeCountText: {
+    fontSize: 10,
+    color: colors.textMuted,
   },
   timeText: {
     ...typography.caption,
