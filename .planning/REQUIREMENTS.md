@@ -12,8 +12,8 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 - [x] **TRAD-01**: User can create an Offering post with cards they want to trade away
 - [x] **TRAD-02**: User can create a Seeking post with cards they want to receive
 - [x] **TRAD-03**: User can browse/search Offering and Seeking posts with filters (card, set, rarity, language)
-- [ ] **TRAD-04**: User gets matched with complementary posts (my Offering matches their Seeking and vice versa)
-- [ ] **TRAD-05**: User can send a trade proposal directly from a matched post
+- [x] **TRAD-04**: User gets matched with complementary posts (my Offering matches their Seeking and vice versa)
+- [x] **TRAD-05**: User can send a trade proposal directly from a matched post
 - [x] **TRAD-06**: Posts include card language to prevent language mismatches
 - [ ] **TRAD-07**: User receives smart trade suggestions on app open based on their posts and activity (premium)
 
@@ -106,8 +106,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRAD-01 | Phase 8 | Complete |
 | TRAD-02 | Phase 8 | Complete |
 | TRAD-03 | Phase 8 | Complete |
-| TRAD-04 | Phase 8 | Pending |
-| TRAD-05 | Phase 8 | Pending |
+| TRAD-04 | Phase 8 | Complete |
+| TRAD-05 | Phase 8 | Complete |
 | TRAD-06 | Phase 8 | Complete |
 | INTL-05 | Phase 9 | Pending |
 | DISC-03 | Phase 9 | Pending |

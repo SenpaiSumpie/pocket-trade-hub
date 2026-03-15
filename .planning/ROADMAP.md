@@ -164,7 +164,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
 | 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
-| 8. Post-Based Trading | v2.0 | 0/4 | Not started | - |
+| 8. Post-Based Trading | 3/4 | In Progress|  | - |
 | 9. Engagement Quick Wins | v2.0 | 0/TBD | Not started | - |
 | 10. Internationalization | v2.0 | 0/TBD | Not started | - |
 | 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |

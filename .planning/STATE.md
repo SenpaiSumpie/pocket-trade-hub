@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: in-progress
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-15T16:35:26Z"
-last_activity: 2026-03-15 -- Completed 08-01 Post Backend
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-03-15T16:46:14Z"
+last_activity: 2026-03-15 -- Completed 08-03 Mobile Market Tab
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 4
-  completed_plans: 1
-  percent: 17
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 8 of 13 (Post-Based Trading) -- IN PROGRESS
-Plan: 1 of 4 complete
+Plan: 2 of 4 complete
 Status: Executing Phase 8
-Last activity: 2026-03-15 -- Completed 08-01 Post Backend
+Last activity: 2026-03-15 -- Completed 08-02 Post Matching and Proposal Adaptation
 
-Progress: [▓▓░░░░░░░░] 17%
+Progress: [▓▓▓░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -41,13 +41,14 @@ Progress: [▓▓░░░░░░░░] 17%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 6
-- Average duration: 6.4 min
-- Total execution time: 0.6 hours
+- Total plans completed: 7
+- Average duration: 6.6 min
+- Total execution time: 0.8 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 08    | 01   | 6 min    | 2     | 9     |
+| 08    | 02   | 8 min    | 2     | 10    |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Phase 8 decisions:
 - Free user post limit set to 15 active posts
 - isRelevant computed per-request from user wanted/collection in-memory sets
 - Case-insensitive card name search via jsonb_array_elements with lower()
+- Duplicated notification helpers in post-match service to avoid coupling with proposal service
+- 5-second BullMQ delay for post matching (shorter than 30s match-recompute for interactivity)
+- Per-user notification deduplication via Set-based grouping in processPostMatch
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:35:26Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-post-based-trading/08-01-SUMMARY.md
+Last session: 2026-03-15T16:46:00Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: .planning/phases/08-post-based-trading/08-02-SUMMARY.md
