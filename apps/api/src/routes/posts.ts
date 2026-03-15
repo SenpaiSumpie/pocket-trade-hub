@@ -7,6 +7,7 @@ import {
   closePost,
   deletePost,
 } from '../services/post.service';
+import { queuePostMatch } from '../jobs/post-match-worker';
 
 export default async function postRoutes(fastify: FastifyInstance) {
   // POST /posts - create a new trade post
@@ -26,6 +27,14 @@ export default async function postRoutes(fastify: FastifyInstance) {
 
       try {
         const post = await createPost(fastify.db, userId, parsed.data);
+
+        // Queue background post matching job
+        try {
+          await queuePostMatch(post.id, userId);
+        } catch {
+          // Redis/queue failures are non-critical
+        }
+
         return reply.code(201).send({ post });
       } catch (err: any) {
         const status = err.statusCode || 500;

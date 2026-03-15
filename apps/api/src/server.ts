@@ -19,6 +19,7 @@ import postRoutes from './routes/posts';
 import oauthRoutes from './routes/oauth';
 import { initAnalyticsWorker, closeAnalyticsWorker } from './jobs/analytics-worker';
 import { initCardAlertWorker, closeCardAlertWorker } from './jobs/card-alert-worker';
+import { initPostMatchWorker, closePostMatchWorker } from './jobs/post-match-worker';
 
 export async function buildApp(opts = {}) {
   const app = Fastify(opts);
@@ -63,11 +64,13 @@ if (require.main === module) {
       // Initialize background workers
       initAnalyticsWorker(app.db);
       initCardAlertWorker(app.db);
+      initPostMatchWorker(app.db, (app as any).io);
 
       // Graceful shutdown
       const shutdown = async () => {
         await closeAnalyticsWorker();
         await closeCardAlertWorker();
+        await closePostMatchWorker();
         await app.close();
         process.exit(0);
       };
