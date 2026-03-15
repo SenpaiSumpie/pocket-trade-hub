@@ -42,13 +42,14 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
           senderId: userId,
           receiverId,
           matchId: parsed.data.matchId,
+          postId: parsed.data.postId,
           senderGives: parsed.data.senderGives,
           senderGets: parsed.data.senderGets,
           fairnessScore: parsed.data.fairnessScore,
           parentId: parsed.data.parentId,
         });
 
-        return reply.code(201).send(proposal);
+        return reply.code(201).send({ proposal });
       } catch (err: any) {
         const status = err.statusCode || 500;
         return reply.code(status).send({ error: err.message });
@@ -107,7 +108,7 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
 
       try {
         const proposal = await acceptProposal(fastify.db, io, id, userId);
-        return reply.code(200).send(proposal);
+        return reply.code(200).send({ proposal });
       } catch (err: any) {
         const status = err.statusCode || 500;
         return reply.code(status).send({ error: err.message });
@@ -126,7 +127,7 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
 
       try {
         const proposal = await rejectProposal(fastify.db, io, id, userId);
-        return reply.code(200).send(proposal);
+        return reply.code(200).send({ proposal });
       } catch (err: any) {
         const status = err.statusCode || 500;
         return reply.code(status).send({ error: err.message });
@@ -162,13 +163,14 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
           senderId: userId,
           receiverId,
           matchId: parsed.data.matchId,
+          postId: parsed.data.postId,
           senderGives: parsed.data.senderGives,
           senderGets: parsed.data.senderGets,
           fairnessScore: parsed.data.fairnessScore,
           parentId,
         });
 
-        return reply.code(201).send(proposal);
+        return reply.code(201).send({ proposal });
       } catch (err: any) {
         const status = err.statusCode || 500;
         return reply.code(status).send({ error: err.message });
@@ -187,7 +189,7 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
 
       try {
         const proposal = await completeProposal(fastify.db, io, id, userId);
-        return reply.code(200).send(proposal);
+        return reply.code(200).send({ proposal });
       } catch (err: any) {
         const status = err.statusCode || 500;
         return reply.code(status).send({ error: err.message });

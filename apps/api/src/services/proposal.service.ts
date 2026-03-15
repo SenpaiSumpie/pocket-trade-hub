@@ -1,14 +1,17 @@
-import { eq, and, or, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, or, ne, desc, asc, sql, inArray } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
-import { tradeProposals, notifications, users } from '../db/schema';
+import { tradeProposals, tradeRatings, notifications, users, userCollectionItems, userWantedCards, tradePosts } from '../db/schema';
 import type { Server } from 'socket.io';
+import { addToCollection, getUserCollection, updateQuantity } from './collection.service';
+import { removeFromWanted } from './wanted.service';
 
 type DbInstance = any;
 
 interface CreateProposalOpts {
   senderId: string;
   receiverId: string;
-  matchId: string;
+  matchId?: string;
+  postId?: string;
   senderGives: any[];
   senderGets: any[];
   fairnessScore: number;
@@ -110,11 +113,29 @@ export async function createProposal(
     }
   }
 
+  // Validate post status if postId provided
+  if (opts.postId) {
+    const [post] = await db
+      .select()
+      .from(tradePosts)
+      .where(eq(tradePosts.id, opts.postId))
+      .limit(1);
+
+    if (!post) {
+      throw Object.assign(new Error('Post not found'), { statusCode: 404 });
+    }
+
+    if (post.status !== 'active') {
+      throw Object.assign(new Error('Post is no longer active'), { statusCode: 409 });
+    }
+  }
+
   const [proposal] = await db
     .insert(tradeProposals)
     .values({
       id,
-      matchId: opts.matchId,
+      matchId: opts.matchId || null,
+      postId: opts.postId || null,
       senderId: opts.senderId,
       receiverId: opts.receiverId,
       parentId: opts.parentId || null,
@@ -136,7 +157,7 @@ export async function createProposal(
     type: notifType,
     title: notifTitle,
     body: notifBody,
-    data: { proposalId: id, matchId: opts.matchId },
+    data: { proposalId: id, matchId: opts.matchId || null, postId: opts.postId || null },
   });
 
   // Emit socket event
@@ -145,7 +166,8 @@ export async function createProposal(
     io.to(`user:${opts.receiverId}`).emit(socketEvent, {
       proposalId: id,
       senderId: opts.senderId,
-      matchId: opts.matchId,
+      matchId: opts.matchId || null,
+      postId: opts.postId || null,
     });
   }
 
@@ -297,8 +319,136 @@ export async function completeProposal(
   }
 
   const proposal = result[0];
+  const { senderId, receiverId } = proposal;
+  const senderGives: Array<{ cardId: string; cardName: string; imageUrl: string; rarity: string }> = proposal.senderGives ?? [];
+  const senderGets: Array<{ cardId: string; cardName: string; imageUrl: string; rarity: string }> = proposal.senderGets ?? [];
 
-  // Notify the OTHER party
+  // ── 1. Transfer inventory inside a transaction ──
+  await db.transaction(async (tx: DbInstance) => {
+    // Get current collections for both users to determine quantities
+    const senderCollection = await getUserCollection(tx, senderId);
+    const receiverCollection = await getUserCollection(tx, receiverId);
+
+    const senderCollectionMap = new Map<string, number>();
+    for (const item of senderCollection) {
+      senderCollectionMap.set(item.cardId, item.quantity);
+    }
+    const receiverCollectionMap = new Map<string, number>();
+    for (const item of receiverCollection) {
+      receiverCollectionMap.set(item.cardId, item.quantity);
+    }
+
+    // senderGives: sender loses cards, receiver gains cards
+    for (const card of senderGives) {
+      const currentQty = senderCollectionMap.get(card.cardId) ?? 0;
+      if (currentQty <= 1) {
+        // Remove entirely if quantity would be 0
+        await updateQuantity(tx, senderId, card.cardId, 0);
+      } else {
+        await updateQuantity(tx, senderId, card.cardId, currentQty - 1);
+      }
+      await addToCollection(tx, receiverId, card.cardId, 1);
+
+      // Remove from receiver's wanted list if they wanted this card
+      await removeFromWanted(tx, receiverId, card.cardId);
+    }
+
+    // senderGets: receiver loses cards, sender gains cards
+    for (const card of senderGets) {
+      const currentQty = receiverCollectionMap.get(card.cardId) ?? 0;
+      if (currentQty <= 1) {
+        await updateQuantity(tx, receiverId, card.cardId, 0);
+      } else {
+        await updateQuantity(tx, receiverId, card.cardId, currentQty - 1);
+      }
+      await addToCollection(tx, senderId, card.cardId, 1);
+
+      // Remove from sender's wanted list if they wanted this card
+      await removeFromWanted(tx, senderId, card.cardId);
+    }
+
+    // ── 2. Cancel conflicting pending proposals ──
+    const senderGivesCardIds = senderGives.map((c) => c.cardId);
+    const senderGetsCardIds = senderGets.map((c) => c.cardId);
+
+    // Find pending proposals that overlap with traded cards
+    // A proposal conflicts if either party committed cards that were just traded away
+    const conflicting = await tx
+      .select()
+      .from(tradeProposals)
+      .where(
+        and(
+          eq(tradeProposals.status, 'pending'),
+          ne(tradeProposals.id, proposalId),
+          or(
+            // Sender's other proposals where they're giving away cards they just traded
+            and(
+              eq(tradeProposals.senderId, senderId),
+              senderGivesCardIds.length > 0
+                ? sql`EXISTS (SELECT 1 FROM jsonb_array_elements(${tradeProposals.senderGives}) elem WHERE elem->>'cardId' = ANY(ARRAY[${sql.join(senderGivesCardIds.map(id => sql`${id}`), sql`, `)}]))`
+                : sql`false`,
+            ),
+            // Sender is receiver in another proposal and senderGets overlap with what sender gave away
+            and(
+              eq(tradeProposals.receiverId, senderId),
+              senderGivesCardIds.length > 0
+                ? sql`EXISTS (SELECT 1 FROM jsonb_array_elements(${tradeProposals.senderGets}) elem WHERE elem->>'cardId' = ANY(ARRAY[${sql.join(senderGivesCardIds.map(id => sql`${id}`), sql`, `)}]))`
+                : sql`false`,
+            ),
+            // Receiver's other proposals where they're giving away cards they just traded
+            and(
+              eq(tradeProposals.senderId, receiverId),
+              senderGetsCardIds.length > 0
+                ? sql`EXISTS (SELECT 1 FROM jsonb_array_elements(${tradeProposals.senderGives}) elem WHERE elem->>'cardId' = ANY(ARRAY[${sql.join(senderGetsCardIds.map(id => sql`${id}`), sql`, `)}]))`
+                : sql`false`,
+            ),
+            // Receiver is receiver in another proposal and senderGets overlap with what receiver gave away
+            and(
+              eq(tradeProposals.receiverId, receiverId),
+              senderGetsCardIds.length > 0
+                ? sql`EXISTS (SELECT 1 FROM jsonb_array_elements(${tradeProposals.senderGets}) elem WHERE elem->>'cardId' = ANY(ARRAY[${sql.join(senderGetsCardIds.map(id => sql`${id}`), sql`, `)}]))`
+                : sql`false`,
+            ),
+          ),
+        ),
+      );
+
+    // Cancel each conflicting proposal
+    if (conflicting.length > 0) {
+      const conflictingIds = conflicting.map((p: any) => p.id);
+
+      await tx
+        .update(tradeProposals)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(inArray(tradeProposals.id, conflictingIds));
+
+      // Notify affected users and emit socket events
+      for (const cp of conflicting) {
+        const cpSenderId = (cp as any).senderId;
+        const cpReceiverId = (cp as any).receiverId;
+        const cpId = (cp as any).id;
+
+        // Notify both parties of the cancelled proposal
+        for (const notifyUserId of [cpSenderId, cpReceiverId]) {
+          await insertNotification(tx, {
+            userId: notifyUserId,
+            type: 'proposal_cancelled',
+            title: 'Proposal cancelled',
+            body: 'A proposal was automatically cancelled because traded cards are no longer available.',
+            data: { proposalId: cpId },
+          });
+        }
+
+        // ── 3. Emit socket events for cancelled proposals ──
+        if (io) {
+          io.to(`user:${cpSenderId}`).emit('proposal-cancelled', { proposalId: cpId });
+          io.to(`user:${cpReceiverId}`).emit('proposal-cancelled', { proposalId: cpId });
+        }
+      }
+    }
+  });
+
+  // Notify the OTHER party about trade completion
   const otherUserId =
     proposal.senderId === userId ? proposal.receiverId : proposal.senderId;
 
@@ -321,7 +471,108 @@ export async function completeProposal(
     'A trade has been marked as completed!',
   );
 
+  // ── Auto-close affected trade posts ──
+  await autoCloseAffectedPosts(db, io, proposal);
+
   return proposal;
+}
+
+/**
+ * Auto-close active trade posts when a trade completes:
+ * - Offering posts by sender where cards contain any of senderGives cardIds
+ * - Offering posts by receiver where cards contain any of senderGets cardIds
+ * - Seeking posts by receiver where cards contain any of senderGives cardIds (they got what they wanted)
+ * - Seeking posts by sender where cards contain any of senderGets cardIds (they got what they wanted)
+ */
+async function autoCloseAffectedPosts(
+  db: DbInstance,
+  io: Server | null,
+  proposal: any,
+) {
+  const { senderId, receiverId } = proposal;
+  const senderGives: Array<{ cardId: string }> = proposal.senderGives ?? [];
+  const senderGets: Array<{ cardId: string }> = proposal.senderGets ?? [];
+
+  const senderGivesCardIds = senderGives.map((c) => c.cardId);
+  const senderGetsCardIds = senderGets.map((c) => c.cardId);
+
+  const postsToClose: Array<{ id: string; userId: string }> = [];
+
+  // Helper: find active posts matching card IDs using JSONB containment
+  async function findPostsToClose(
+    userId: string,
+    type: 'offering' | 'seeking',
+    cardIds: string[],
+  ) {
+    if (cardIds.length === 0) return [];
+
+    const conditions = cardIds.map((cardId) =>
+      sql`${tradePosts.cards} @> ${JSON.stringify([{ cardId }])}::jsonb`
+    );
+
+    const cardFilter = conditions.length === 1
+      ? conditions[0]
+      : sql`(${sql.join(conditions, sql` OR `)})`;
+
+    return db
+      .select({ id: tradePosts.id, userId: tradePosts.userId })
+      .from(tradePosts)
+      .where(
+        and(
+          eq(tradePosts.userId, userId),
+          eq(tradePosts.type, type),
+          eq(tradePosts.status, 'active'),
+          cardFilter,
+        ),
+      );
+  }
+
+  // Sender's Offering posts with cards they gave away
+  const senderOfferingPosts = await findPostsToClose(senderId, 'offering', senderGivesCardIds);
+  postsToClose.push(...senderOfferingPosts);
+
+  // Receiver's Offering posts with cards they gave away
+  const receiverOfferingPosts = await findPostsToClose(receiverId, 'offering', senderGetsCardIds);
+  postsToClose.push(...receiverOfferingPosts);
+
+  // Receiver's Seeking posts with cards they received (they got what they wanted)
+  const receiverSeekingPosts = await findPostsToClose(receiverId, 'seeking', senderGivesCardIds);
+  postsToClose.push(...receiverSeekingPosts);
+
+  // Sender's Seeking posts with cards they received (they got what they wanted)
+  const senderSeekingPosts = await findPostsToClose(senderId, 'seeking', senderGetsCardIds);
+  postsToClose.push(...senderSeekingPosts);
+
+  if (postsToClose.length === 0) return;
+
+  // Update all affected posts to auto_closed
+  const postIds = postsToClose.map((p) => p.id);
+  await db
+    .update(tradePosts)
+    .set({ status: 'auto_closed', updatedAt: new Date() })
+    .where(inArray(tradePosts.id, postIds));
+
+  // Send notifications and socket events for each auto-closed post
+  for (const post of postsToClose) {
+    await insertNotification(db, {
+      userId: post.userId,
+      type: 'post_auto_closed',
+      title: 'Post auto-closed',
+      body: 'Your post was auto-closed because the card was traded.',
+      data: { postId: post.id },
+    });
+
+    if (io) {
+      io.to(`user:${post.userId}`).emit('post-closed', { postId: post.id });
+    }
+
+    await sendPushToUser(
+      db,
+      post.userId,
+      'Post auto-closed',
+      'Your post was auto-closed because the card was traded.',
+    );
+  }
 }
 
 export async function getProposals(
@@ -367,7 +618,61 @@ export async function getProposals(
 
   const total = countResult[0]?.count || 0;
 
-  return { proposals, total };
+  // Enrich proposals with partner info
+  const partnerIds = new Set<string>();
+  for (const p of proposals) {
+    const partnerId = p.senderId === userId ? p.receiverId : p.senderId;
+    partnerIds.add(partnerId);
+  }
+
+  const partnerMap: Record<string, any> = {};
+  if (partnerIds.size > 0) {
+    const partnerIdArray = [...partnerIds];
+    const partnerRows = await db
+      .select({
+        id: users.id,
+        displayName: users.displayName,
+        avatarId: users.avatarId,
+      })
+      .from(users)
+      .where(inArray(users.id, partnerIdArray));
+
+    // Get rating stats for partners
+    const ratingStats = await db
+      .select({
+        ratedId: tradeRatings.ratedId,
+        avgRating: sql<number>`avg(${tradeRatings.stars})::float`,
+        tradeCount: sql<number>`count(*)::int`,
+      })
+      .from(tradeRatings)
+      .where(inArray(tradeRatings.ratedId, partnerIdArray))
+      .groupBy(tradeRatings.ratedId);
+
+    const ratingMap: Record<string, { avgRating: number; tradeCount: number }> = {};
+    for (const r of ratingStats) {
+      ratingMap[r.ratedId] = { avgRating: r.avgRating, tradeCount: r.tradeCount };
+    }
+
+    for (const row of partnerRows) {
+      const stats = ratingMap[row.id];
+      partnerMap[row.id] = {
+        displayName: row.displayName ?? 'Trainer',
+        avatarId: row.avatarId ?? 'default',
+        avgRating: stats?.avgRating ?? 0,
+        tradeCount: stats?.tradeCount ?? 0,
+      };
+    }
+  }
+
+  const enrichedProposals = proposals.map((p: any) => {
+    const partnerId = p.senderId === userId ? p.receiverId : p.senderId;
+    return {
+      ...p,
+      partner: partnerMap[partnerId] ?? null,
+    };
+  });
+
+  return { proposals: enrichedProposals, total };
 }
 
 export async function getProposalThread(

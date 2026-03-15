@@ -196,6 +196,7 @@ export const proposalStatusEnum = pgEnum('proposal_status', [
 export const tradeProposals = pgTable('trade_proposals', {
   id: text('id').primaryKey(),
   matchId: text('match_id'),
+  postId: text('post_id'),
   senderId: text('sender_id')
     .notNull()
     .references(() => users.id),
@@ -213,6 +214,7 @@ export const tradeProposals = pgTable('trade_proposals', {
   index('trade_proposals_sender_id_idx').on(table.senderId),
   index('trade_proposals_receiver_id_idx').on(table.receiverId),
   index('trade_proposals_match_id_idx').on(table.matchId),
+  index('trade_proposals_post_id_idx').on(table.postId),
   index('trade_proposals_status_idx').on(table.status),
   index('trade_proposals_parent_id_idx').on(table.parentId),
 ]);

@@ -19,16 +19,22 @@ export const proposalStatusValues = [
 export const proposalStatusSchema = z.enum(proposalStatusValues);
 
 export const createProposalSchema = z.object({
-  matchId: z.string(),
+  matchId: z.string().optional(),
+  postId: z.string().optional(),
+  receiverId: z.string(),
   senderGives: z.array(proposalCardSchema).min(1),
   senderGets: z.array(proposalCardSchema).min(1),
   fairnessScore: z.number(),
   parentId: z.string().optional(),
-});
+}).refine(
+  (data) => data.matchId || data.postId,
+  { message: 'Either matchId or postId must be provided' },
+);
 
 export const tradeProposalSchema = z.object({
   id: z.string(),
-  matchId: z.string(),
+  matchId: z.string().nullable(),
+  postId: z.string().nullable().optional(),
   senderId: z.string(),
   receiverId: z.string(),
   parentId: z.string().nullable(),
