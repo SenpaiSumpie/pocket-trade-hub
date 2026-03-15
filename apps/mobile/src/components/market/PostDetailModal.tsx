@@ -1,0 +1,406 @@
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Pressable,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
+import { Image } from 'expo-image';
+import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
+import { RarityBadge } from '@/src/components/cards/RarityBadge';
+import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
+import { useAuthStore } from '@/src/stores/auth';
+import { usePosts } from '@/src/hooks/usePosts';
+import { useProposals } from '@/src/hooks/useProposals';
+import type { MarketPost } from '@/src/stores/posts';
+
+interface PostDetailModalProps {
+  visible: boolean;
+  post: MarketPost | null;
+  onClose: () => void;
+}
+
+export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps) {
+  const currentUserId = useAuthStore((s) => s.user?.id);
+  const { closePost, deletePost } = usePosts();
+  const { createProposal } = useProposals();
+  const [sendingProposal, setSendingProposal] = useState(false);
+
+  if (!post) return null;
+
+  const card = post.cards[0];
+  if (!card) return null;
+
+  const isOwn = post.userId === currentUserId;
+  const isActive = post.status === 'active';
+  const isOffering = post.type === 'offering';
+  const typeBadgeColor = isOffering ? colors.success : '#3b82f6';
+  const typeLabel = isOffering ? 'Offering' : 'Seeking';
+
+  const handleClose = () => {
+    Alert.alert('Close Post', 'Are you sure you want to close this post?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Close',
+        style: 'destructive',
+        onPress: () => {
+          closePost(post.id);
+          onClose();
+        },
+      },
+    ]);
+  };
+
+  const handleDelete = () => {
+    Alert.alert('Delete Post', 'Are you sure? This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deletePost(post.id);
+          onClose();
+        },
+      },
+    ]);
+  };
+
+  const handleSendProposal = async () => {
+    setSendingProposal(true);
+    try {
+      // Build a proposal from the post context
+      // If post is Offering: the post owner has this card, so we want it (senderGets)
+      // If post is Seeking: the post owner wants this card, so we give it (senderGives)
+      const proposalCard = {
+        cardId: card.cardId,
+        cardName: card.name,
+        imageUrl: card.imageUrl,
+        rarity: card.rarity ?? 'diamond1',
+      };
+
+      const senderGives = isOffering ? [] : [proposalCard];
+      const senderGets = isOffering ? [proposalCard] : [];
+
+      // For now, use post.id as matchId until proposal schema is updated for posts
+      await createProposal({
+        matchId: post.id,
+        receiverId: post.userId,
+        senderGives: senderGives.length > 0 ? senderGives : [proposalCard],
+        senderGets: senderGets.length > 0 ? senderGets : [proposalCard],
+        fairnessScore: 50,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Proposal sent!',
+        text2: 'The post owner will be notified.',
+      });
+      onClose();
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to send proposal',
+        text2: 'Please try again.',
+      });
+    } finally {
+      setSendingProposal(false);
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Pressable onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </Pressable>
+            <Text style={styles.title}>Post Details</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Card image */}
+            <View style={styles.imageWrapper}>
+              <Image
+                source={{ uri: card.imageUrl }}
+                style={styles.cardImage}
+                contentFit="cover"
+                transition={200}
+              />
+            </View>
+
+            {/* Type badge */}
+            <View style={styles.typeRow}>
+              <View style={[styles.typeBadge, { backgroundColor: typeBadgeColor }]}>
+                <Text style={styles.typeBadgeText}>{typeLabel}</Text>
+              </View>
+              {post.isRelevant && (
+                <View style={styles.matchIndicator}>
+                  <Ionicons name="star" size={12} color="#f0c040" />
+                  <Text style={styles.matchIndicatorText}>Matches your list</Text>
+                </View>
+              )}
+              {!isActive && (
+                <View style={styles.closedBadge}>
+                  <Text style={styles.closedBadgeText}>
+                    {post.status === 'closed' ? 'Closed' : 'Auto-closed'}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Card details */}
+            <Text style={styles.cardName}>{card.name}</Text>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Language</Text>
+              <Text style={styles.detailValue}>{card.language.toUpperCase()}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Rarity</Text>
+              <RarityBadge rarity={card.rarity} size="lg" />
+            </View>
+
+            {card.setId && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Set</Text>
+                <Text style={styles.detailValue}>{card.setId}</Text>
+              </View>
+            )}
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Posted</Text>
+              <Text style={styles.detailValue}>
+                {new Date(post.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+
+            {/* Inactive post message */}
+            {!isActive && (
+              <View style={styles.inactiveNotice}>
+                <Ionicons name="information-circle" size={18} color={colors.textMuted} />
+                <Text style={styles.inactiveText}>This post is no longer active</Text>
+              </View>
+            )}
+
+            {/* Actions */}
+            {isOwn ? (
+              <View style={styles.ownActions}>
+                {isActive && (
+                  <Pressable style={styles.closePostButton} onPress={handleClose}>
+                    <Ionicons name="close-circle-outline" size={20} color={colors.text} />
+                    <Text style={styles.closePostText}>Close Post</Text>
+                  </Pressable>
+                )}
+                <Pressable style={styles.deleteButton} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                  <Text style={styles.deleteText}>Delete Post</Text>
+                </Pressable>
+              </View>
+            ) : (
+              isActive && (
+                <Pressable
+                  style={[styles.proposalButton, sendingProposal && styles.proposalButtonDisabled]}
+                  onPress={handleSendProposal}
+                  disabled={sendingProposal}
+                >
+                  <Ionicons name="paper-plane" size={20} color={colors.background} />
+                  <Text style={styles.proposalButtonText}>
+                    {sendingProposal ? 'Sending...' : 'Send Proposal'}
+                  </Text>
+                </Pressable>
+              )
+            )}
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  container: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    maxHeight: '92%',
+    paddingTop: spacing.md,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  title: {
+    ...typography.subheading,
+    textAlign: 'center',
+  },
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl,
+    paddingTop: spacing.md,
+  },
+  imageWrapper: {
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  cardImage: {
+    width: 200,
+    height: 280,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surfaceLight,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  typeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  typeBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  matchIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f0c040' + '25',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  matchIndicatorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#f0c040',
+  },
+  closedBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.surfaceLight,
+  },
+  closedBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
+  cardName: {
+    ...typography.heading,
+    fontSize: 22,
+    marginBottom: spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  detailLabel: {
+    ...typography.label,
+  },
+  detailValue: {
+    ...typography.body,
+    fontWeight: '500',
+  },
+  inactiveNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceLight,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.md,
+  },
+  inactiveText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+  ownActions: {
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  closePostButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceLight,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  closePostText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.error + '20',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  deleteText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.error,
+  },
+  proposalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.lg,
+  },
+  proposalButtonDisabled: {
+    opacity: 0.5,
+  },
+  proposalButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.background,
+  },
+});

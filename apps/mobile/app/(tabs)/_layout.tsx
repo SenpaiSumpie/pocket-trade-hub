@@ -1,18 +1,16 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
 import { useNotificationStore } from '@/src/stores/notifications';
 import { usePremiumStore } from '@/src/stores/premium';
-import { apiFetch } from '@/src/hooks/useApi';
 import { fetchUnreadCount } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/stores/auth';
 import { useMatchSocket } from '@/src/hooks/useMatchSocket';
 import { NotificationBell } from '@/src/components/notifications/NotificationBell';
 
 export default function TabLayout() {
-  const unseenCount = useTradesStore((s) => s.unseenCount);
   const pendingProposals = useTradesStore((s) => {
     try {
       return (s.proposals ?? []).filter((p) => p && p.status === 'pending').length;
@@ -20,29 +18,18 @@ export default function TabLayout() {
       return 0;
     }
   });
-  const tradesBadge = unseenCount + pendingProposals;
+  const tradesBadge = pendingProposals;
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const lastRefreshed = useTradesStore((s) => s.lastRefreshed);
 
   // Connect Socket.IO at the tab level so real-time events work on any tab
   useMatchSocket();
 
-  // Fetch matches and unread notification count on login
+  // Fetch unread notification count and premium status on login
   useEffect(() => {
     if (!isLoggedIn) return;
-    if (lastRefreshed !== null) return; // Already loaded
-    (async () => {
-      try {
-        const data = await apiFetch<{ matches: any[]; unseenCount: number }>('/matches?sort=priority');
-        useTradesStore.getState().setMatches(data.matches, data.unseenCount);
-      } catch {
-        // Non-critical
-      }
-    })();
-    // Also fetch unread notification count and premium status
     fetchUnreadCount();
     usePremiumStore.getState().fetchStatus();
-  }, [isLoggedIn, lastRefreshed]);
+  }, [isLoggedIn]);
 
   // Reset notification and premium stores on logout
   useEffect(() => {
@@ -85,6 +72,19 @@ export default function TabLayout() {
           title: 'Cards',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="albums" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="market"
+        options={{
+          title: 'Market',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? 'storefront' : 'storefront-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
