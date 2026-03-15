@@ -86,9 +86,8 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
       const senderGives = isOffering ? [] : [proposalCard];
       const senderGets = isOffering ? [proposalCard] : [];
 
-      // For now, use post.id as matchId until proposal schema is updated for posts
       await createProposal({
-        matchId: post.id,
+        postId: post.id,
         receiverId: post.userId,
         senderGives: senderGives.length > 0 ? senderGives : [proposalCard],
         senderGets: senderGets.length > 0 ? senderGets : [proposalCard],

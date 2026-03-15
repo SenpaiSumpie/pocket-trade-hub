@@ -20,12 +20,14 @@ import { useProposals } from '@/src/hooks/useProposals';
 import { apiFetch } from '@/src/hooks/useApi';
 import { calculateFairness } from '@pocket-trade-hub/shared';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
-import type { TradeMatch, TradeProposal, ProposalCard } from '@pocket-trade-hub/shared';
+import type { TradeMatch, TradePost, TradeProposal, ProposalCard } from '@pocket-trade-hub/shared';
 
 interface ProposalCreationModalProps {
   visible: boolean;
   onClose: () => void;
-  match: TradeMatch | null;
+  match?: TradeMatch | null;
+  post?: TradePost | null;
+  postReceiverId?: string;
   isCounter?: boolean;
   existingProposal?: TradeProposal;
 }
@@ -46,10 +48,21 @@ function matchCardToProposalCard(pair: { cardId: string; cardName: string; cardI
   };
 }
 
+function postCardToProposalCard(card: { cardId: string; name: string; imageUrl: string; rarity: string | null }): ProposalCard {
+  return {
+    cardId: card.cardId,
+    cardName: card.name,
+    imageUrl: card.imageUrl,
+    rarity: card.rarity ?? 'diamond1',
+  };
+}
+
 export function ProposalCreationModal({
   visible,
   onClose,
   match,
+  post,
+  postReceiverId,
   isCounter,
   existingProposal,
 }: ProposalCreationModalProps) {
@@ -60,17 +73,27 @@ export function ProposalCreationModal({
   const [pickerCards, setPickerCards] = useState<CardPickerItem[]>([]);
   const [pickerLoading, setPickerLoading] = useState(false);
 
-  // Initialize cards from match or existing proposal
+  // Determine if we're in post mode or match mode
+  const isPostMode = !!post && !match;
+
+  // Initialize cards from match, post, or existing proposal
   const initialGiving = useMemo(() => {
     if (isCounter && existingProposal) {
-      // Swap sides for counter: their gives become my gets and vice versa
       return existingProposal.senderGets.map((c) => ({ ...c }));
     }
     if (match) {
       return match.userGives.map(matchCardToProposalCard);
     }
+    if (post) {
+      // For Seeking posts: user has the card, so pre-fill senderGives
+      if (post.type === 'seeking') {
+        return post.cards.map(postCardToProposalCard);
+      }
+      // For Offering posts: user wants the card, senderGives starts empty
+      return [];
+    }
     return [];
-  }, [match, isCounter, existingProposal]);
+  }, [match, post, isCounter, existingProposal]);
 
   const initialGetting = useMemo(() => {
     if (isCounter && existingProposal) {
@@ -79,8 +102,16 @@ export function ProposalCreationModal({
     if (match) {
       return match.userGets.map(matchCardToProposalCard);
     }
+    if (post) {
+      // For Offering posts: user wants the card, so pre-fill senderGets
+      if (post.type === 'offering') {
+        return post.cards.map(postCardToProposalCard);
+      }
+      // For Seeking posts: user gives the card, senderGets starts empty
+      return [];
+    }
     return [];
-  }, [match, isCounter, existingProposal]);
+  }, [match, post, isCounter, existingProposal]);
 
   const [givingCards, setGivingCards] = useState<ProposalCard[]>(initialGiving);
   const [gettingCards, setGettingCards] = useState<ProposalCard[]>(initialGetting);
@@ -106,7 +137,6 @@ export function ProposalCreationModal({
     setPickerSearch('');
     setPickerLoading(true);
     try {
-      // Fetch collection cards for giving, or search partner cards for getting
       if (side === 'give') {
         const data = await apiFetch<{ items: Array<{ card: CardPickerItem }> }>('/collection');
         setPickerCards(
@@ -118,8 +148,6 @@ export function ProposalCreationModal({
           })),
         );
       } else {
-        // For getting, show cards from partner's wanted list (via match data)
-        // Use a broader approach: show available cards from the search
         const data = await apiFetch<{ items: Array<{ card: CardPickerItem }> }>('/wanted');
         setPickerCards(
           data.items.map((item) => ({
@@ -168,12 +196,19 @@ export function ProposalCreationModal({
   }, [pickerCards, pickerSearch]);
 
   const handleSend = useCallback(async () => {
-    if (!match || givingCards.length === 0 || gettingCards.length === 0) return;
+    if (givingCards.length === 0 || gettingCards.length === 0) return;
+
+    // Need either a match or a post with receiverId
+    const receiverId = match?.partnerId ?? postReceiverId;
+    if (!receiverId) return;
+
     setSending(true);
     try {
       const fairness = calculateFairness(givingCards, gettingCards);
       const input = {
-        matchId: match.id,
+        matchId: match?.id,
+        postId: post?.id,
+        receiverId,
         senderGives: givingCards,
         senderGets: gettingCards,
         fairnessScore: fairness.score,
@@ -200,11 +235,12 @@ export function ProposalCreationModal({
     } finally {
       setSending(false);
     }
-  }, [match, givingCards, gettingCards, isCounter, existingProposal, createProposal, counterProposal, onClose]);
+  }, [match, post, postReceiverId, givingCards, gettingCards, isCounter, existingProposal, createProposal, counterProposal, onClose]);
 
   const canSend = givingCards.length > 0 && gettingCards.length > 0 && !sending;
 
-  if (!match) return null;
+  // Need either match or post to render
+  if (!match && !post) return null;
 
   return (
     <Modal
@@ -225,6 +261,22 @@ export function ProposalCreationModal({
               {isCounter ? 'Counter-Offer' : 'Propose Trade'}
             </Text>
           </View>
+
+          {/* Post context hint */}
+          {isPostMode && post && (
+            <View style={styles.contextHint}>
+              <Ionicons
+                name={post.type === 'offering' ? 'arrow-up-circle' : 'arrow-down-circle'}
+                size={16}
+                color={post.type === 'offering' ? colors.success : colors.primary}
+              />
+              <Text style={styles.contextHintText}>
+                {post.type === 'offering'
+                  ? 'This user is offering a card. Add what you will give in return.'
+                  : 'This user is seeking a card. The card is pre-filled in what you give.'}
+              </Text>
+            </View>
+          )}
 
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -411,6 +463,23 @@ const styles = StyleSheet.create({
   title: {
     ...typography.subheading,
     textAlign: 'center',
+  },
+  contextHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  contextHintText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   scrollContent: {
     paddingHorizontal: spacing.lg,

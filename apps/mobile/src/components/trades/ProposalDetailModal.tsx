@@ -20,14 +20,13 @@ import { useProposals } from '@/src/hooks/useProposals';
 import { apiFetch } from '@/src/hooks/useApi';
 import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
-import type { TradeProposal, ProposalCard } from '@pocket-trade-hub/shared';
+import type { TradeProposal, TradePost, ProposalCard } from '@pocket-trade-hub/shared';
 
 interface ProposalDetailModalProps {
   visible: boolean;
   onClose: () => void;
   proposalId: string | null;
   currentUserId: string;
-  matchData?: { id: string } | null;
   onRatePartner?: (proposalId: string, partnerId: string) => void;
 }
 
@@ -41,8 +40,12 @@ interface PartnerProfile {
 
 function formatTimeAgo(dateStr: string): string {
   const now = Date.now();
-  const date = new Date(dateStr).getTime();
+  const normalized = dateStr.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(dateStr)
+    ? dateStr
+    : dateStr + 'Z';
+  const date = new Date(normalized).getTime();
   const diffMs = now - date;
+  if (diffMs < 0) return 'just now';
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 1) return 'just now';
   if (diffMin < 60) return `${diffMin}m ago`;
@@ -111,7 +114,6 @@ export function ProposalDetailModal({
   onClose,
   proposalId,
   currentUserId,
-  matchData,
   onRatePartner,
 }: ProposalDetailModalProps) {
   const {
@@ -126,6 +128,7 @@ export function ProposalDetailModal({
   const [actionLoading, setActionLoading] = useState(false);
   const [partner, setPartner] = useState<PartnerProfile | null>(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
+  const [postData, setPostData] = useState<TradePost | null>(null);
 
   const activeProposal = thread.length > 0
     ? thread.find((p) => p.status === 'pending') ?? thread[thread.length - 1]
@@ -160,6 +163,17 @@ export function ProposalDetailModal({
       .then(setPartner)
       .catch(() => {});
   }, [partnerId]);
+
+  // Fetch post data if proposal has postId
+  useEffect(() => {
+    if (!activeProposal?.postId) {
+      setPostData(null);
+      return;
+    }
+    apiFetch<{ post: TradePost }>(`/posts/${activeProposal.postId}`)
+      .then((result) => setPostData(result.post))
+      .catch(() => setPostData(null));
+  }, [activeProposal?.postId]);
 
   const handleAccept = useCallback(async () => {
     if (!activeProposal) return;
@@ -207,7 +221,12 @@ export function ProposalDetailModal({
       }
       Toast.show({ type: 'success', text1: 'Trade completed!' });
       if (onRatePartner && partnerId) {
-        onRatePartner(activeProposal.id, partnerId);
+        const pid = activeProposal.id;
+        const partId = partnerId;
+        onClose();
+        // Brief delay so the detail modal animates out before rating modal opens
+        setTimeout(() => onRatePartner(pid, partId), 400);
+        return;
       }
     } catch {
       Toast.show({ type: 'error', text1: 'Failed to complete trade' });
@@ -374,8 +393,26 @@ export function ProposalDetailModal({
             </ScrollView>
           )}
 
+          {/* Post context notice */}
+          {postData && (
+            <View style={styles.postNotice}>
+              <Ionicons name="newspaper-outline" size={16} color={colors.textSecondary} />
+              <View style={styles.postNoticeContent}>
+                <Text style={styles.postNoticeTitle}>
+                  From {postData.type === 'offering' ? 'Offering' : 'Seeking'} post
+                </Text>
+                <Text style={styles.postNoticeCard}>
+                  {postData.cards[0]?.name ?? 'Unknown card'}
+                  {postData.status !== 'active' && (
+                    ` (${postData.status === 'auto_closed' ? 'auto-closed' : postData.status})`
+                  )}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Counter-offer modal */}
-          {activeProposal && matchData && (
+          {activeProposal && (
             <ProposalCreationModal
               visible={showCounterModal}
               onClose={() => {
@@ -392,7 +429,8 @@ export function ProposalDetailModal({
                   });
                 }
               }}
-              match={matchData as any}
+              post={postData}
+              postReceiverId={partnerId ?? undefined}
               isCounter
               existingProposal={activeProposal}
             />
@@ -562,6 +600,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     fontSize: 11,
+  },
+  // Post notice
+  postNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  postNoticeContent: {
+    flex: 1,
+  },
+  postNoticeTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  postNoticeCard: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   // Actions
   actionsContainer: {

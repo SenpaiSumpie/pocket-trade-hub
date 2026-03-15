@@ -1,22 +1,33 @@
-import { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useMatches } from '@/src/hooks/useMatches';
+import { usePosts } from '@/src/hooks/usePosts';
 import { useProposals } from '@/src/hooks/useProposals';
 import { useTradesStore } from '@/src/stores/trades';
 import { useAuthStore } from '@/src/stores/auth';
-import { MatchCard } from '@/src/components/trades/MatchCard';
-import { MatchDetailModal } from '@/src/components/trades/MatchDetailModal';
-import { MatchSortToggle } from '@/src/components/trades/MatchSortToggle';
+import { MyPostCard } from '@/src/components/trades/MyPostCard';
+import { MyPostDetailModal } from '@/src/components/trades/MyPostDetailModal';
 import { ProposalCard } from '@/src/components/trades/ProposalCard';
 import { ProposalDetailModal } from '@/src/components/trades/ProposalDetailModal';
 import { RatingModal } from '@/src/components/trades/RatingModal';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
-import type { TradeMatch, TradeProposal } from '@pocket-trade-hub/shared';
+import type { TradePost, TradeProposal } from '@pocket-trade-hub/shared';
 
 type ProposalDirection = 'all' | 'incoming' | 'outgoing';
+
+type ActiveSegment = 'posts' | 'proposals';
+type ProposalView = 'active' | 'history';
+
+const ACTIVE_STATUSES = ['pending', 'accepted', 'countered'];
+const HISTORY_STATUSES = ['completed', 'rejected', 'cancelled'];
+
+const SEGMENTS: Array<{ key: ActiveSegment; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { key: 'posts', label: 'My Posts', icon: 'newspaper-outline' },
+  { key: 'proposals', label: 'Proposals', icon: 'document-text-outline' },
+];
 
 const DIRECTION_OPTIONS: { value: ProposalDirection; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -25,15 +36,15 @@ const DIRECTION_OPTIONS: { value: ProposalDirection; label: string }[] = [
 ];
 
 export default function TradesScreen() {
-  const { matches, isLoading, refresh, markSeen, sortBy, setSortBy } = useMatches();
+  const { myPosts, myPostsLoading, fetchMyPosts } = usePosts();
   const { proposals, loading: proposalsLoading, fetchProposals, direction } = useProposals();
   const activeSegment = useTradesStore((s) => s.activeSegment);
   const setActiveSegment = useTradesStore((s) => s.setActiveSegment);
   const setProposalDirection = useTradesStore((s) => s.setProposalDirection);
   const currentUserId = useAuthStore((s) => s.user?.id) ?? '';
 
-  const [selectedMatch, setSelectedMatch] = useState<TradeMatch | null>(null);
-  const [matchModalVisible, setMatchModalVisible] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<TradePost | null>(null);
+  const [postModalVisible, setPostModalVisible] = useState(false);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [proposalModalVisible, setProposalModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,40 +52,52 @@ export default function TradesScreen() {
   const [ratingProposalId, setRatingProposalId] = useState('');
   const [ratingPartnerName, setRatingPartnerName] = useState('');
 
-  // Clear unseen count and background refresh when tab is focused
+  // Filter dropdowns
+  const [showDirectionDropdown, setShowDirectionDropdown] = useState(false);
+  const [proposalView, setProposalView] = useState<ProposalView>('active');
+
+  // Filter proposals client-side by active/history
+  const filteredProposals = useMemo(() => {
+    const statuses = proposalView === 'active' ? ACTIVE_STATUSES : HISTORY_STATUSES;
+    return proposals.filter((p) => p && statuses.includes(p.status));
+  }, [proposals, proposalView]);
+
+  // Count pending proposals for badge
+  const pendingProposalCount = useMemo(() => {
+    return proposals.filter((p) => p?.status === 'pending').length;
+  }, [proposals]);
+
+  // Count active posts for badge
+  const activePostCount = useMemo(() => {
+    return myPosts.filter((p) => p?.status === 'active').length;
+  }, [myPosts]);
+
+  // Refresh data when tab is focused
   useFocusEffect(
     useCallback(() => {
-      useTradesStore.getState().clearUnseen();
-      // Background refresh on focus (non-blocking)
-      refresh().catch(() => {});
-      if (activeSegment === 'proposals') {
-        fetchProposals().catch(() => {});
-      }
-    }, [refresh, activeSegment, fetchProposals]),
+      fetchMyPosts().catch(() => {});
+      fetchProposals().catch(() => {});
+    }, [fetchMyPosts, fetchProposals]),
   );
 
-  // Fetch proposals when switching to proposals tab or direction changes
+  // Fetch proposals when direction changes
   useEffect(() => {
     if (activeSegment === 'proposals') {
-      fetchProposals();
+      fetchProposals(direction);
     }
   }, [activeSegment, direction, fetchProposals]);
 
-  const handleMatchPress = useCallback(
-    (match: TradeMatch) => {
-      setSelectedMatch(match);
-      setMatchModalVisible(true);
-      if (!match.seen) {
-        markSeen(match.id);
-      }
-    },
-    [markSeen],
-  );
-
-  const handleCloseMatchModal = useCallback(() => {
-    setMatchModalVisible(false);
-    setSelectedMatch(null);
+  const handlePostPress = useCallback((post: TradePost) => {
+    setSelectedPost(post);
+    setPostModalVisible(true);
   }, []);
+
+  const handleClosePostModal = useCallback(() => {
+    setPostModalVisible(false);
+    setSelectedPost(null);
+    // Refresh posts in case user closed/deleted
+    fetchMyPosts().catch(() => {});
+  }, [fetchMyPosts]);
 
   const handleProposalPress = useCallback((proposal: TradeProposal) => {
     setSelectedProposalId(proposal.id);
@@ -84,19 +107,18 @@ export default function TradesScreen() {
   const handleCloseProposalModal = useCallback(() => {
     setProposalModalVisible(false);
     setSelectedProposalId(null);
-    // Refetch proposals to pick up changes
     fetchProposals().catch(() => {});
   }, [fetchProposals]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    if (activeSegment === 'matches') {
-      await refresh();
+    if (activeSegment === 'posts') {
+      await fetchMyPosts();
     } else {
       await fetchProposals();
     }
     setRefreshing(false);
-  }, [activeSegment, refresh, fetchProposals]);
+  }, [activeSegment, fetchMyPosts, fetchProposals]);
 
   const handleRatePartner = useCallback((proposalId: string, _partnerId: string) => {
     setRatingProposalId(proposalId);
@@ -110,129 +132,168 @@ export default function TradesScreen() {
     setRatingPartnerName('');
   }, []);
 
-  const handleDirectionChange = useCallback(
-    (dir: ProposalDirection) => {
-      setProposalDirection(dir);
+  const handleSegmentSwitch = useCallback(
+    (seg: ActiveSegment) => {
+      setActiveSegment(seg);
+      setShowDirectionDropdown(false);
     },
-    [setProposalDirection],
+    [setActiveSegment],
   );
 
-  const loading = activeSegment === 'matches' ? isLoading : proposalsLoading;
-  const isEmpty = activeSegment === 'matches' ? matches.length === 0 : proposals.length === 0;
+  const directionLabel = DIRECTION_OPTIONS.find((o) => o.value === direction)?.label ?? 'All';
 
-  // Initial loading state
-  if (loading && isEmpty) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>
-          {activeSegment === 'matches' ? 'Finding matches...' : 'Loading proposals...'}
-        </Text>
-      </View>
-    );
-  }
+  const loading = activeSegment === 'posts' ? myPostsLoading : proposalsLoading;
+  const isEmpty = activeSegment === 'posts' ? myPosts.length === 0 : filteredProposals.length === 0;
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Trades</Text>
-
-        {/* Segment toggle */}
-        <View style={styles.segmentRow}>
-          <TouchableOpacity
-            style={[styles.segmentPill, activeSegment === 'matches' && styles.segmentPillActive]}
-            onPress={() => setActiveSegment('matches')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                activeSegment === 'matches' && styles.segmentTextActive,
-              ]}
-            >
-              Matches
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.segmentPill, activeSegment === 'proposals' && styles.segmentPillActive]}
-            onPress={() => setActiveSegment('proposals')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                activeSegment === 'proposals' && styles.segmentTextActive,
-              ]}
-            >
-              Proposals
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Sub-filters */}
-        {activeSegment === 'matches' && (
-          <MatchSortToggle sortBy={sortBy} onSortChange={setSortBy} />
-        )}
-        {activeSegment === 'proposals' && (
-          <View style={styles.directionRow}>
-            {DIRECTION_OPTIONS.map((opt) => (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  styles.directionPill,
-                  direction === opt.value && styles.directionPillActive,
-                ]}
-                onPress={() => handleDirectionChange(opt.value)}
-                activeOpacity={0.7}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Tab bar */}
+      <View style={styles.tabBar}>
+        {SEGMENTS.map((seg, i) => {
+          const active = activeSegment === seg.key;
+          const badgeCount = seg.key === 'posts' ? activePostCount : pendingProposalCount;
+          return (
+            <View key={seg.key} style={styles.tabItemWrapper}>
+              {i > 0 && <View style={styles.tabDivider} />}
+              <Pressable
+                style={[styles.tabItem, active && styles.tabItemActive]}
+                onPress={() => handleSegmentSwitch(seg.key)}
               >
-                <Text
-                  style={[
-                    styles.directionText,
-                    direction === opt.value && styles.directionTextActive,
-                  ]}
-                >
-                  {opt.label}
+                <View style={styles.tabIconContainer}>
+                  <Ionicons
+                    name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                    size={18}
+                    color={active ? colors.primary : colors.textMuted}
+                  />
+                  {badgeCount > 0 && (
+                    <View style={styles.tabBadge}>
+                      <Text style={styles.tabBadgeText}>
+                        {badgeCount > 99 ? '99+' : badgeCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                  {seg.label}
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
 
-      {/* Empty state */}
-      {!loading && isEmpty ? (
-        <View style={styles.centerContainer}>
-          {activeSegment === 'matches' ? (
-            <>
-              <Ionicons name="swap-horizontal-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No matches yet</Text>
-              <Text style={styles.emptySubtitle}>
-                Add cards to your collection and wanted list to find trade partners
+      {/* Filter row */}
+      {activeSegment === 'proposals' && (
+        <View style={styles.filterRow}>
+          {/* Active / History toggle */}
+          <View style={styles.viewToggle}>
+            <Pressable
+              style={[styles.viewToggleBtn, proposalView === 'active' && styles.viewToggleBtnActive]}
+              onPress={() => setProposalView('active')}
+            >
+              <Text style={[styles.viewToggleText, proposalView === 'active' && styles.viewToggleTextActive]}>
+                Active
               </Text>
-              <Text style={styles.emptyHint}>Start by adding cards on the Cards tab</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.viewToggleBtn, proposalView === 'history' && styles.viewToggleBtnActive]}
+              onPress={() => setProposalView('history')}
+            >
+              <Text style={[styles.viewToggleText, proposalView === 'history' && styles.viewToggleTextActive]}>
+                History
+              </Text>
+            </Pressable>
+          </View>
+          {/* Direction dropdown */}
+          <Pressable
+            style={styles.filterDropdownBtn}
+            onPress={() => setShowDirectionDropdown(!showDirectionDropdown)}
+          >
+            <Ionicons name="arrow-back-outline" size={14} color={colors.textSecondary} />
+            <Text style={styles.filterDropdownLabel}>{directionLabel}</Text>
+            <Ionicons
+              name={showDirectionDropdown ? 'chevron-up' : 'chevron-down'}
+              size={12}
+              color={colors.textMuted}
+            />
+          </Pressable>
+        </View>
+      )}
+
+      {/* Direction dropdown menu */}
+      {showDirectionDropdown && (
+        <View style={styles.dropdownMenu}>
+          {DIRECTION_OPTIONS.map((opt) => {
+            const isActive = direction === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[styles.dropdownItem, isActive && styles.dropdownItemActive]}
+                onPress={() => {
+                  setProposalDirection(opt.value);
+                  setShowDirectionDropdown(false);
+                }}
+              >
+                <Text style={[styles.dropdownItemText, isActive && styles.dropdownItemTextActive]}>
+                  {opt.label}
+                </Text>
+                {isActive && <Ionicons name="checkmark" size={16} color={colors.primary} />}
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Loading state */}
+      {loading && isEmpty ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>
+            {activeSegment === 'posts' ? 'Loading your posts...' : 'Loading proposals...'}
+          </Text>
+        </View>
+      ) : !loading && isEmpty ? (
+        /* Empty state */
+        <View style={styles.centerContainer}>
+          {activeSegment === 'posts' ? (
+            <>
+              <Ionicons name="newspaper-outline" size={64} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>No posts yet</Text>
+              <Text style={styles.emptySubtitle}>
+                You don't have any posts yet. Go to Market to create one!
+              </Text>
+              <Text style={styles.emptyHint}>Tap the Market tab to get started</Text>
+            </>
+          ) : proposalView === 'active' ? (
+            <>
+              <Ionicons name="document-text-outline" size={64} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>No active proposals</Text>
+              <Text style={styles.emptySubtitle}>
+                Browse the Market and send proposals on posts you're interested in!
+              </Text>
+              <Text style={styles.emptyHint}>
+                Tap a post in the Market tab to propose a trade
+              </Text>
             </>
           ) : (
             <>
-              <Ionicons name="document-text-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No proposals yet</Text>
+              <Ionicons name="time-outline" size={64} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>No trade history</Text>
               <Text style={styles.emptySubtitle}>
-                Create one from a match!
-              </Text>
-              <Text style={styles.emptyHint}>
-                Switch to Matches and tap a match to propose a trade
+                Completed, rejected, and cancelled trades will appear here
               </Text>
             </>
           )}
         </View>
-      ) : activeSegment === 'matches' ? (
-        /* Match list */
+      ) : activeSegment === 'posts' ? (
+        /* My Posts list */
         <FlashList
-          data={matches}
+          data={myPosts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <MatchCard match={item} onPress={() => handleMatchPress(item)} />
+            <MyPostCard post={item} onPress={() => handlePostPress(item)} />
           )}
+          estimatedItemSize={100}
           refreshing={refreshing}
           onRefresh={handleRefresh}
           contentContainerStyle={styles.listContent}
@@ -240,7 +301,7 @@ export default function TradesScreen() {
       ) : (
         /* Proposal list */
         <FlashList
-          data={proposals}
+          data={filteredProposals}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ProposalCard
@@ -249,6 +310,7 @@ export default function TradesScreen() {
               onPress={() => handleProposalPress(item)}
             />
           )}
+          estimatedItemSize={180}
           refreshing={refreshing}
           onRefresh={handleRefresh}
           contentContainerStyle={styles.listContent}
@@ -256,10 +318,10 @@ export default function TradesScreen() {
       )}
 
       {/* Detail modals */}
-      <MatchDetailModal
-        match={selectedMatch}
-        visible={matchModalVisible}
-        onClose={handleCloseMatchModal}
+      <MyPostDetailModal
+        visible={postModalVisible}
+        onClose={handleClosePostModal}
+        post={selectedPost}
       />
 
       <ProposalDetailModal
@@ -276,7 +338,7 @@ export default function TradesScreen() {
         proposalId={ratingProposalId}
         partnerName={ratingPartnerName}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -292,66 +354,151 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.lg,
   },
-  header: {
-    paddingTop: spacing.xxl,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xs,
-  },
-  title: {
-    ...typography.heading,
-    textAlign: 'center',
-  },
-  // Segment toggle
-  segmentRow: {
+
+  // Tab bar
+  tabBar: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
-  segmentPill: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
     backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
   },
-  segmentPillActive: {
+  tabItemWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  tabDivider: {
+    width: 1,
+    backgroundColor: colors.border,
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm + 2,
+    gap: 6,
+  },
+  tabItemActive: {
+    backgroundColor: colors.primary + '18',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+  },
+  tabIconContainer: {
+    position: 'relative',
+  },
+  tabBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: '#e53e3e',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  tabBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textMuted,
+  },
+  tabLabelActive: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+
+  // Filter row
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+  filterDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterDropdownLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  viewToggleBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  viewToggleBtnActive: {
     backgroundColor: colors.primary,
   },
-  segmentText: {
-    ...typography.body,
-    color: colors.textSecondary,
+  viewToggleText: {
+    fontSize: 13,
     fontWeight: '500',
-    fontSize: 15,
+    color: colors.textSecondary,
   },
-  segmentTextActive: {
-    color: colors.background,
+  viewToggleTextActive: {
+    color: '#fff',
     fontWeight: '600',
   },
-  // Direction filter
-  directionRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.xs,
-  },
-  directionPill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.full,
+
+  // Dropdown menu
+  dropdownMenu: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
     backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  directionPillActive: {
-    backgroundColor: colors.primaryDark,
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
-  directionText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '500',
+  dropdownItemActive: {
+    backgroundColor: colors.primary + '18',
   },
-  directionTextActive: {
+  dropdownItemText: {
+    fontSize: 14,
     color: colors.text,
+    fontWeight: '400',
+  },
+  dropdownItemTextActive: {
+    color: colors.primary,
     fontWeight: '600',
   },
+
   listContent: {
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,

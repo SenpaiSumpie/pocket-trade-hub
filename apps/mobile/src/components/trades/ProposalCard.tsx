@@ -5,16 +5,24 @@ import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradeProposal, ProposalCard as ProposalCardType } from '@pocket-trade-hub/shared';
 
-interface ProposalCardProps {
-  proposal: TradeProposal;
-  currentUserId: string;
-  onPress: () => void;
-  partnerReputation?: {
+interface EnrichedProposal extends TradeProposal {
+  partner?: {
     displayName: string;
     avatarId: string;
     avgRating: number;
     tradeCount: number;
-  };
+  } | null;
+  /** Post info when proposal was created from a post */
+  postInfo?: {
+    type: string;
+    cardName: string;
+  } | null;
+}
+
+interface ProposalCardProps {
+  proposal: EnrichedProposal;
+  currentUserId: string;
+  onPress: () => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -37,8 +45,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 function formatTimeAgo(dateStr: string): string {
   const now = Date.now();
-  const date = new Date(dateStr).getTime();
+  // Ensure UTC parsing — append Z if no timezone indicator present
+  const normalized = dateStr.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(dateStr)
+    ? dateStr
+    : dateStr + 'Z';
+  const date = new Date(normalized).getTime();
   const diffMs = now - date;
+  if (diffMs < 0) return 'just now';
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 1) return 'just now';
   if (diffMin < 60) return `${diffMin}m ago`;
@@ -54,11 +67,11 @@ function CardPreview({ cards, max = 3 }: { cards: ProposalCardType[]; max?: numb
   const extra = cards.length - max;
   return (
     <View style={styles.cardPreview}>
-      {visible.map((card) => (
+      {visible.map((card, i) => (
         <Image
           key={card.cardId}
           source={{ uri: card.imageUrl }}
-          style={styles.previewThumb}
+          style={[styles.previewThumb, i > 0 && styles.previewThumbOverlap]}
           contentFit="cover"
           transition={150}
         />
@@ -72,80 +85,96 @@ export function ProposalCard({
   proposal,
   currentUserId,
   onPress,
-  partnerReputation,
 }: ProposalCardProps) {
   const isOutgoing = proposal.senderId === currentUserId;
-  const partnerId = isOutgoing ? proposal.receiverId : proposal.senderId;
-  const avatar = partnerReputation
-    ? getAvatarById(partnerReputation.avatarId)
-    : null;
+  const partner = proposal.partner;
+  const avatar = partner ? getAvatarById(partner.avatarId) : null;
 
-  const partnerName = partnerReputation?.displayName ?? 'Trader';
+  const partnerName = partner?.displayName ?? 'Trainer';
   const statusColor = STATUS_COLORS[proposal.status] ?? colors.textMuted;
   const statusLabel = STATUS_LABELS[proposal.status] ?? proposal.status;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      {/* Left: Partner info */}
-      <View style={styles.partnerSection}>
-        <View
-          style={[
-            styles.avatarCircle,
-            { backgroundColor: avatar?.color ?? colors.surfaceLight },
-          ]}
-        >
-          <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
-        </View>
-        <Text style={styles.partnerName} numberOfLines={1}>
-          {partnerName}
-        </Text>
-        {/* Reputation display */}
-        {partnerReputation && partnerReputation.tradeCount > 0 ? (
-          <View style={styles.reputationRow}>
-            <Ionicons name="star" size={10} color={colors.primary} />
-            <Text style={styles.reputationText}>
-              {partnerReputation.avgRating.toFixed(1)}
-            </Text>
-            <Text style={styles.tradeCountText}>
-              ({partnerReputation.tradeCount})
-            </Text>
+      {/* Top row: partner info + status */}
+      <View style={styles.topRow}>
+        <View style={styles.partnerRow}>
+          <View
+            style={[
+              styles.avatarCircle,
+              { backgroundColor: avatar?.color ?? colors.surfaceLight },
+            ]}
+          >
+            <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
           </View>
-        ) : (
-          <Text style={styles.newTraderText}>New trader</Text>
-        )}
-      </View>
-
-      {/* Center: Card previews */}
-      <View style={styles.centerSection}>
-        <CardPreview cards={isOutgoing ? proposal.senderGives : proposal.senderGets} />
-        <Ionicons name="swap-horizontal" size={14} color={colors.textMuted} />
-        <CardPreview cards={isOutgoing ? proposal.senderGets : proposal.senderGives} />
-      </View>
-
-      {/* Right: Status and meta */}
-      <View style={styles.rightSection}>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          <Text style={styles.statusText}>{statusLabel}</Text>
+          <View style={styles.partnerInfo}>
+            <Text style={styles.partnerName} numberOfLines={1}>
+              {partnerName}
+            </Text>
+            {partner && partner.tradeCount > 0 ? (
+              <View style={styles.reputationRow}>
+                <Ionicons name="star" size={11} color={colors.primary} />
+                <Text style={styles.reputationText}>
+                  {partner.avgRating.toFixed(1)}
+                </Text>
+                <Text style={styles.tradeCountText}>
+                  ({partner.tradeCount} trade{partner.tradeCount !== 1 ? 's' : ''})
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.newTraderText}>New trader</Text>
+            )}
+          </View>
         </View>
-        <Text style={styles.directionText}>
-          {isOutgoing ? 'Outgoing' : 'Incoming'}
-        </Text>
-        <Text style={styles.timeText}>{formatTimeAgo(proposal.createdAt)}</Text>
+        <View style={styles.metaColumn}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+            <Text style={styles.statusText}>{statusLabel}</Text>
+          </View>
+          <Text style={styles.directionText}>
+            {isOutgoing ? 'Outgoing' : 'Incoming'}
+          </Text>
+        </View>
       </View>
+
+      {/* Post reference if from a post */}
+      {(proposal as EnrichedProposal).postId && (
+        <View style={styles.postRefRow}>
+          <Ionicons name="newspaper-outline" size={12} color={colors.textSecondary} />
+          <Text style={styles.postRefText}>
+            From post{(proposal as EnrichedProposal).postInfo ? `: ${(proposal as EnrichedProposal).postInfo!.cardName}` : ''}
+          </Text>
+        </View>
+      )}
+
+      {/* Card trade preview — larger cards */}
+      <View style={styles.tradeRow}>
+        <View style={styles.tradeSide}>
+          <Text style={styles.tradeSideLabel}>{isOutgoing ? 'You give' : 'They give'}</Text>
+          <CardPreview cards={isOutgoing ? proposal.senderGives : proposal.senderGets} />
+        </View>
+        <View style={styles.swapContainer}>
+          <Ionicons name="swap-horizontal" size={18} color={colors.textMuted} />
+        </View>
+        <View style={styles.tradeSide}>
+          <Text style={styles.tradeSideLabel}>{isOutgoing ? 'You get' : 'They get'}</Text>
+          <CardPreview cards={isOutgoing ? proposal.senderGets : proposal.senderGives} />
+        </View>
+      </View>
+
+      {/* Timestamp */}
+      <Text style={styles.timeText}>{formatTimeAgo(proposal.createdAt)}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     marginHorizontal: spacing.md,
     elevation: 2,
     shadowColor: '#000',
@@ -153,10 +182,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
-  partnerSection: {
+  // Top row
+  topRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    width: 64,
-    marginRight: spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  partnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.sm,
   },
   avatarCircle: {
     width: 36,
@@ -168,80 +205,113 @@ const styles = StyleSheet.create({
   avatarEmoji: {
     fontSize: 18,
   },
+  partnerInfo: {
+    flex: 1,
+  },
   partnerName: {
-    ...typography.caption,
+    fontSize: 14,
+    fontWeight: '600',
     color: colors.text,
-    marginTop: 3,
-    textAlign: 'center',
-    maxWidth: 64,
-    fontSize: 11,
   },
   reputationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    marginTop: 2,
+    gap: 3,
+    marginTop: 1,
   },
   reputationText: {
-    fontSize: 10,
+    fontSize: 12,
     color: colors.primary,
     fontWeight: '600',
   },
   tradeCountText: {
-    fontSize: 9,
+    fontSize: 11,
     color: colors.textMuted,
   },
   newTraderText: {
-    fontSize: 9,
+    fontSize: 11,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
   },
-  centerSection: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  cardPreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  previewThumb: {
-    width: 28,
-    height: 39,
-    borderRadius: 3,
-    backgroundColor: colors.surfaceLight,
-  },
-  moreText: {
-    fontSize: 9,
-    color: colors.textSecondary,
-    marginLeft: 2,
-  },
-  rightSection: {
-    alignItems: 'center',
-    marginLeft: spacing.sm,
-    minWidth: 58,
+  metaColumn: {
+    alignItems: 'flex-end',
+    gap: 3,
   },
   statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 3,
     borderRadius: borderRadius.full,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: '#ffffff',
   },
   directionText: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.textSecondary,
-    marginTop: 3,
   },
+  // Trade row
+  tradeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  tradeSide: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  tradeSideLabel: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    marginBottom: 6,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  swapContainer: {
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.md,
+  },
+  cardPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewThumb: {
+    width: 60,
+    height: 84,
+    borderRadius: 5,
+    backgroundColor: colors.surfaceLight,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  previewThumbOverlap: {
+    marginLeft: -10,
+  },
+  moreText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  // Post reference
+  postRefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  postRefText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+  },
+  // Timestamp
   timeText: {
-    fontSize: 9,
+    fontSize: 11,
     color: colors.textMuted,
+    textAlign: 'right',
     marginTop: 2,
   },
 });
