@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
-status: in-progress
-stopped_at: Completed 09-03 Image Export
-last_updated: "2026-03-15T20:00:00.000Z"
-last_activity: 2026-03-15 -- Completed 09-03 Image Export
+status: completed
+stopped_at: Phase 9 complete - all 3 plans executed
+last_updated: "2026-03-16T03:05:46.771Z"
+last_activity: 2026-03-15 -- Completed all Phase 9 plans (09-01, 09-02, 09-03)
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 10
-  percent: 62
+  completed_plans: 12
+  percent: 64
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 9 of 13 (Engagement Quick Wins) -- IN PROGRESS
-Plan: 1 of 3 complete
-Status: 09-03 Image Export complete
-Last activity: 2026-03-15 -- Completed 09-03 Image Export
+Phase: 9 of 13 (Engagement Quick Wins) -- COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 9 Complete
+Last activity: 2026-03-15 -- Completed all Phase 9 plans (09-01, 09-02, 09-03)
 
-Progress: [▓▓▓▓▓▓░░░░] 62%
+Progress: [▓▓▓▓▓▓░░░░] 64%
 
 ## Performance Metrics
 
@@ -41,9 +41,9 @@ Progress: [▓▓▓▓▓▓░░░░] 62%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 10
-- Average duration: 6.9 min
-- Total execution time: 1.1 hours
+- Total plans completed: 12
+- Average duration: 7.0 min
+- Total execution time: 1.4 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -51,6 +51,8 @@ Progress: [▓▓▓▓▓▓░░░░] 62%
 | 08    | 02   | 8 min    | 2     | 10    |
 | 08    | 03   | 8 min    | 2     | 9     |
 | 08    | 04   | 6 min    | 2     | 9     |
+| 09    | 01   | 7 min    | 2     | 8     |
+| 09    | 02   | 8 min    | 2     | 11    |
 | 09    | 03   | 8 min    | 3     | 10    |
 
 ## Accumulated Context
@@ -96,6 +98,10 @@ Phase 9 decisions:
 - Offscreen positioning (left: -9999) instead of display:none for react-native-view-shot compatibility
 - Fixed 1080px width for export templates for consistent resolution across devices
 - file:// prefix on captureRef result for Android share compatibility
+- Promo codes stored and compared in uppercase for case-insensitive matching
+- db.transaction() for promo redemption to prevent race conditions
+- Premium time stacks: promo days added to existing expiry if user already premium
+- handleWebhookEvent EXPIRATION guarded to respect promo-granted premium time
 
 ### Pending Todos
 
@@ -110,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T20:00:00.000Z
-Stopped at: Completed 09-03 Image Export
-Resume file: .planning/phases/09-engagement-quick-wins/09-03-SUMMARY.md
+Last session: 2026-03-16T01:10:00.000Z
+Stopped at: Phase 9 complete - all 3 plans executed
+Resume file: .planning/phases/09-engagement-quick-wins/09-02-SUMMARY.md
