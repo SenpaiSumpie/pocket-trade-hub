@@ -283,6 +283,35 @@ export const notifications = pgTable('notifications', {
   index('notifications_user_created_idx').on(table.userId, table.createdAt),
 ]);
 
+export const promoCodes = pgTable('promo_codes', {
+  id: text('id').primaryKey(),
+  code: varchar('code', { length: 30 }).notNull(),
+  description: text('description'),
+  premiumDays: integer('premium_days').notNull(),
+  maxRedemptions: integer('max_redemptions'),
+  currentRedemptions: integer('current_redemptions').default(0).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('promo_codes_code_idx').on(table.code),
+]);
+
+export const promoRedemptions = pgTable('promo_redemptions', {
+  id: text('id').primaryKey(),
+  promoCodeId: text('promo_code_id')
+    .notNull()
+    .references(() => promoCodes.id),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  premiumDaysGranted: integer('premium_days_granted').notNull(),
+  redeemedAt: timestamp('redeemed_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('promo_redemptions_user_code_idx').on(table.userId, table.promoCodeId),
+  index('promo_redemptions_user_id_idx').on(table.userId),
+]);
+
 export const postTypeEnum = pgEnum('post_type', ['offering', 'seeking']);
 export const postStatusEnum = pgEnum('post_status', ['active', 'closed', 'auto_closed']);
 

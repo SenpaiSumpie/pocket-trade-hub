@@ -17,6 +17,7 @@ import matchRoutes from '../src/routes/matches';
 import proposalRoutes from '../src/routes/proposals';
 import premiumRoutes from '../src/routes/premium';
 import postRoutes from '../src/routes/posts';
+import promoRoutes from '../src/routes/promo';
 // OAuth routes excluded from test setup: jose is ESM-only and incompatible with ts-jest
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
@@ -72,6 +73,7 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   await app.register(proposalRoutes);
   await app.register(premiumRoutes);
   await app.register(postRoutes);
+  await app.register(promoRoutes);
   // OAuth routes excluded: jose ESM incompatibility with ts-jest
 
   // Health check
@@ -84,7 +86,7 @@ export async function cleanDb() {
   if (!testDb) return;
   // Truncate all tables in reverse dependency order
   await testDb.execute(
-    rawSql`TRUNCATE TABLE trade_posts, card_alert_events, card_analytics, notifications, trade_ratings, trade_proposals, trade_matches, user_collection_items, user_wanted_cards, push_tokens, card_translations, cards, sets, password_reset_tokens, refresh_tokens, oauth_accounts, users CASCADE`
+    rawSql`TRUNCATE TABLE promo_redemptions, promo_codes, trade_posts, card_alert_events, card_analytics, notifications, trade_ratings, trade_proposals, trade_matches, user_collection_items, user_wanted_cards, push_tokens, card_translations, cards, sets, password_reset_tokens, refresh_tokens, oauth_accounts, users CASCADE`
   );
 }
 

@@ -17,6 +17,7 @@ import proposalRoutes from './routes/proposals';
 import premiumRoutes from './routes/premium';
 import postRoutes from './routes/posts';
 import oauthRoutes from './routes/oauth';
+import promoRoutes from './routes/promo';
 import { initAnalyticsWorker, closeAnalyticsWorker } from './jobs/analytics-worker';
 import { initCardAlertWorker, closeCardAlertWorker } from './jobs/card-alert-worker';
 import { initPostMatchWorker, closePostMatchWorker } from './jobs/post-match-worker';
@@ -44,6 +45,7 @@ export async function buildApp(opts = {}) {
   await app.register(premiumRoutes);
   await app.register(postRoutes);
   await app.register(oauthRoutes);
+  await app.register(promoRoutes);
 
   // Health check
   app.get('/health', async () => ({ status: 'ok' }));

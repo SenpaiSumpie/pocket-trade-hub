@@ -52,6 +52,17 @@ export async function handleWebhookEvent(
       break;
     }
     case 'EXPIRATION': {
+      // Guard: only clear premium if premiumExpiresAt has actually passed
+      // (user may have promo-granted time remaining)
+      const [expUser] = await db
+        .select({ premiumExpiresAt: users.premiumExpiresAt })
+        .from(users)
+        .where(eq(users.id, app_user_id));
+
+      if (expUser?.premiumExpiresAt && expUser.premiumExpiresAt > new Date()) {
+        // Promo-granted time still remaining, do not clear premium
+        break;
+      }
       await setPremiumStatus(db, app_user_id, false, null);
       break;
     }
