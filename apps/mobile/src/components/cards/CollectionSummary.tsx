@@ -2,6 +2,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCollectionStore } from '@/src/stores/collection';
 import { useLoadCollection } from '@/src/hooks/useCollection';
+import { usePremiumStore } from '@/src/stores/premium';
+import { useImageExport } from '@/src/hooks/useImageExport';
+import { ExportRenderer } from '@/src/components/export/ExportRenderer';
+import { ShareButton } from '@/src/components/export/ShareButton';
+import { CollectionExport } from '@/src/components/export/templates/CollectionExport';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useMemo } from 'react';
 
@@ -10,6 +15,8 @@ export default function CollectionSummary() {
 
   const collectionByCardId = useCollectionStore((s) => s.collectionByCardId);
   const progressBySet = useCollectionStore((s) => s.progressBySet);
+  const isPremium = usePremiumStore((s) => s.isPremium);
+  const { viewRef: exportRef, exportAndShare, exporting } = useImageExport();
 
   const stats = useMemo(() => {
     const totalUniqueCards = Object.keys(collectionByCardId).length;
@@ -47,9 +54,27 @@ export default function CollectionSummary() {
 
   return (
     <View style={styles.card}>
+      {/* Offscreen export renderer */}
+      <ExportRenderer ref={exportRef}>
+        <CollectionExport
+          setName="My Collection"
+          completionPercent={stats.overallCompletion}
+          cardImages={[]}
+          totalCards={stats.totalCards}
+          ownedCards={stats.totalUniqueCards}
+          showWatermark={!isPremium}
+        />
+      </ExportRenderer>
+
       <View style={styles.titleRow}>
         <Ionicons name="albums" size={22} color={colors.primary} />
         <Text style={styles.title}>My Collection</Text>
+        <View style={styles.titleSpacer} />
+        <ShareButton
+          onPress={() => exportAndShare('Share Collection')}
+          loading={exporting}
+          size={18}
+        />
       </View>
 
       {/* Stats row */}
@@ -122,6 +147,9 @@ const styles = StyleSheet.create({
   title: {
     ...typography.subheading,
     fontSize: 18,
+  },
+  titleSpacer: {
+    flex: 1,
   },
   emptyText: {
     ...typography.caption,

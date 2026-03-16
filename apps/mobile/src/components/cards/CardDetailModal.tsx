@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,14 @@ import {
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { RarityBadge } from './RarityBadge';
+import { LuckCalculator } from './LuckCalculator';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { useCardsStore } from '@/src/stores/cards';
+import { usePremiumStore } from '@/src/stores/premium';
+import { useImageExport } from '@/src/hooks/useImageExport';
+import { ExportRenderer } from '@/src/components/export/ExportRenderer';
+import { ShareButton } from '@/src/components/export/ShareButton';
+import { CardExport } from '@/src/components/export/templates/CardExport';
 import type { Card, CardTranslation, CardLanguage } from '@pocket-trade-hub/shared';
 
 type Priority = 'high' | 'medium' | 'low';
@@ -319,6 +325,7 @@ const translationStyles = StyleSheet.create({
 
 function CardDetailPage({
   card,
+  allCards,
   setName,
   mode = 'browse',
   collectionQuantity,
@@ -331,6 +338,7 @@ function CardDetailPage({
   onUpdatePriority,
 }: {
   card: Card;
+  allCards: Card[];
   setName?: string;
   mode?: 'browse' | 'collection' | 'wanted';
   collectionQuantity?: (cardId: string) => number;
@@ -345,6 +353,13 @@ function CardDetailPage({
   const qty = collectionQuantity?.(card.id) ?? 0;
   const priority = wantedPriority?.(card.id);
   const [activeTranslation, setActiveTranslation] = useState<CardTranslation | null>(null);
+  const [luckCalcVisible, setLuckCalcVisible] = useState(false);
+
+  // Count cards of same rarity in the set for probability calculation
+  const cardsOfSameRarityInPack = useMemo(
+    () => allCards.filter((c) => c.rarity === card.rarity).length || 1,
+    [allCards, card.rarity],
+  );
 
   // Reset translation when card changes
   useEffect(() => {
@@ -455,6 +470,25 @@ function CardDetailPage({
           )}
         </View>
 
+        {/* Calculate odds button */}
+        <Pressable
+          style={styles.oddsBtn}
+          onPress={() => setLuckCalcVisible(true)}
+        >
+          <Ionicons name="calculator-outline" size={18} color={colors.primary} />
+          <Text style={styles.oddsBtnText}>Calculate odds</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        </Pressable>
+
+        <LuckCalculator
+          visible={luckCalcVisible}
+          onClose={() => setLuckCalcVisible(false)}
+          cardRarity={card.rarity}
+          cardName={card.name}
+          setId={card.setId}
+          cardsOfSameRarityInPack={cardsOfSameRarityInPack}
+        />
+
         {card.attacks && card.attacks.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Attacks</Text>
@@ -554,6 +588,8 @@ export function CardDetailModal({
 }: CardDetailModalProps) {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const isPremium = usePremiumStore((s) => s.isPremium);
+  const { viewRef: exportRef, exportAndShare, exporting } = useImageExport();
 
   const canGoLeft = currentIndex > 0;
   const canGoRight = currentIndex < cards.length - 1;
@@ -584,6 +620,19 @@ export function CardDetailModal({
       }}
     >
       <View style={styles.container}>
+        {/* Offscreen export renderer */}
+        <ExportRenderer ref={exportRef}>
+          {currentCard && (
+            <CardExport
+              cardName={currentCard.name}
+              cardImage={currentCard.imageUrl}
+              rarity={currentCard.rarity}
+              setName={setName}
+              showWatermark={!isPremium}
+            />
+          )}
+        </ExportRenderer>
+
         <View style={styles.header}>
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
             <Ionicons name="close" size={24} color={colors.text} />
@@ -606,6 +655,14 @@ export function CardDetailModal({
                 </View>
               )}
             </View>
+          </View>
+          {/* Share button */}
+          <View style={styles.shareBtn}>
+            <ShareButton
+              onPress={() => exportAndShare('Share Card')}
+              loading={exporting}
+              size={20}
+            />
           </View>
           {/* Web navigation arrows */}
           {Platform.OS === 'web' && (
@@ -636,6 +693,7 @@ export function CardDetailModal({
           renderItem={({ item }) => (
             <CardDetailPage
               card={item}
+              allCards={cards}
               setName={setName}
               mode={mode}
               collectionQuantity={collectionQuantity}
@@ -764,9 +822,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navArrows: {
+  shareBtn: {
     position: 'absolute',
     right: spacing.md,
+    top: Platform.OS === 'web' ? spacing.md : 52,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navArrows: {
+    position: 'absolute',
+    right: spacing.md + 44,
     top: Platform.OS === 'web' ? spacing.md : 52,
     flexDirection: 'row',
     gap: spacing.xs,
@@ -902,6 +971,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.text,
+  },
+
+  oddsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+  },
+  oddsBtnText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
 
   section: {

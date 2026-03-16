@@ -15,8 +15,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { useAuthStore } from '@/src/stores/auth';
+import { usePremiumStore } from '@/src/stores/premium';
 import { usePosts } from '@/src/hooks/usePosts';
 import { useProposals } from '@/src/hooks/useProposals';
+import { useImageExport } from '@/src/hooks/useImageExport';
+import { ExportRenderer } from '@/src/components/export/ExportRenderer';
+import { ShareButton } from '@/src/components/export/ShareButton';
+import { PostExport } from '@/src/components/export/templates/PostExport';
 import type { MarketPost } from '@/src/stores/posts';
 
 interface PostDetailModalProps {
@@ -27,8 +32,10 @@ interface PostDetailModalProps {
 
 export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps) {
   const currentUserId = useAuthStore((s) => s.user?.id);
+  const isPremium = usePremiumStore((s) => s.isPremium);
   const { closePost, deletePost } = usePosts();
   const { createProposal } = useProposals();
+  const { viewRef: exportRef, exportAndShare, exporting } = useImageExport();
   const [sendingProposal, setSendingProposal] = useState(false);
 
   if (!post) return null;
@@ -120,13 +127,31 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
     >
       <SafeAreaView style={styles.overlay}>
         <View style={styles.container}>
+          {/* Offscreen export renderer */}
+          <ExportRenderer ref={exportRef}>
+            <PostExport
+              postType={post.type}
+              cards={post.cards.map((c) => ({
+                name: c.name,
+                image: c.imageUrl,
+                rarity: c.rarity ?? 'Unknown',
+              }))}
+              posterName={post.poster?.username ?? 'Trader'}
+              showWatermark={!isPremium}
+            />
+          </ExportRenderer>
+
           {/* Header */}
           <View style={styles.header}>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
             <Text style={styles.title}>Post Details</Text>
-            <View style={{ width: 24 }} />
+            <ShareButton
+              onPress={() => exportAndShare('Share Post')}
+              loading={exporting}
+              size={20}
+            />
           </View>
 
           <ScrollView
