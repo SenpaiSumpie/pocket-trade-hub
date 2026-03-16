@@ -13,6 +13,7 @@ import { colors, typography, spacing, borderRadius } from '@/src/constants/theme
 import { PaywallCard } from '@/src/components/premium/PaywallCard';
 import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
 import { usePremiumStore } from '@/src/stores/premium';
+import RedeemCodeForm from '@/src/components/promo/RedeemCodeForm';
 
 interface UserReputation {
   avgRating: number;
@@ -244,6 +245,9 @@ export default function ProfileScreen() {
 
       {/* Premium Section */}
       <PaywallCard />
+
+      {/* Redeem Code */}
+      <RedeemCodeForm />
 
       {/* Linked Accounts */}
       <View style={styles.infoCard}>
