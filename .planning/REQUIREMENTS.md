@@ -43,7 +43,7 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 
 - [ ] **DISC-01**: User can opt-in to share approximate location for local trade finder
 - [ ] **DISC-02**: User can browse nearby traders within configurable distance
-- [ ] **DISC-03**: User can export collection or trade posts as shareable images
+- [x] **DISC-03**: User can export collection or trade posts as shareable images
 - [ ] **DISC-04**: User can redeem gift/promo codes for premium time or benefits
 
 ### Platform
