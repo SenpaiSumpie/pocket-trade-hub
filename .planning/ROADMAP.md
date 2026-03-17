@@ -99,11 +99,12 @@ Plans:
   1. User can select their preferred app language from 10 supported languages
   2. All app UI text (navigation, labels, messages, errors) displays in the selected language
   3. App defaults to the device language if supported, falling back to English
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md -- i18n infrastructure, shared language constants, DB migration, en.json extraction
+- [ ] 10-02-PLAN.md -- Mobile string replacement with t() calls and language selector UI
+- [ ] 10-03-PLAN.md -- 9 non-English translation files and server-side i18n wiring
 
 ### Phase 11: Local Trade Finder
 **Goal**: Users can discover nearby traders for convenient local trading
@@ -167,7 +168,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
 | 8. Post-Based Trading | 4/4 | Complete   | 2026-03-15 | - |
 | 9. Engagement Quick Wins | v2.0 | 1/3 | In progress | - |
-| 10. Internationalization | v2.0 | 0/TBD | Not started | - |
+| 10. Internationalization | v2.0 | 0/3 | Not started | - |
 | 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |
 | 12. Intelligence | v2.0 | 0/TBD | Not started | - |
 | 13. Web App Companion | v2.0 | 0/TBD | Not started | - |
