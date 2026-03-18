@@ -1,0 +1,51 @@
+{
+  "errors": {
+    "userNotFound": "User not found",
+    "validationFailed": "Validation failed",
+    "emailAlreadyRegistered": "Email already registered",
+    "invalidCredentials": "Invalid email or password",
+    "unauthorized": "Unauthorized",
+    "notFound": "Not found",
+    "serverError": "Internal server error",
+    "postNotFound": "Post not found",
+    "postLimitReached": "Free post limit reached. Upgrade to premium for unlimited posts.",
+    "proposalNotFound": "Proposal not found",
+    "invalidPromoCode": "Invalid promo code",
+    "codeAlreadyRedeemed": "You have already redeemed this code",
+    "promoCodeExpired": "This promo code has expired"
+  },
+  "notifications": {
+    "newSetTitle": "New Set Available",
+    "newSetBody": "{{setName}} has been released with {{cardCount}} cards!",
+    "matchTitle": "New Trade Match",
+    "matchBody": "You have a new trade match with a compatible trainer!",
+    "proposalReceivedTitle": "New Trade Proposal",
+    "proposalReceivedBody": "You received a new trade proposal",
+    "proposalAcceptedTitle": "Proposal Accepted",
+    "proposalAcceptedBody": "Your trade proposal has been accepted!",
+    "proposalDeclinedTitle": "Proposal Declined",
+    "ratingReceivedTitle": "New Rating",
+    "ratingReceivedBody": "You received a {{stars}}-star rating for your trade",
+    "cardAlertTitle": "Card Available",
+    "cardAlertBody": "A card on your wanted list ({{cardName}}) was just added by another trader",
+    "postMatchTitle": "Post Match Found",
+    "postMatchBody": "A new marketplace post matches cards you're looking for"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "Reset Your Password - Pocket Trade Hub",
+      "greeting": "Hi {{name}},",
+      "body": "We received a request to reset your password. Click the button below to create a new password.",
+      "buttonText": "Reset Password",
+      "footer": "If you didn't request this, you can safely ignore this email.",
+      "expiryNote": "This link will expire in 1 hour."
+    },
+    "welcome": {
+      "subject": "Welcome to Pocket Trade Hub!",
+      "greeting": "Welcome, {{name}}!",
+      "body": "Thanks for joining Pocket Trade Hub. Start building your collection and find the perfect trades.",
+      "buttonText": "Get Started",
+      "footer": "Happy trading!"
+    }
+  }
+}
