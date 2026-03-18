@@ -2,7 +2,7 @@
 phase: 10
 slug: internationalization
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-17
 ---
@@ -38,24 +38,24 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 10-01-01 | 01 | 1 | PLAT-03 | unit | `cd apps/api && pnpm test -- --testPathPattern="i18n" -x` | ❌ W0 | ⬜ pending |
-| 10-01-02 | 01 | 1 | PLAT-04 | unit | `cd apps/api && pnpm test -- --testPathPattern="users.profile" -x` | ✅ (needs uiLanguage case) | ⬜ pending |
-| 10-01-03 | 01 | 1 | PLAT-03 | manual | N/A — visual verification of mobile i18n init | N/A | ⬜ pending |
-| 10-02-01 | 02 | 1 | PLAT-03 | manual | N/A — visual verification of translated UI strings | N/A | ⬜ pending |
-| 10-02-02 | 02 | 1 | PLAT-04 | manual | N/A — language selector interaction test | N/A | ⬜ pending |
-| 10-02-03 | 02 | 1 | PLAT-03 | unit | `cd apps/api && pnpm test -- --testPathPattern="notification" -x` | ✅ (partial) | ⬜ pending |
+| 10-01-01 | 01 | 1 | PLAT-03, PLAT-04 | unit | `cd apps/api && pnpm test -- --testPathPattern="i18n\|users.profile" -x` | Created in task (Wave 0) | pending |
+| 10-01-02 | 01 | 1 | PLAT-03 | unit+json | `cd apps/mobile && node -e "..."` (en.json validation) | Created in task | pending |
+| 10-02-01 | 02 | 2 | PLAT-03 | tsc | `cd apps/mobile && npx tsc --noEmit` | N/A | pending |
+| 10-02-02 | 02 | 2 | PLAT-04 | tsc | `cd apps/mobile && npx tsc --noEmit` | N/A | pending |
+| 10-03-01 | 03 | 2 | PLAT-03 | json | Key structure match validation | N/A | pending |
+| 10-03-02 | 03 | 2 | PLAT-03 | unit | `cd apps/api && pnpm test -- --no-coverage -x` | Existing + Wave 0 | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `apps/api/__tests__/services/i18n.test.ts` — stubs for server-side i18n translation function (PLAT-03)
-- [ ] Add `uiLanguage` test cases to existing `apps/api/__tests__/routes/users.profile.test.ts` (PLAT-04)
-- [ ] No mobile test infrastructure needed — UI translations verified manually
+- [x] `apps/api/__tests__/services/i18n.test.ts` — Created in Plan 01 Task 1: tests for server-side i18n t() function (PLAT-03)
+- [x] `apps/api/__tests__/routes/users.profile.test.ts` — uiLanguage test cases added in Plan 01 Task 1 (PLAT-04)
+- [ ] No mobile test infrastructure needed — UI translations verified manually + tsc
 
-*Existing infrastructure covers API-side requirements; Wave 0 adds i18n-specific test stubs.*
+*Wave 0 tests are created as part of Plan 01 Task 1 (combined with implementation to avoid a separate Wave 0 plan).*
 
 ---
 
@@ -73,11 +73,11 @@ created: 2026-03-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
