@@ -87,6 +87,50 @@ describe('GET /users/me', () => {
   });
 });
 
+describe('PATCH /users/me uiLanguage', () => {
+  it('updates uiLanguage to ja', async () => {
+    const { accessToken } = await createUser(app);
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/users/me',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { uiLanguage: 'ja' },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.uiLanguage).toBe('ja');
+  });
+
+  it('rejects invalid uiLanguage value', async () => {
+    const { accessToken } = await createUser(app);
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/users/me',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { uiLanguage: 'invalid' },
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns uiLanguage with default en for new users', async () => {
+    const { accessToken } = await createUser(app);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/users/me',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.uiLanguage).toBe('en');
+  });
+});
+
 describe('GET /users/:id public profile', () => {
   it('does not expose email in public profile', async () => {
     const { user } = await createUser(app);

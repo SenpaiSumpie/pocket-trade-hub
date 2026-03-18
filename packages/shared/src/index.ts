@@ -24,6 +24,13 @@ export {
 export type { UpdateProfileInput, UserProfile } from './schemas/user';
 
 export {
+  supportedUILanguages,
+  UI_LANGUAGES,
+  uiLanguageSchema,
+} from './schemas/i18n';
+export type { UILanguage } from './schemas/i18n';
+
+export {
   cardLanguageValues,
   rarityValues,
   cardSchema,

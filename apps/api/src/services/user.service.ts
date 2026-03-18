@@ -30,6 +30,7 @@ export async function getOwnProfile(db: Db, id: string) {
       avatarId: users.avatarId,
       friendCode: users.friendCode,
       emailVerified: users.emailVerified,
+      uiLanguage: users.uiLanguage,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     })
@@ -58,6 +59,9 @@ export async function updateProfile(
   if (data.friendCode !== undefined) {
     updateData.friendCode = data.friendCode;
   }
+  if (data.uiLanguage !== undefined) {
+    updateData.uiLanguage = data.uiLanguage;
+  }
 
   const [updated] = await db
     .update(users)
@@ -70,6 +74,7 @@ export async function updateProfile(
       avatarId: users.avatarId,
       friendCode: users.friendCode,
       emailVerified: users.emailVerified,
+      uiLanguage: users.uiLanguage,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     });

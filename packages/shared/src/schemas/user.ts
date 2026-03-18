@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { uiLanguageSchema } from './i18n';
 
 export const friendCodeSchema = z
   .string()
@@ -11,6 +12,7 @@ export const updateProfileSchema = z.object({
   displayName: z.string().min(1).max(30).optional(),
   avatarId: z.string().optional(),
   friendCode: friendCodeSchema.optional(),
+  uiLanguage: uiLanguageSchema.optional(),
 });
 
 export const userProfileSchema = z.object({

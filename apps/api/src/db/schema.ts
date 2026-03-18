@@ -17,6 +17,7 @@ export const users = pgTable('users', {
   premiumExpiresAt: timestamp('premium_expires_at'),
   revenuecatId: varchar('revenuecat_id', { length: 100 }),
   preferredCardLanguage: varchar('preferred_card_language', { length: 5 }).default('en'),
+  uiLanguage: varchar('ui_language', { length: 5 }).default('en'),
   emailVerified: timestamp('email_verified'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
