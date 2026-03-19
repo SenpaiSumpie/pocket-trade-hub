@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-19T03:30:04.304Z"
-last_activity: 2026-03-18 -- Completed Phase 10 Plan 02 (mobile string replacement and language selector)
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-03-19T03:55:00.000Z"
+last_activity: 2026-03-18 -- Completed Phase 10 Plan 03 (translation files and server i18n wiring)
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 10 of 13 (Internationalization) -- IN PROGRESS
-Plan: 2 of 3 complete
-Status: Executing Phase 10
-Last activity: 2026-03-18 -- Completed Phase 10 Plan 02 (mobile string replacement and language selector)
+Phase: 10 of 13 (Internationalization) -- COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 10 Complete
+Last activity: 2026-03-18 -- Completed Phase 10 Plan 03 (translation files and server i18n wiring)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [█████████░] 93%
 | 09    | 03   | 8 min    | 3     | 10    |
 | 10    | 01   | 9 min    | 2     | 16    |
 | 10    | 02   | 12 min   | 2     | 16    |
+| 10    | 03   | 25 min   | 2     | 28    |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Phase 10 decisions:
 - Test DB requires separate drizzle-kit push (dev and test databases diverge)
 - Locale-aware date formatting uses undefined locale parameter to respect system/i18n language
 - ReputationStars t prop type widened to accept interpolation options for pluralization
+- parseAcceptLanguage for route-level language detection rather than per-request DB lookups
+- Per-user uiLanguage DB lookup for notification services (notifications are recipient-targeted)
+- Expanded server notification keys from 13 to 28+ to cover all service notification types
 
 ### Pending Todos
 
@@ -127,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:15:00Z
-Stopped at: Completed 10-02-PLAN.md
-Resume file: .planning/phases/10-internationalization/10-02-SUMMARY.md
+Last session: 2026-03-19T03:55:00Z
+Stopped at: Completed 10-03-PLAN.md
+Resume file: .planning/phases/10-internationalization/10-03-SUMMARY.md

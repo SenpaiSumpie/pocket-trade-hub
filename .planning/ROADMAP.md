@@ -32,7 +32,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 7: Multi-Language Cards and OAuth** - Language-aware card database for 9 languages plus Google/Apple sign-in (completed 2026-03-14)
 - [x] **Phase 8: Post-Based Trading** - Offering/Seeking trade posts replacing automatic-only matching (completed 2026-03-15)
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
-- [ ] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection
+- [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2026-03-19)
 - [ ] **Phase 11: Local Trade Finder** - Nearby trader discovery with privacy-preserving location sharing
 - [ ] **Phase 12: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists
 - [ ] **Phase 13: Web App Companion** - Browser-based access to trading, collection, and meta features
@@ -168,7 +168,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
 | 8. Post-Based Trading | 4/4 | Complete   | 2026-03-15 | - |
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2026-03-15 |
-| 10. Internationalization | v2.0 | 2/3 | In progress | - |
+| 10. Internationalization | 3/3 | Complete   | 2026-03-19 | - |
 | 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |
 | 12. Intelligence | v2.0 | 0/TBD | Not started | - |
 | 13. Web App Companion | v2.0 | 0/TBD | Not started | - |
