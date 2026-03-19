@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "ユーザーが見つかりません",
+    "validationFailed": "バリデーションに失敗しました",
+    "emailAlreadyRegistered": "このメールアドレスは既に登録されています",
+    "invalidCredentials": "メールアドレスまたはパスワードが無効です",
+    "unauthorized": "認証されていません",
+    "notFound": "見つかりません",
+    "serverError": "内部サーバーエラー",
+    "postNotFound": "投稿が見つかりません",
+    "postLimitReached": "無料投稿の上限に達しました。プレミアムにアップグレードすると無制限に投稿できます。",
+    "proposalNotFound": "提案が見つかりません",
+    "invalidPromoCode": "無効なプロモコードです",
+    "codeAlreadyRedeemed": "このコードは既に使用済みです",
+    "promoCodeExpired": "このプロモコードは期限切れです"
+  },
+  "notifications": {
+    "newSetTitle": "新しいセットが利用可能です",
+    "newSetBody": "{{setName}}が{{cardCount}}枚のカードでリリースされました！",
+    "matchHighPriorityTitle": "高優先度のマッチ！",
+    "matchTitle": "新しいマッチが見つかりました！",
+    "matchBody": "{{partnerName}}があなたの欲しい{{cardName}}を持っています。",
+    "proposalReceivedTitle": "新しいトレード提案",
+    "proposalReceivedBody": "新しいトレード提案を受け取りました。",
+    "proposalCounteredTitle": "カウンターオファーを受信",
+    "proposalCounteredBody": "トレード提案へのカウンターオファーを受け取りました。",
+    "proposalAcceptedTitle": "提案が承認されました",
+    "proposalAcceptedBody": "あなたのトレード提案が承認されました！",
+    "proposalRejectedTitle": "提案が拒否されました",
+    "proposalRejectedBody": "あなたのトレード提案が拒否されました。",
+    "proposalDeclinedTitle": "提案が辞退されました",
+    "proposalCancelledTitle": "提案がキャンセルされました",
+    "proposalCancelledBody": "トレードされたカードが利用できなくなったため、提案が自動的にキャンセルされました。",
+    "tradeCompletedTitle": "トレード完了",
+    "tradeCompletedBody": "トレードが完了としてマークされました！",
+    "postAutoClosedTitle": "投稿が自動的に閉じられました",
+    "postAutoClosedBody": "カードがトレードされたため、投稿が自動的に閉じられました。",
+    "postMatchOfferingTitle": "欲しいカードが出品されています！",
+    "postMatchOfferingBody": "誰かが{{cardName}}を出品しています -- チェックしてみてください！",
+    "postMatchSeekingTitle": "あなたのカードを探している人がいます！",
+    "postMatchSeekingBody": "誰かが{{cardName}}を探しています -- お持ちかもしれません！",
+    "ratingReceivedTitle": "新しい評価を受け取りました",
+    "ratingReceivedBody": "トレードで{{stars}}つ星の評価を受け取りました。",
+    "cardAlertTitle": "カードアラート",
+    "cardAlertBody": "あなたが欲しい{{cardCount}}枚のカードが他のトレーダーによって追加されました！",
+    "postMatchTitle": "投稿マッチが見つかりました",
+    "postMatchBody": "新しいマーケット投稿があなたが探しているカードと一致しています"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "パスワードリセット - Pocket Trade Hub",
+      "greeting": "{{name}}さん、こんにちは。",
+      "body": "パスワードリセットのリクエストを受け付けました。下のボタンをクリックして新しいパスワードを作成してください。",
+      "buttonText": "パスワードをリセット",
+      "footer": "このリクエストに覚えがない場合は、このメールを無視してください。",
+      "expiryNote": "このリンクは1時間で期限切れになります。"
+    },
+    "welcome": {
+      "subject": "Pocket Trade Hubへようこそ！",
+      "greeting": "ようこそ、{{name}}さん！",
+      "body": "Pocket Trade Hubにご参加いただきありがとうございます。コレクションを始めて、最適なトレードを見つけましょう。",
+      "buttonText": "始める",
+      "footer": "楽しいトレードを！"
+    }
+  }
+}

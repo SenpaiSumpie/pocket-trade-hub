@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "사용자를 찾을 수 없습니다",
+    "validationFailed": "유효성 검사에 실패했습니다",
+    "emailAlreadyRegistered": "이미 등록된 이메일입니다",
+    "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다",
+    "unauthorized": "인증되지 않았습니다",
+    "notFound": "찾을 수 없습니다",
+    "serverError": "내부 서버 오류",
+    "postNotFound": "게시물을 찾을 수 없습니다",
+    "postLimitReached": "무료 게시물 한도에 도달했습니다. 무제한 게시를 위해 프리미엄으로 업그레이드하세요.",
+    "proposalNotFound": "제안을 찾을 수 없습니다",
+    "invalidPromoCode": "유효하지 않은 프로모 코드입니다",
+    "codeAlreadyRedeemed": "이미 이 코드를 사용했습니다",
+    "promoCodeExpired": "이 프로모 코드는 만료되었습니다"
+  },
+  "notifications": {
+    "newSetTitle": "새로운 세트 출시",
+    "newSetBody": "{{setName}}이(가) {{cardCount}}장의 카드로 출시되었습니다!",
+    "matchHighPriorityTitle": "높은 우선순위 매칭!",
+    "matchTitle": "새로운 매칭 발견!",
+    "matchBody": "{{partnerName}}님이 당신이 원하는 {{cardName}}을(를) 가지고 있습니다.",
+    "proposalReceivedTitle": "새로운 교환 제안",
+    "proposalReceivedBody": "새로운 교환 제안을 받았습니다.",
+    "proposalCounteredTitle": "역제안 수신",
+    "proposalCounteredBody": "교환 제안에 대한 역제안을 받았습니다.",
+    "proposalAcceptedTitle": "제안 수락됨",
+    "proposalAcceptedBody": "교환 제안이 수락되었습니다!",
+    "proposalRejectedTitle": "제안 거절됨",
+    "proposalRejectedBody": "교환 제안이 거절되었습니다.",
+    "proposalDeclinedTitle": "제안 거절됨",
+    "proposalCancelledTitle": "제안 취소됨",
+    "proposalCancelledBody": "교환된 카드가 더 이상 사용할 수 없어 제안이 자동으로 취소되었습니다.",
+    "tradeCompletedTitle": "교환 완료",
+    "tradeCompletedBody": "교환이 완료로 표시되었습니다!",
+    "postAutoClosedTitle": "게시물 자동 종료",
+    "postAutoClosedBody": "카드가 교환되어 게시물이 자동으로 종료되었습니다.",
+    "postMatchOfferingTitle": "원하는 카드가 있습니다!",
+    "postMatchOfferingBody": "누군가가 {{cardName}}을(를) 제공하고 있습니다 -- 확인해 보세요!",
+    "postMatchSeekingTitle": "누군가가 당신의 카드를 원합니다!",
+    "postMatchSeekingBody": "누군가가 {{cardName}}을(를) 찾고 있습니다 -- 가지고 있을 수도 있어요!",
+    "ratingReceivedTitle": "새로운 평가 수신",
+    "ratingReceivedBody": "교환에 대해 {{stars}}점 평가를 받았습니다.",
+    "cardAlertTitle": "카드 알림",
+    "cardAlertBody": "원하는 카드 {{cardCount}}장이 다른 트레이더에 의해 추가되었습니다!",
+    "postMatchTitle": "게시물 매칭 발견",
+    "postMatchBody": "새로운 마켓 게시물이 찾고 있는 카드와 일치합니다"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "비밀번호 재설정 - Pocket Trade Hub",
+      "greeting": "안녕하세요, {{name}}님.",
+      "body": "비밀번호 재설정 요청을 받았습니다. 아래 버튼을 클릭하여 새 비밀번호를 만드세요.",
+      "buttonText": "비밀번호 재설정",
+      "footer": "요청하지 않으셨다면 이 이메일을 무시해도 됩니다.",
+      "expiryNote": "이 링크는 1시간 후 만료됩니다."
+    },
+    "welcome": {
+      "subject": "Pocket Trade Hub에 오신 것을 환영합니다!",
+      "greeting": "환영합니다, {{name}}님!",
+      "body": "Pocket Trade Hub에 가입해 주셔서 감사합니다. 컬렉션을 만들고 완벽한 교환을 찾아보세요.",
+      "buttonText": "시작하기",
+      "footer": "즐거운 교환 되세요!"
+    }
+  }
+}

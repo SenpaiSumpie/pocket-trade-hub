@@ -9,16 +9,18 @@ import {
   getUserCollection,
 } from '../services/collection.service';
 import { checkCardAlerts } from '../services/card-alert.service';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function collectionRoutes(fastify: FastifyInstance) {
-  // POST /collection — add card to collection
+  // POST /collection -- add card to collection
   fastify.post(
     '/collection',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = addToCollectionSchema.safeParse(request.body);
       if (!parsed.success) {
-        return reply.code(400).send({ error: 'Invalid request body', details: parsed.error.flatten() });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
       }
 
       const userId = request.user.sub;
@@ -29,7 +31,7 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /collection — list user's collection
+  // GET /collection -- list user's collection
   fastify.get(
     '/collection',
     { preHandler: [fastify.authenticate] },
@@ -41,14 +43,15 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // PUT /collection/:cardId — update quantity
+  // PUT /collection/:cardId -- update quantity
   fastify.put(
     '/collection/:cardId',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = updateQuantitySchema.safeParse(request.body);
       if (!parsed.success) {
-        return reply.code(400).send({ error: 'Invalid request body', details: parsed.error.flatten() });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
       }
 
       const userId = request.user.sub;
@@ -59,7 +62,7 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // DELETE /collection/:cardId — remove card from collection
+  // DELETE /collection/:cardId -- remove card from collection
   fastify.delete(
     '/collection/:cardId',
     { preHandler: [fastify.authenticate] },
@@ -72,14 +75,15 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // POST /collection/bulk — bulk add/remove cards
+  // POST /collection/bulk -- bulk add/remove cards
   fastify.post(
     '/collection/bulk',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = bulkCollectionSchema.safeParse(request.body);
       if (!parsed.success) {
-        return reply.code(400).send({ error: 'Invalid request body', details: parsed.error.flatten() });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
       }
 
       const userId = request.user.sub;
@@ -97,7 +101,7 @@ export default async function collectionRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /collection/progress — per-set progress
+  // GET /collection/progress -- per-set progress
   fastify.get(
     '/collection/progress',
     { preHandler: [fastify.authenticate] },

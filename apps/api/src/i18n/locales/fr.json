@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "Utilisateur non trouve",
+    "validationFailed": "Validation echouee",
+    "emailAlreadyRegistered": "E-mail deja enregistre",
+    "invalidCredentials": "E-mail ou mot de passe invalide",
+    "unauthorized": "Non autorise",
+    "notFound": "Non trouve",
+    "serverError": "Erreur interne du serveur",
+    "postNotFound": "Annonce non trouvee",
+    "postLimitReached": "Limite d'annonces gratuites atteinte. Passez a premium pour des annonces illimitees.",
+    "proposalNotFound": "Proposition non trouvee",
+    "invalidPromoCode": "Code promotionnel invalide",
+    "codeAlreadyRedeemed": "Vous avez deja utilise ce code",
+    "promoCodeExpired": "Ce code promotionnel a expire"
+  },
+  "notifications": {
+    "newSetTitle": "Nouveau set disponible",
+    "newSetBody": "{{setName}} est sorti avec {{cardCount}} cartes !",
+    "matchHighPriorityTitle": "Correspondance haute priorite !",
+    "matchTitle": "Nouvelle correspondance trouvee !",
+    "matchBody": "{{partnerName}} a {{cardName}} que vous recherchez.",
+    "proposalReceivedTitle": "Nouvelle proposition d'echange",
+    "proposalReceivedBody": "Vous avez recu une nouvelle proposition d'echange.",
+    "proposalCounteredTitle": "Contre-offre recue",
+    "proposalCounteredBody": "Vous avez recu une contre-offre sur votre proposition d'echange.",
+    "proposalAcceptedTitle": "Proposition acceptee",
+    "proposalAcceptedBody": "Votre proposition d'echange a ete acceptee !",
+    "proposalRejectedTitle": "Proposition rejetee",
+    "proposalRejectedBody": "Votre proposition d'echange a ete rejetee.",
+    "proposalDeclinedTitle": "Proposition refusee",
+    "proposalCancelledTitle": "Proposition annulee",
+    "proposalCancelledBody": "Une proposition a ete automatiquement annulee car les cartes echangees ne sont plus disponibles.",
+    "tradeCompletedTitle": "Echange termine",
+    "tradeCompletedBody": "Un echange a ete marque comme termine !",
+    "postAutoClosedTitle": "Annonce fermee automatiquement",
+    "postAutoClosedBody": "Votre annonce a ete fermee automatiquement car la carte a ete echangee.",
+    "postMatchOfferingTitle": "Une carte que vous cherchez est disponible !",
+    "postMatchOfferingBody": "Quelqu'un propose {{cardName}} -- jetez-y un coup d'oeil !",
+    "postMatchSeekingTitle": "Quelqu'un veut votre carte !",
+    "postMatchSeekingBody": "Quelqu'un recherche {{cardName}} -- vous l'avez peut-etre !",
+    "ratingReceivedTitle": "Nouvelle evaluation recue",
+    "ratingReceivedBody": "Vous avez recu une evaluation de {{stars}} etoiles pour un echange.",
+    "cardAlertTitle": "Alerte carte",
+    "cardAlertBody": "{{cardCount}} carte(s) que vous cherchez ont ete ajoutees par d'autres echangeurs !",
+    "postMatchTitle": "Correspondance d'annonce trouvee",
+    "postMatchBody": "Une nouvelle annonce du marche correspond a des cartes que vous recherchez"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "Reinitialiser votre mot de passe - Pocket Trade Hub",
+      "greeting": "Bonjour {{name}},",
+      "body": "Nous avons recu une demande de reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour creer un nouveau mot de passe.",
+      "buttonText": "Reinitialiser le mot de passe",
+      "footer": "Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail.",
+      "expiryNote": "Ce lien expirera dans 1 heure."
+    },
+    "welcome": {
+      "subject": "Bienvenue sur Pocket Trade Hub !",
+      "greeting": "Bienvenue, {{name}} !",
+      "body": "Merci d'avoir rejoint Pocket Trade Hub. Commencez a construire votre collection et trouvez les echanges parfaits.",
+      "buttonText": "Commencer",
+      "footer": "Bon echange !"
+    }
+  }
+}

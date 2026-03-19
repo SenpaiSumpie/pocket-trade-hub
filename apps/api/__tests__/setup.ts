@@ -20,6 +20,7 @@ import postRoutes from '../src/routes/posts';
 import promoRoutes from '../src/routes/promo';
 // OAuth routes excluded from test setup: jose is ESM-only and incompatible with ts-jest
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { initServerI18n } from '../src/i18n';
 
 let testSql: ReturnType<typeof postgres>;
 let testDb: ReturnType<typeof drizzle<typeof schema>>;
@@ -27,6 +28,9 @@ let testDb: ReturnType<typeof drizzle<typeof schema>>;
 const TEST_JWT_SECRET = 'test-secret-key-do-not-use-in-production';
 
 export async function buildTestApp(): Promise<FastifyInstance> {
+  // Initialize i18n before building app
+  await initServerI18n();
+
   const app = Fastify({ logger: false });
 
   // CORS

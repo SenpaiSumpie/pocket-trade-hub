@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "Usuario nao encontrado",
+    "validationFailed": "Validacao falhou",
+    "emailAlreadyRegistered": "E-mail ja registrado",
+    "invalidCredentials": "E-mail ou senha invalidos",
+    "unauthorized": "Nao autorizado",
+    "notFound": "Nao encontrado",
+    "serverError": "Erro interno do servidor",
+    "postNotFound": "Publicacao nao encontrada",
+    "postLimitReached": "Limite de publicacoes gratuitas atingido. Faca upgrade para premium para publicacoes ilimitadas.",
+    "proposalNotFound": "Proposta nao encontrada",
+    "invalidPromoCode": "Codigo promocional invalido",
+    "codeAlreadyRedeemed": "Voce ja resgatou este codigo",
+    "promoCodeExpired": "Este codigo promocional expirou"
+  },
+  "notifications": {
+    "newSetTitle": "Novo set disponivel",
+    "newSetBody": "{{setName}} foi lancado com {{cardCount}} cartas!",
+    "matchHighPriorityTitle": "Correspondencia de alta prioridade!",
+    "matchTitle": "Nova correspondencia encontrada!",
+    "matchBody": "{{partnerName}} tem {{cardName}} que voce quer.",
+    "proposalReceivedTitle": "Nova proposta de troca",
+    "proposalReceivedBody": "Voce recebeu uma nova proposta de troca.",
+    "proposalCounteredTitle": "Contraproposta recebida",
+    "proposalCounteredBody": "Voce recebeu uma contraproposta na sua proposta de troca.",
+    "proposalAcceptedTitle": "Proposta aceita",
+    "proposalAcceptedBody": "Sua proposta de troca foi aceita!",
+    "proposalRejectedTitle": "Proposta rejeitada",
+    "proposalRejectedBody": "Sua proposta de troca foi rejeitada.",
+    "proposalDeclinedTitle": "Proposta recusada",
+    "proposalCancelledTitle": "Proposta cancelada",
+    "proposalCancelledBody": "Uma proposta foi automaticamente cancelada porque as cartas trocadas nao estao mais disponiveis.",
+    "tradeCompletedTitle": "Troca concluida",
+    "tradeCompletedBody": "Uma troca foi marcada como concluida!",
+    "postAutoClosedTitle": "Publicacao fechada automaticamente",
+    "postAutoClosedBody": "Sua publicacao foi fechada automaticamente porque a carta foi trocada.",
+    "postMatchOfferingTitle": "Uma carta que voce quer esta disponivel!",
+    "postMatchOfferingBody": "Alguem esta oferecendo {{cardName}} -- confira!",
+    "postMatchSeekingTitle": "Alguem quer a sua carta!",
+    "postMatchSeekingBody": "Alguem esta procurando {{cardName}} -- voce pode te-la!",
+    "ratingReceivedTitle": "Nova avaliacao recebida",
+    "ratingReceivedBody": "Voce recebeu uma avaliacao de {{stars}} estrelas por uma troca.",
+    "cardAlertTitle": "Alerta de carta",
+    "cardAlertBody": "{{cardCount}} carta(s) que voce quer foram adicionadas por outros traders!",
+    "postMatchTitle": "Correspondencia de publicacao encontrada",
+    "postMatchBody": "Uma nova publicacao do mercado corresponde a cartas que voce procura"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "Redefinir sua senha - Pocket Trade Hub",
+      "greeting": "Ola {{name}},",
+      "body": "Recebemos uma solicitacao para redefinir sua senha. Clique no botao abaixo para criar uma nova senha.",
+      "buttonText": "Redefinir senha",
+      "footer": "Se voce nao solicitou isso, pode ignorar este e-mail.",
+      "expiryNote": "Este link expirara em 1 hora."
+    },
+    "welcome": {
+      "subject": "Bem-vindo ao Pocket Trade Hub!",
+      "greeting": "Bem-vindo, {{name}}!",
+      "body": "Obrigado por se juntar ao Pocket Trade Hub. Comece a construir sua colecao e encontre as trocas perfeitas.",
+      "buttonText": "Comecar",
+      "footer": "Boas trocas!"
+    }
+  }
+}

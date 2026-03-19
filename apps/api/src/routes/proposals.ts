@@ -11,6 +11,7 @@ import {
 import { rateTradePartner } from '../services/rating.service';
 import { tradeProposals } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function proposalRoutes(fastify: FastifyInstance) {
   // POST /proposals - create a new trade proposal
@@ -18,10 +19,11 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
     '/proposals',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = createProposalSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid body',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -29,12 +31,10 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
       const userId = request.user.sub;
       const io = (fastify as any).io || null;
 
-      // Determine receiverId: we need to look up the match to find the other party
-      // For now, require receiverId in the body or derive from matchId
       const body = request.body as any;
       const receiverId = body.receiverId;
       if (!receiverId) {
-        return reply.code(400).send({ error: 'receiverId is required' });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang) });
       }
 
       try {
@@ -86,11 +86,12 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
     '/proposals/:id',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id } = request.params as { id: string };
       const thread = await getProposalThread(fastify.db, id);
 
       if (thread.length === 0) {
-        return reply.code(404).send({ error: 'Proposal not found' });
+        return reply.code(404).send({ error: t('errors.proposalNotFound', lang) });
       }
 
       return reply.code(200).send({ thread });
@@ -140,11 +141,12 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
     '/proposals/:id/counter',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id: parentId } = request.params as { id: string };
       const parsed = createProposalSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid body',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -155,7 +157,7 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
       const receiverId = body.receiverId;
 
       if (!receiverId) {
-        return reply.code(400).send({ error: 'receiverId is required' });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang) });
       }
 
       try {
@@ -202,11 +204,12 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
     '/proposals/:id/rate',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id: proposalId } = request.params as { id: string };
       const parsed = createRatingSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid body',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -221,7 +224,7 @@ export default async function proposalRoutes(fastify: FastifyInstance) {
         .limit(1);
 
       if (!proposal) {
-        return reply.code(404).send({ error: 'Proposal not found' });
+        return reply.code(404).send({ error: t('errors.proposalNotFound', lang) });
       }
 
       const ratedId =

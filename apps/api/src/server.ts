@@ -21,8 +21,12 @@ import promoRoutes from './routes/promo';
 import { initAnalyticsWorker, closeAnalyticsWorker } from './jobs/analytics-worker';
 import { initCardAlertWorker, closeCardAlertWorker } from './jobs/card-alert-worker';
 import { initPostMatchWorker, closePostMatchWorker } from './jobs/post-match-worker';
+import { initServerI18n } from './i18n';
 
 export async function buildApp(opts = {}) {
+  // Initialize i18n before routes are registered
+  await initServerI18n();
+
   const app = Fastify(opts);
 
   // Plugins

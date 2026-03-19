@@ -4,6 +4,7 @@ import { tradeProposals, tradeRatings, notifications, users, userCollectionItems
 import type { Server } from 'socket.io';
 import { addToCollection, getUserCollection, updateQuantity } from './collection.service';
 import { removeFromWanted } from './wanted.service';
+import { t } from '../i18n';
 
 type DbInstance = any;
 
@@ -145,12 +146,21 @@ export async function createProposal(
     })
     .returning();
 
+  // Get receiver's language preference
+  const [receiver] = await db
+    .select({ uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(eq(users.id, opts.receiverId));
+  const lang = receiver?.uiLanguage || 'en';
+
   // Create notification for receiver
   const notifType = opts.parentId ? 'proposal_countered' : 'proposal_received';
-  const notifTitle = opts.parentId ? 'Counter-offer received' : 'New trade proposal';
+  const notifTitle = opts.parentId
+    ? t('notifications.proposalCounteredTitle', lang)
+    : t('notifications.proposalReceivedTitle', lang);
   const notifBody = opts.parentId
-    ? 'You received a counter-offer on your trade proposal.'
-    : 'You received a new trade proposal.';
+    ? t('notifications.proposalCounteredBody', lang)
+    : t('notifications.proposalReceivedBody', lang);
 
   await insertNotification(db, {
     userId: opts.receiverId,
@@ -204,11 +214,18 @@ export async function acceptProposal(
 
   const proposal = result[0];
 
+  // Get sender's language preference
+  const [senderUser] = await db
+    .select({ uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(eq(users.id, proposal.senderId));
+  const acceptLang = senderUser?.uiLanguage || 'en';
+
   await insertNotification(db, {
     userId: proposal.senderId,
     type: 'proposal_accepted',
-    title: 'Proposal accepted',
-    body: 'Your trade proposal has been accepted!',
+    title: t('notifications.proposalAcceptedTitle', acceptLang),
+    body: t('notifications.proposalAcceptedBody', acceptLang),
     data: { proposalId },
   });
 
@@ -222,8 +239,8 @@ export async function acceptProposal(
   await sendPushToUser(
     db,
     proposal.senderId,
-    'Proposal accepted',
-    'Your trade proposal has been accepted!',
+    t('notifications.proposalAcceptedTitle', acceptLang),
+    t('notifications.proposalAcceptedBody', acceptLang),
   );
 
   return proposal;
@@ -256,11 +273,18 @@ export async function rejectProposal(
 
   const proposal = result[0];
 
+  // Get sender's language preference
+  const [rejectSenderUser] = await db
+    .select({ uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(eq(users.id, proposal.senderId));
+  const rejectLang = rejectSenderUser?.uiLanguage || 'en';
+
   await insertNotification(db, {
     userId: proposal.senderId,
     type: 'proposal_rejected',
-    title: 'Proposal rejected',
-    body: 'Your trade proposal has been rejected.',
+    title: t('notifications.proposalRejectedTitle', rejectLang),
+    body: t('notifications.proposalRejectedBody', rejectLang),
     data: { proposalId },
   });
 
@@ -274,8 +298,8 @@ export async function rejectProposal(
   await sendPushToUser(
     db,
     proposal.senderId,
-    'Proposal rejected',
-    'Your trade proposal has been rejected.',
+    t('notifications.proposalRejectedTitle', rejectLang),
+    t('notifications.proposalRejectedBody', rejectLang),
   );
 
   return proposal;
@@ -423,6 +447,18 @@ export async function completeProposal(
         .where(inArray(tradeProposals.id, conflictingIds));
 
       // Notify affected users and emit socket events
+      // Fetch languages for affected users
+      const affectedUserIds = new Set<string>();
+      for (const cp of conflicting) {
+        affectedUserIds.add((cp as any).senderId);
+        affectedUserIds.add((cp as any).receiverId);
+      }
+      const affectedUsers = await tx
+        .select({ id: users.id, uiLanguage: users.uiLanguage })
+        .from(users)
+        .where(inArray(users.id, Array.from(affectedUserIds)));
+      const cancelLangMap = new Map<string, string>(affectedUsers.map((u: any) => [u.id, u.uiLanguage || 'en']));
+
       for (const cp of conflicting) {
         const cpSenderId = (cp as any).senderId;
         const cpReceiverId = (cp as any).receiverId;
@@ -430,11 +466,12 @@ export async function completeProposal(
 
         // Notify both parties of the cancelled proposal
         for (const notifyUserId of [cpSenderId, cpReceiverId]) {
+          const cancelLang = cancelLangMap.get(notifyUserId) || 'en';
           await insertNotification(tx, {
             userId: notifyUserId,
             type: 'proposal_cancelled',
-            title: 'Proposal cancelled',
-            body: 'A proposal was automatically cancelled because traded cards are no longer available.',
+            title: t('notifications.proposalCancelledTitle', cancelLang),
+            body: t('notifications.proposalCancelledBody', cancelLang),
             data: { proposalId: cpId },
           });
         }
@@ -452,11 +489,18 @@ export async function completeProposal(
   const otherUserId =
     proposal.senderId === userId ? proposal.receiverId : proposal.senderId;
 
+  // Get other user's language preference
+  const [otherUser] = await db
+    .select({ uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(eq(users.id, otherUserId));
+  const completeLang = otherUser?.uiLanguage || 'en';
+
   await insertNotification(db, {
     userId: otherUserId,
     type: 'trade_completed',
-    title: 'Trade completed',
-    body: 'A trade has been marked as completed!',
+    title: t('notifications.tradeCompletedTitle', completeLang),
+    body: t('notifications.tradeCompletedBody', completeLang),
     data: { proposalId },
   });
 
@@ -467,8 +511,8 @@ export async function completeProposal(
   await sendPushToUser(
     db,
     otherUserId,
-    'Trade completed',
-    'A trade has been marked as completed!',
+    t('notifications.tradeCompletedTitle', completeLang),
+    t('notifications.tradeCompletedBody', completeLang),
   );
 
   // ── Auto-close affected trade posts ──
@@ -552,13 +596,22 @@ async function autoCloseAffectedPosts(
     .set({ status: 'auto_closed', updatedAt: new Date() })
     .where(inArray(tradePosts.id, postIds));
 
+  // Fetch language preferences for affected post owners
+  const postOwnerIds = [...new Set(postsToClose.map((p) => p.userId))];
+  const postOwners = await db
+    .select({ id: users.id, uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(inArray(users.id, postOwnerIds));
+  const postLangMap = new Map<string, string>(postOwners.map((u: any) => [u.id, u.uiLanguage || 'en']));
+
   // Send notifications and socket events for each auto-closed post
   for (const post of postsToClose) {
+    const postLang = postLangMap.get(post.userId) || 'en';
     await insertNotification(db, {
       userId: post.userId,
       type: 'post_auto_closed',
-      title: 'Post auto-closed',
-      body: 'Your post was auto-closed because the card was traded.',
+      title: t('notifications.postAutoClosedTitle', postLang),
+      body: t('notifications.postAutoClosedBody', postLang),
       data: { postId: post.id },
     });
 
@@ -569,8 +622,8 @@ async function autoCloseAffectedPosts(
     await sendPushToUser(
       db,
       post.userId,
-      'Post auto-closed',
-      'Your post was auto-closed because the card was traded.',
+      t('notifications.postAutoClosedTitle', postLang),
+      t('notifications.postAutoClosedBody', postLang),
     );
   }
 }

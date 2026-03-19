@@ -17,13 +17,15 @@ import {
 } from '../services/auth.service';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/signup
   fastify.post('/auth/signup', async (request, reply) => {
+    const lang = parseAcceptLanguage(request.headers['accept-language']);
     const parsed = signupSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: 'Validation failed', details: parsed.error.flatten() });
+      return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
     }
 
     const { email, password } = parsed.data;
@@ -31,7 +33,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     // Check for duplicate email
     const existing = await findUserByEmail(fastify.db, email);
     if (existing) {
-      return reply.code(409).send({ error: 'Email already registered' });
+      return reply.code(409).send({ error: t('errors.emailAlreadyRegistered', lang) });
     }
 
     const user = await createUser(fastify.db, email, password);
@@ -52,9 +54,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   // POST /auth/login
   fastify.post('/auth/login', async (request, reply) => {
+    const lang = parseAcceptLanguage(request.headers['accept-language']);
     const parsed = loginSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: 'Validation failed', details: parsed.error.flatten() });
+      return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
     }
 
     const { email, password } = parsed.data;
@@ -63,7 +66,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     try {
       user = await verifyCredentials(fastify.db, email, password);
     } catch {
-      return reply.code(401).send({ error: 'Invalid email or password' });
+      return reply.code(401).send({ error: t('errors.invalidCredentials', lang) });
     }
 
     const tokens = await issueTokens(fastify, user.id);
@@ -83,17 +86,18 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   // POST /auth/refresh
   fastify.post('/auth/refresh', async (request, reply) => {
+    const lang = parseAcceptLanguage(request.headers['accept-language']);
     const { refreshToken } = request.body as { refreshToken?: string };
 
     if (!refreshToken) {
-      return reply.code(400).send({ error: 'Refresh token is required' });
+      return reply.code(400).send({ error: t('errors.validationFailed', lang) });
     }
 
     try {
       const tokens = await refreshAccessToken(fastify, refreshToken);
       return reply.code(200).send(tokens);
     } catch {
-      return reply.code(401).send({ error: 'Invalid or expired refresh token' });
+      return reply.code(401).send({ error: t('errors.unauthorized', lang) });
     }
   });
 
@@ -114,9 +118,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   // POST /auth/reset-request
   fastify.post('/auth/reset-request', async (request, reply) => {
+    const lang = parseAcceptLanguage(request.headers['accept-language']);
     const parsed = resetRequestSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: 'Validation failed', details: parsed.error.flatten() });
+      return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
     }
 
     const { email } = parsed.data;
@@ -140,9 +145,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   // POST /auth/reset-confirm
   fastify.post('/auth/reset-confirm', async (request, reply) => {
+    const lang = parseAcceptLanguage(request.headers['accept-language']);
     const parsed = resetConfirmSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: 'Validation failed', details: parsed.error.flatten() });
+      return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
     }
 
     const { token, newPassword } = parsed.data;
@@ -151,7 +157,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       await confirmPasswordReset(fastify.db, token, newPassword);
       return reply.code(200).send({ message: 'Password reset successfully' });
     } catch {
-      return reply.code(400).send({ error: 'Invalid or expired reset token' });
+      return reply.code(400).send({ error: t('errors.unauthorized', lang) });
     }
   });
 }

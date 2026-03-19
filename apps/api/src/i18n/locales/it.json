@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "Utente non trovato",
+    "validationFailed": "Validazione fallita",
+    "emailAlreadyRegistered": "Email gia registrata",
+    "invalidCredentials": "Email o password non validi",
+    "unauthorized": "Non autorizzato",
+    "notFound": "Non trovato",
+    "serverError": "Errore interno del server",
+    "postNotFound": "Post non trovato",
+    "postLimitReached": "Limite di post gratuiti raggiunto. Passa a premium per post illimitati.",
+    "proposalNotFound": "Proposta non trovata",
+    "invalidPromoCode": "Codice promozionale non valido",
+    "codeAlreadyRedeemed": "Hai gia riscattato questo codice",
+    "promoCodeExpired": "Questo codice promozionale e scaduto"
+  },
+  "notifications": {
+    "newSetTitle": "Nuovo set disponibile",
+    "newSetBody": "{{setName}} e stato rilasciato con {{cardCount}} carte!",
+    "matchHighPriorityTitle": "Corrispondenza ad alta priorita!",
+    "matchTitle": "Nuova corrispondenza trovata!",
+    "matchBody": "{{partnerName}} ha {{cardName}} che desideri.",
+    "proposalReceivedTitle": "Nuova proposta di scambio",
+    "proposalReceivedBody": "Hai ricevuto una nuova proposta di scambio.",
+    "proposalCounteredTitle": "Controproposta ricevuta",
+    "proposalCounteredBody": "Hai ricevuto una controproposta sulla tua proposta di scambio.",
+    "proposalAcceptedTitle": "Proposta accettata",
+    "proposalAcceptedBody": "La tua proposta di scambio e stata accettata!",
+    "proposalRejectedTitle": "Proposta rifiutata",
+    "proposalRejectedBody": "La tua proposta di scambio e stata rifiutata.",
+    "proposalDeclinedTitle": "Proposta rifiutata",
+    "proposalCancelledTitle": "Proposta annullata",
+    "proposalCancelledBody": "Una proposta e stata automaticamente annullata perche le carte scambiate non sono piu disponibili.",
+    "tradeCompletedTitle": "Scambio completato",
+    "tradeCompletedBody": "Uno scambio e stato contrassegnato come completato!",
+    "postAutoClosedTitle": "Post chiuso automaticamente",
+    "postAutoClosedBody": "Il tuo post e stato chiuso automaticamente perche la carta e stata scambiata.",
+    "postMatchOfferingTitle": "Una carta che cerchi e disponibile!",
+    "postMatchOfferingBody": "Qualcuno offre {{cardName}} -- dai un'occhiata!",
+    "postMatchSeekingTitle": "Qualcuno vuole la tua carta!",
+    "postMatchSeekingBody": "Qualcuno cerca {{cardName}} -- potresti averla!",
+    "ratingReceivedTitle": "Nuova valutazione ricevuta",
+    "ratingReceivedBody": "Hai ricevuto una valutazione di {{stars}} stelle per uno scambio.",
+    "cardAlertTitle": "Avviso carta",
+    "cardAlertBody": "{{cardCount}} carta/e che desideri sono state aggiunte da altri trader!",
+    "postMatchTitle": "Corrispondenza post trovata",
+    "postMatchBody": "Un nuovo post del mercato corrisponde alle carte che cerchi"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "Reimposta la tua password - Pocket Trade Hub",
+      "greeting": "Ciao {{name}},",
+      "body": "Abbiamo ricevuto una richiesta per reimpostare la tua password. Clicca il pulsante qui sotto per creare una nuova password.",
+      "buttonText": "Reimposta password",
+      "footer": "Se non hai fatto questa richiesta, puoi ignorare questa email.",
+      "expiryNote": "Questo link scadra tra 1 ora."
+    },
+    "welcome": {
+      "subject": "Benvenuto su Pocket Trade Hub!",
+      "greeting": "Benvenuto, {{name}}!",
+      "body": "Grazie per esserti unito a Pocket Trade Hub. Inizia a costruire la tua collezione e trova gli scambi perfetti.",
+      "buttonText": "Inizia",
+      "footer": "Buoni scambi!"
+    }
+  }
+}

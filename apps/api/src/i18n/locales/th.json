@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "ไม่พบผู้ใช้",
+    "validationFailed": "การตรวจสอบไม่สำเร็จ",
+    "emailAlreadyRegistered": "อีเมลนี้ถูกลงทะเบียนแล้ว",
+    "invalidCredentials": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+    "unauthorized": "ไม่ได้รับอนุญาต",
+    "notFound": "ไม่พบ",
+    "serverError": "ข้อผิดพลาดภายในเซิร์ฟเวอร์",
+    "postNotFound": "ไม่พบโพสต์",
+    "postLimitReached": "ถึงขีดจำกัดโพสต์ฟรีแล้ว อัปเกรดเป็นพรีเมียมเพื่อโพสต์ได้ไม่จำกัด",
+    "proposalNotFound": "ไม่พบข้อเสนอ",
+    "invalidPromoCode": "โค้ดโปรโมชั่นไม่ถูกต้อง",
+    "codeAlreadyRedeemed": "คุณได้แลกโค้ดนี้แล้ว",
+    "promoCodeExpired": "โค้ดโปรโมชั่นนี้หมดอายุแล้ว"
+  },
+  "notifications": {
+    "newSetTitle": "เซ็ตใหม่พร้อมแล้ว",
+    "newSetBody": "{{setName}} เปิดตัวพร้อม {{cardCount}} การ์ด!",
+    "matchHighPriorityTitle": "การจับคู่ที่มีความสำคัญสูง!",
+    "matchTitle": "พบการจับคู่ใหม่!",
+    "matchBody": "{{partnerName}} มี {{cardName}} ที่คุณต้องการ",
+    "proposalReceivedTitle": "ข้อเสนอการแลกเปลี่ยนใหม่",
+    "proposalReceivedBody": "คุณได้รับข้อเสนอการแลกเปลี่ยนใหม่",
+    "proposalCounteredTitle": "ได้รับข้อเสนอตอบโต้",
+    "proposalCounteredBody": "คุณได้รับข้อเสนอตอบโต้สำหรับข้อเสนอการแลกเปลี่ยนของคุณ",
+    "proposalAcceptedTitle": "ข้อเสนอถูกยอมรับ",
+    "proposalAcceptedBody": "ข้อเสนอการแลกเปลี่ยนของคุณได้รับการยอมรับ!",
+    "proposalRejectedTitle": "ข้อเสนอถูกปฏิเสธ",
+    "proposalRejectedBody": "ข้อเสนอการแลกเปลี่ยนของคุณถูกปฏิเสธ",
+    "proposalDeclinedTitle": "ข้อเสนอถูกปฏิเสธ",
+    "proposalCancelledTitle": "ข้อเสนอถูกยกเลิก",
+    "proposalCancelledBody": "ข้อเสนอถูกยกเลิกโดยอัตโนมัติเนื่องจากการ์ดที่แลกเปลี่ยนไม่สามารถใช้ได้อีกต่อไป",
+    "tradeCompletedTitle": "การแลกเปลี่ยนเสร็จสมบูรณ์",
+    "tradeCompletedBody": "การแลกเปลี่ยนถูกทำเครื่องหมายว่าเสร็จสมบูรณ์!",
+    "postAutoClosedTitle": "โพสต์ถูกปิดอัตโนมัติ",
+    "postAutoClosedBody": "โพสต์ของคุณถูกปิดอัตโนมัติเนื่องจากการ์ดถูกแลกเปลี่ยนแล้ว",
+    "postMatchOfferingTitle": "การ์ดที่คุณต้องการมีให้แล้ว!",
+    "postMatchOfferingBody": "มีคนเสนอ {{cardName}} -- ไปดูกันเลย!",
+    "postMatchSeekingTitle": "มีคนต้องการการ์ดของคุณ!",
+    "postMatchSeekingBody": "มีคนกำลังมองหา {{cardName}} -- คุณอาจมี!",
+    "ratingReceivedTitle": "ได้รับคะแนนใหม่",
+    "ratingReceivedBody": "คุณได้รับคะแนน {{stars}} ดาวสำหรับการแลกเปลี่ยน",
+    "cardAlertTitle": "แจ้งเตือนการ์ด",
+    "cardAlertBody": "การ์ดที่คุณต้องการ {{cardCount}} ใบถูกเพิ่มโดยเทรดเดอร์คนอื่น!",
+    "postMatchTitle": "พบโพสต์ที่ตรงกัน",
+    "postMatchBody": "โพสต์ใหม่ในตลาดตรงกับการ์ดที่คุณกำลังมองหา"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "รีเซ็ตรหัสผ่าน - Pocket Trade Hub",
+      "greeting": "สวัสดี {{name}},",
+      "body": "เราได้รับคำขอรีเซ็ตรหัสผ่านของคุณ คลิกปุ่มด้านล่างเพื่อสร้างรหัสผ่านใหม่",
+      "buttonText": "รีเซ็ตรหัสผ่าน",
+      "footer": "หากคุณไม่ได้ร้องขอ คุณสามารถเพิกเฉยอีเมลนี้ได้",
+      "expiryNote": "ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง"
+    },
+    "welcome": {
+      "subject": "ยินดีต้อนรับสู่ Pocket Trade Hub!",
+      "greeting": "ยินดีต้อนรับ {{name}}!",
+      "body": "ขอบคุณที่เข้าร่วม Pocket Trade Hub เริ่มสร้างคอลเลกชันและค้นหาการแลกเปลี่ยนที่สมบูรณ์แบบ",
+      "buttonText": "เริ่มต้นใช้งาน",
+      "footer": "ขอให้สนุกกับการแลกเปลี่ยน!"
+    }
+  }
+}

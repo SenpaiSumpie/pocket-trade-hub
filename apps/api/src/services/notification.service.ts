@@ -1,8 +1,9 @@
 import { eq, and, sql, lt, desc } from 'drizzle-orm';
 import { Expo, type ExpoPushMessage, type ExpoPushTicket } from 'expo-server-sdk';
 import { randomUUID } from 'crypto';
-import { pushTokens, notifications } from '../db/schema';
+import { pushTokens, notifications, users } from '../db/schema';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { t } from '../i18n';
 
 const expo = new Expo();
 
@@ -34,24 +35,32 @@ export async function sendNewSetNotification(
   setName: string,
   cardCount: number,
 ) {
-  // Fetch all push tokens
-  const tokens = await db.select().from(pushTokens);
+  // Fetch all push tokens with user language preference
+  const tokens = await db
+    .select({
+      token: pushTokens.token,
+      userId: pushTokens.userId,
+      uiLanguage: users.uiLanguage,
+    })
+    .from(pushTokens)
+    .leftJoin(users, eq(pushTokens.userId, users.id));
 
   if (tokens.length === 0) {
     return { sent: 0, failed: 0 };
   }
 
-  // Build messages
+  // Build messages with per-user language
   const messages: ExpoPushMessage[] = [];
   for (const record of tokens) {
     if (!Expo.isExpoPushToken(record.token)) {
       continue;
     }
+    const lang = record.uiLanguage || 'en';
     messages.push({
       to: record.token,
       sound: 'default',
-      title: 'New Set Available!',
-      body: `${setName} -- ${cardCount} new cards added`,
+      title: t('notifications.newSetTitle', lang),
+      body: t('notifications.newSetBody', lang, { setName, cardCount }),
     });
   }
 

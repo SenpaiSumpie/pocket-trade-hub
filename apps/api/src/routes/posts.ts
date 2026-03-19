@@ -8,6 +8,7 @@ import {
   deletePost,
 } from '../services/post.service';
 import { queuePostMatch } from '../jobs/post-match-worker';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function postRoutes(fastify: FastifyInstance) {
   // POST /posts - create a new trade post
@@ -15,10 +16,11 @@ export default async function postRoutes(fastify: FastifyInstance) {
     '/posts',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = createPostSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid body',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -38,7 +40,9 @@ export default async function postRoutes(fastify: FastifyInstance) {
         return reply.code(201).send({ post });
       } catch (err: any) {
         const status = err.statusCode || 500;
-        return reply.code(status).send({ error: err.message });
+        // Translate known error messages
+        const message = err.message || t('errors.serverError', lang);
+        return reply.code(status).send({ error: message });
       }
     },
   );
@@ -91,6 +95,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
     '/posts/:id/close',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id } = request.params as { id: string };
       const userId = request.user.sub;
 
@@ -99,7 +104,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
         return reply.code(200).send({ post });
       } catch (err: any) {
         const status = err.statusCode || 500;
-        return reply.code(status).send({ error: err.message });
+        return reply.code(status).send({ error: err.message || t('errors.serverError', lang) });
       }
     },
   );
@@ -109,6 +114,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
     '/posts/:id',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id } = request.params as { id: string };
       const userId = request.user.sub;
 
@@ -117,7 +123,7 @@ export default async function postRoutes(fastify: FastifyInstance) {
         return reply.code(204).send();
       } catch (err: any) {
         const status = err.statusCode || 500;
-        return reply.code(status).send({ error: err.message });
+        return reply.code(status).send({ error: err.message || t('errors.serverError', lang) });
       }
     },
   );

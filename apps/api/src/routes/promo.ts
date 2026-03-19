@@ -7,6 +7,7 @@ import {
   deactivateCode,
   redeemCode,
 } from '../services/promo.service';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function promoRoutes(fastify: FastifyInstance) {
   // POST /promo/redeem - authenticated user redeems a promo code
@@ -14,10 +15,11 @@ export default async function promoRoutes(fastify: FastifyInstance) {
     '/promo/redeem',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = redeemCodeSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid input',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -33,9 +35,12 @@ export default async function promoRoutes(fastify: FastifyInstance) {
       } catch (err: any) {
         const message = err.message || 'Failed to redeem code';
         if (message.includes('already redeemed')) {
-          return reply.code(409).send({ error: message });
+          return reply.code(409).send({ error: t('errors.codeAlreadyRedeemed', lang) });
         }
-        return reply.code(400).send({ error: message });
+        if (message.includes('expired')) {
+          return reply.code(400).send({ error: t('errors.promoCodeExpired', lang) });
+        }
+        return reply.code(400).send({ error: t('errors.invalidPromoCode', lang) });
       }
     },
   );
@@ -45,10 +50,11 @@ export default async function promoRoutes(fastify: FastifyInstance) {
     '/admin/promo',
     { preHandler: [fastify.authenticate, requireAdmin] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = createPromoCodeSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.code(400).send({
-          error: 'Invalid input',
+          error: t('errors.validationFailed', lang),
           details: parsed.error.flatten(),
         });
       }
@@ -80,11 +86,12 @@ export default async function promoRoutes(fastify: FastifyInstance) {
     '/admin/promo/:id/deactivate',
     { preHandler: [fastify.authenticate, requireAdmin] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const { id } = request.params as { id: string };
       const updated = await deactivateCode(fastify.db, id);
 
       if (!updated) {
-        return reply.code(404).send({ error: 'Promo code not found' });
+        return reply.code(404).send({ error: t('errors.notFound', lang) });
       }
 
       return reply.code(200).send(updated);

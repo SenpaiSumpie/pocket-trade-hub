@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "未找到用户",
+    "validationFailed": "验证失败",
+    "emailAlreadyRegistered": "邮箱已注册",
+    "invalidCredentials": "邮箱或密码无效",
+    "unauthorized": "未授权",
+    "notFound": "未找到",
+    "serverError": "内部服务器错误",
+    "postNotFound": "未找到帖子",
+    "postLimitReached": "已达到免费帖子上限。升级到高级版可无限发帖。",
+    "proposalNotFound": "未找到提案",
+    "invalidPromoCode": "无效的促销代码",
+    "codeAlreadyRedeemed": "您已经兑换过此代码",
+    "promoCodeExpired": "此促销代码已过期"
+  },
+  "notifications": {
+    "newSetTitle": "新系列已发布",
+    "newSetBody": "{{setName}}已发布，包含{{cardCount}}张卡牌！",
+    "matchHighPriorityTitle": "高优先级匹配！",
+    "matchTitle": "发现新匹配！",
+    "matchBody": "{{partnerName}}拥有您想要的{{cardName}}。",
+    "proposalReceivedTitle": "新的交易提案",
+    "proposalReceivedBody": "您收到了一个新的交易提案。",
+    "proposalCounteredTitle": "收到还价",
+    "proposalCounteredBody": "您收到了交易提案的还价。",
+    "proposalAcceptedTitle": "提案已接受",
+    "proposalAcceptedBody": "您的交易提案已被接受！",
+    "proposalRejectedTitle": "提案已拒绝",
+    "proposalRejectedBody": "您的交易提案已被拒绝。",
+    "proposalDeclinedTitle": "提案已拒绝",
+    "proposalCancelledTitle": "提案已取消",
+    "proposalCancelledBody": "由于交易的卡牌不再可用，提案已被自动取消。",
+    "tradeCompletedTitle": "交易完成",
+    "tradeCompletedBody": "一笔交易已标记为完成！",
+    "postAutoClosedTitle": "帖子自动关闭",
+    "postAutoClosedBody": "由于卡牌已被交易，您的帖子已自动关闭。",
+    "postMatchOfferingTitle": "您想要的卡牌有人出售！",
+    "postMatchOfferingBody": "有人正在提供{{cardName}} -- 快去看看！",
+    "postMatchSeekingTitle": "有人想要您的卡牌！",
+    "postMatchSeekingBody": "有人正在寻找{{cardName}} -- 您可能有！",
+    "ratingReceivedTitle": "收到新评价",
+    "ratingReceivedBody": "您的交易收到了{{stars}}星评价。",
+    "cardAlertTitle": "卡牌提醒",
+    "cardAlertBody": "您想要的{{cardCount}}张卡牌已被其他交易者添加！",
+    "postMatchTitle": "找到帖子匹配",
+    "postMatchBody": "一个新的市场帖子与您寻找的卡牌匹配"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "重置密码 - Pocket Trade Hub",
+      "greeting": "您好 {{name}}，",
+      "body": "我们收到了重置您密码的请求。请点击下方按钮创建新密码。",
+      "buttonText": "重置密码",
+      "footer": "如果您没有请求此操作，可以安全地忽略此邮件。",
+      "expiryNote": "此链接将在1小时后过期。"
+    },
+    "welcome": {
+      "subject": "欢迎来到 Pocket Trade Hub！",
+      "greeting": "欢迎，{{name}}！",
+      "body": "感谢加入 Pocket Trade Hub。开始建立您的收藏并找到完美的交易。",
+      "buttonText": "开始使用",
+      "footer": "祝您交易愉快！"
+    }
+  }
+}

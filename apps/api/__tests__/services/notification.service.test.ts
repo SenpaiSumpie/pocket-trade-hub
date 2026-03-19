@@ -121,8 +121,8 @@ describe('sendNewSetNotification', () => {
     // Verify message format
     const sentMessages = __mockChunk.mock.calls[0][0];
     expect(sentMessages[0]).toMatchObject({
-      title: 'New Set Available!',
-      body: 'Genetic Apex -- 286 new cards added',
+      title: 'New Set Available',
+      body: 'Genetic Apex has been released with 286 cards!',
       sound: 'default',
     });
   });

@@ -7,6 +7,7 @@ import {
   cardAlertEvents,
 } from '../db/schema';
 import { createNotification } from './notification.service';
+import { t } from '../i18n';
 
 type DbInstance = any;
 
@@ -76,16 +77,24 @@ export async function processCardAlertBatch(db: DbInstance) {
     byUser.set(event.premiumUserId, existing);
   }
 
+  // Fetch language preferences for all affected users
+  const alertUserIds = Array.from(byUser.keys());
+  const alertUsers = await db
+    .select({ id: users.id, uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(sql`${users.id} = ANY(ARRAY[${sql.join(alertUserIds.map(id => sql`${id}`), sql`, `)}])`);
+  const alertLangMap = new Map<string, string>(alertUsers.map((u: any) => [u.id, u.uiLanguage || 'en']));
+
   // Create batched notification per user
   for (const [userId, cardIds] of byUser.entries()) {
     const cardCount = cardIds.size;
-    const plural = cardCount === 1 ? 'card' : 'cards';
+    const lang = alertLangMap.get(userId) || 'en';
 
     await createNotification(db, {
       userId,
       type: 'card_alert',
-      title: 'Card Alert',
-      body: `${cardCount} ${plural} you want were added by other traders!`,
+      title: t('notifications.cardAlertTitle', lang),
+      body: t('notifications.cardAlertBody', lang, { cardCount }),
       data: { cardIds: Array.from(cardIds) },
     });
   }

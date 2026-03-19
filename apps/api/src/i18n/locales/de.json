@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "userNotFound": "Benutzer nicht gefunden",
+    "validationFailed": "Validierung fehlgeschlagen",
+    "emailAlreadyRegistered": "E-Mail bereits registriert",
+    "invalidCredentials": "Ungueltige E-Mail oder Passwort",
+    "unauthorized": "Nicht autorisiert",
+    "notFound": "Nicht gefunden",
+    "serverError": "Interner Serverfehler",
+    "postNotFound": "Beitrag nicht gefunden",
+    "postLimitReached": "Kostenloses Beitragslimit erreicht. Upgraden Sie auf Premium fuer unbegrenzte Beitraege.",
+    "proposalNotFound": "Vorschlag nicht gefunden",
+    "invalidPromoCode": "Ungueltiger Aktionscode",
+    "codeAlreadyRedeemed": "Sie haben diesen Code bereits eingeloest",
+    "promoCodeExpired": "Dieser Aktionscode ist abgelaufen"
+  },
+  "notifications": {
+    "newSetTitle": "Neues Set verfuegbar",
+    "newSetBody": "{{setName}} wurde mit {{cardCount}} Karten veroeffentlicht!",
+    "matchHighPriorityTitle": "Hochpriorisierte Uebereinstimmung!",
+    "matchTitle": "Neue Uebereinstimmung gefunden!",
+    "matchBody": "{{partnerName}} hat {{cardName}}, die Sie suchen.",
+    "proposalReceivedTitle": "Neuer Tauschvorschlag",
+    "proposalReceivedBody": "Sie haben einen neuen Tauschvorschlag erhalten.",
+    "proposalCounteredTitle": "Gegenangebot erhalten",
+    "proposalCounteredBody": "Sie haben ein Gegenangebot zu Ihrem Tauschvorschlag erhalten.",
+    "proposalAcceptedTitle": "Vorschlag akzeptiert",
+    "proposalAcceptedBody": "Ihr Tauschvorschlag wurde akzeptiert!",
+    "proposalRejectedTitle": "Vorschlag abgelehnt",
+    "proposalRejectedBody": "Ihr Tauschvorschlag wurde abgelehnt.",
+    "proposalDeclinedTitle": "Vorschlag abgelehnt",
+    "proposalCancelledTitle": "Vorschlag storniert",
+    "proposalCancelledBody": "Ein Vorschlag wurde automatisch storniert, weil getauschte Karten nicht mehr verfuegbar sind.",
+    "tradeCompletedTitle": "Tausch abgeschlossen",
+    "tradeCompletedBody": "Ein Tausch wurde als abgeschlossen markiert!",
+    "postAutoClosedTitle": "Beitrag automatisch geschlossen",
+    "postAutoClosedBody": "Ihr Beitrag wurde automatisch geschlossen, weil die Karte getauscht wurde.",
+    "postMatchOfferingTitle": "Eine Karte, die Sie suchen, ist verfuegbar!",
+    "postMatchOfferingBody": "Jemand bietet {{cardName}} an -- schauen Sie es sich an!",
+    "postMatchSeekingTitle": "Jemand sucht Ihre Karte!",
+    "postMatchSeekingBody": "Jemand sucht {{cardName}} -- vielleicht haben Sie sie!",
+    "ratingReceivedTitle": "Neue Bewertung erhalten",
+    "ratingReceivedBody": "Sie haben eine {{stars}}-Sterne-Bewertung fuer einen Tausch erhalten.",
+    "cardAlertTitle": "Karten-Alarm",
+    "cardAlertBody": "{{cardCount}} Karte(n), die Sie suchen, wurden von anderen Haendlern hinzugefuegt!",
+    "postMatchTitle": "Beitragsuebereinstimmung gefunden",
+    "postMatchBody": "Ein neuer Marktplatz-Beitrag entspricht Karten, die Sie suchen"
+  },
+  "emails": {
+    "passwordReset": {
+      "subject": "Passwort zuruecksetzen - Pocket Trade Hub",
+      "greeting": "Hallo {{name}},",
+      "body": "Wir haben eine Anfrage zum Zuruecksetzen Ihres Passworts erhalten. Klicken Sie auf die Schaltflaeche unten, um ein neues Passwort zu erstellen.",
+      "buttonText": "Passwort zuruecksetzen",
+      "footer": "Wenn Sie dies nicht angefordert haben, koennen Sie diese E-Mail ignorieren.",
+      "expiryNote": "Dieser Link laeuft in 1 Stunde ab."
+    },
+    "welcome": {
+      "subject": "Willkommen bei Pocket Trade Hub!",
+      "greeting": "Willkommen, {{name}}!",
+      "body": "Vielen Dank, dass Sie Pocket Trade Hub beigetreten sind. Beginnen Sie mit dem Aufbau Ihrer Sammlung und finden Sie die perfekten Tausche.",
+      "buttonText": "Loslegen",
+      "footer": "Viel Spass beim Tauschen!"
+    }
+  }
+}

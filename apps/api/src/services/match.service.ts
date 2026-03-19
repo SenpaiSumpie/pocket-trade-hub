@@ -10,6 +10,7 @@ import {
 } from '../db/schema';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { getUserReputation } from './rating.service';
+import { t } from '../i18n';
 
 type DbInstance = any;
 
@@ -334,6 +335,13 @@ async function sendMatchPushNotification(
   opts: { partnerName: string; topCardName: string; isHighPriority: boolean },
 ) {
   try {
+    // Get user language preference
+    const [user] = await db
+      .select({ uiLanguage: users.uiLanguage })
+      .from(users)
+      .where(eq(users.id, userId));
+    const lang = user?.uiLanguage || 'en';
+
     const tokens = await db
       .select({ token: pushTokens.token })
       .from(pushTokens)
@@ -341,14 +349,22 @@ async function sendMatchPushNotification(
 
     if (tokens.length === 0) return;
 
+    const title = opts.isHighPriority
+      ? t('notifications.matchHighPriorityTitle', lang)
+      : t('notifications.matchTitle', lang);
+    const body = t('notifications.matchBody', lang, {
+      partnerName: opts.partnerName,
+      cardName: opts.topCardName,
+    });
+
     const messages: ExpoPushMessage[] = [];
     for (const record of tokens) {
       if (!Expo.isExpoPushToken(record.token)) continue;
       messages.push({
         to: record.token,
         sound: 'default',
-        title: opts.isHighPriority ? 'High-priority match!' : 'New match found!',
-        body: `${opts.partnerName} has ${opts.topCardName} you want.`,
+        title,
+        body,
       });
     }
 

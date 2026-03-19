@@ -1,6 +1,7 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
-import { tradeProposals, tradeRatings, notifications } from '../db/schema';
+import { tradeProposals, tradeRatings, notifications, users } from '../db/schema';
+import { t } from '../i18n';
 
 type DbInstance = any;
 
@@ -69,13 +70,20 @@ export async function rateTradePartner(
     return null;
   }
 
+  // Get rated user's language preference
+  const [ratedUser] = await db
+    .select({ uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(eq(users.id, opts.ratedId));
+  const ratingLang = ratedUser?.uiLanguage || 'en';
+
   // Create notification for rated user
   await db.insert(notifications).values({
     id: randomUUID(),
     userId: opts.ratedId,
     type: 'rating_received',
-    title: 'New rating received',
-    body: `You received a ${opts.stars}-star rating for a trade.`,
+    title: t('notifications.ratingReceivedTitle', ratingLang),
+    body: t('notifications.ratingReceivedBody', ratingLang, { stars: opts.stars }),
     data: { proposalId: opts.proposalId, stars: opts.stars },
   });
 

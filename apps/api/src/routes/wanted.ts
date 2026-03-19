@@ -6,16 +6,18 @@ import {
   updatePriority,
   getUserWanted,
 } from '../services/wanted.service';
+import { t, parseAcceptLanguage } from '../i18n';
 
 export default async function wantedRoutes(fastify: FastifyInstance) {
-  // POST /wanted — add card to wanted list
+  // POST /wanted -- add card to wanted list
   fastify.post(
     '/wanted',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = addToWantedSchema.safeParse(request.body);
       if (!parsed.success) {
-        return reply.code(400).send({ error: 'Invalid request body', details: parsed.error.flatten() });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
       }
 
       const userId = request.user.sub;
@@ -24,7 +26,7 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /wanted — list user's wanted cards
+  // GET /wanted -- list user's wanted cards
   fastify.get(
     '/wanted',
     { preHandler: [fastify.authenticate] },
@@ -36,14 +38,15 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // PUT /wanted/:cardId — update priority
+  // PUT /wanted/:cardId -- update priority
   fastify.put(
     '/wanted/:cardId',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
+      const lang = parseAcceptLanguage(request.headers['accept-language']);
       const parsed = updateWantedSchema.safeParse(request.body);
       if (!parsed.success) {
-        return reply.code(400).send({ error: 'Invalid request body', details: parsed.error.flatten() });
+        return reply.code(400).send({ error: t('errors.validationFailed', lang), details: parsed.error.flatten() });
       }
 
       const userId = request.user.sub;
@@ -54,7 +57,7 @@ export default async function wantedRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // DELETE /wanted/:cardId — remove card from wanted list
+  // DELETE /wanted/:cardId -- remove card from wanted list
   fastify.delete(
     '/wanted/:cardId',
     { preHandler: [fastify.authenticate] },

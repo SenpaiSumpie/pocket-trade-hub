@@ -1,6 +1,7 @@
 import { eq, and, ne, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
-import { tradePosts, userWantedCards, notifications } from '../db/schema';
+import { tradePosts, userWantedCards, notifications, users } from '../db/schema';
+import { t } from '../i18n';
 import type { Server } from 'socket.io';
 
 type DbInstance = any;
@@ -208,13 +209,22 @@ export async function processPostMatch(
   const postCards: PostCard[] = post.cards ?? [];
   const cardName = postCards[0]?.name ?? 'a card';
 
+  // Fetch language preferences for all matched users
+  const userIds = Array.from(matchedUserIds);
+  const userRows = await db
+    .select({ id: users.id, uiLanguage: users.uiLanguage })
+    .from(users)
+    .where(sql`${users.id} = ANY(ARRAY[${sql.join(userIds.map(id => sql`${id}`), sql`, `)}])`);
+  const langMap = new Map<string, string>(userRows.map((u: any) => [u.id, u.uiLanguage || 'en']));
+
   for (const userId of matchedUserIds) {
+    const lang = langMap.get(userId) || 'en';
     const title = post.type === 'offering'
-      ? 'A card you want is available!'
-      : 'Someone wants your card!';
+      ? t('notifications.postMatchOfferingTitle', lang)
+      : t('notifications.postMatchSeekingTitle', lang);
     const body = post.type === 'offering'
-      ? `Someone is offering ${cardName} -- check it out!`
-      : `Someone is seeking ${cardName} -- you might have it!`;
+      ? t('notifications.postMatchOfferingBody', lang, { cardName })
+      : t('notifications.postMatchSeekingBody', lang, { cardName });
 
     await insertNotification(db, {
       userId,
