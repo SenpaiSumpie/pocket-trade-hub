@@ -8,10 +8,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { usePromoStore } from '@/src/stores/promo';
 
 export default function RedeemCodeForm() {
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const redeeming = usePromoStore((s) => s.redeeming);
   const lastResult = usePromoStore((s) => s.lastResult);
@@ -32,7 +34,7 @@ export default function RedeemCodeForm() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -41,7 +43,7 @@ export default function RedeemCodeForm() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Redeem Code</Text>
+      <Text style={styles.sectionTitle}>{t('profile.redeemCode')}</Text>
       <View style={styles.divider} />
 
       <View style={styles.inputRow}>
@@ -49,7 +51,7 @@ export default function RedeemCodeForm() {
           style={styles.input}
           value={code}
           onChangeText={handleCodeChange}
-          placeholder="Enter promo code"
+          placeholder={t('profile.enterCode')}
           placeholderTextColor={colors.textMuted}
           autoCapitalize="characters"
           maxLength={30}
@@ -66,7 +68,7 @@ export default function RedeemCodeForm() {
           ) : (
             <>
               <Ionicons name="gift-outline" size={18} color={colors.background} />
-              <Text style={styles.redeemButtonText}>Redeem</Text>
+              <Text style={styles.redeemButtonText}>{t('profile.redeem')}</Text>
             </>
           )}
         </TouchableOpacity>

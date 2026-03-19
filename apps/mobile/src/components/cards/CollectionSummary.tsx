@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useCollectionStore } from '@/src/stores/collection';
 import { useLoadCollection } from '@/src/hooks/useCollection';
 import { usePremiumStore } from '@/src/stores/premium';
@@ -11,6 +12,7 @@ import { colors, typography, spacing, borderRadius } from '@/src/constants/theme
 import { useMemo } from 'react';
 
 export default function CollectionSummary() {
+  const { t } = useTranslation();
   useLoadCollection();
 
   const collectionByCardId = useCollectionStore((s) => s.collectionByCardId);
@@ -40,10 +42,10 @@ export default function CollectionSummary() {
       <View style={styles.card}>
         <View style={styles.titleRow}>
           <Ionicons name="albums" size={22} color={colors.primary} />
-          <Text style={styles.title}>My Collection</Text>
+          <Text style={styles.title}>{t('cards.myCollection')}</Text>
         </View>
         <Text style={styles.emptyText}>
-          Start building your collection! Go to the Cards tab and long-press cards to add them.
+          {t('cards.noCardsInCollection')}
         </Text>
       </View>
     );
@@ -57,7 +59,7 @@ export default function CollectionSummary() {
       {/* Offscreen export renderer */}
       <ExportRenderer ref={exportRef}>
         <CollectionExport
-          setName="My Collection"
+          setName={t('cards.myCollection')}
           completionPercent={stats.overallCompletion}
           cardImages={[]}
           totalCards={stats.totalCards}
@@ -68,7 +70,7 @@ export default function CollectionSummary() {
 
       <View style={styles.titleRow}>
         <Ionicons name="albums" size={22} color={colors.primary} />
-        <Text style={styles.title}>My Collection</Text>
+        <Text style={styles.title}>{t('cards.myCollection')}</Text>
         <View style={styles.titleSpacer} />
         <ShareButton
           onPress={() => exportAndShare('Share Collection')}
@@ -81,19 +83,19 @@ export default function CollectionSummary() {
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{stats.totalUniqueCards}</Text>
-          <Text style={styles.statLabel}>Unique Cards</Text>
+          <Text style={styles.statLabel}>{t('home.totalCards')}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.primary }]}>
             {stats.overallCompletion}%
           </Text>
-          <Text style={styles.statLabel}>Completion</Text>
+          <Text style={styles.statLabel}>{t('home.completionRate')}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{stats.setsInProgress.length}</Text>
-          <Text style={styles.statLabel}>Sets</Text>
+          <Text style={styles.statLabel}>{t('home.setsStarted')}</Text>
         </View>
       </View>
 

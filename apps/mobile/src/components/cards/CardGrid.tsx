@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useTranslation } from 'react-i18next';
 import { CardThumbnail } from './CardThumbnail';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
@@ -68,11 +69,12 @@ function LoadingSkeleton() {
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <View style={emptyStyles.container}>
-      <Text style={emptyStyles.title}>No cards found</Text>
+      <Text style={emptyStyles.title}>{t('cards.noCards')}</Text>
       <Text style={emptyStyles.subtitle}>
-        Try a different search term or adjust your filters
+        {t('common.noResults')}
       </Text>
     </View>
   );

@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { MarketPost } from '@/src/stores/posts';
@@ -22,12 +23,13 @@ function timeAgo(dateStr: string): string {
 }
 
 export function PostCard({ post, onPress }: PostCardProps) {
+  const { t } = useTranslation();
   const card = post.cards[0];
   if (!card) return null;
 
   const isOffering = post.type === 'offering';
   const typeBadgeColor = isOffering ? colors.success : '#3b82f6';
-  const typeBadgeLabel = isOffering ? 'OFFERING' : 'SEEKING';
+  const typeBadgeLabel = isOffering ? t('market.offering').toUpperCase() : t('market.seeking').toUpperCase();
 
   return (
     <Pressable
@@ -58,7 +60,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
           {post.isRelevant && (
             <View style={styles.matchBadge}>
               <Ionicons name="star" size={10} color="#f0c040" />
-              <Text style={styles.matchBadgeText}>Match</Text>
+              <Text style={styles.matchBadgeText}>{t('trades.matchFound')}</Text>
             </View>
           )}
         </View>

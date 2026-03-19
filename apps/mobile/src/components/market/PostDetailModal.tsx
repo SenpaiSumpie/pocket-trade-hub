@@ -12,6 +12,7 @@ import {
 import { Image } from 'expo-image';
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { useAuthStore } from '@/src/stores/auth';
@@ -31,6 +32,7 @@ interface PostDetailModalProps {
 }
 
 export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps) {
+  const { t } = useTranslation();
   const currentUserId = useAuthStore((s) => s.user?.id);
   const isPremium = usePremiumStore((s) => s.isPremium);
   const { closePost, deletePost } = usePosts();
@@ -47,13 +49,13 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
   const isActive = post.status === 'active';
   const isOffering = post.type === 'offering';
   const typeBadgeColor = isOffering ? colors.success : '#3b82f6';
-  const typeLabel = isOffering ? 'Offering' : 'Seeking';
+  const typeLabel = isOffering ? t('market.offering') : t('market.seeking');
 
   const handleClose = () => {
-    Alert.alert('Close Post', 'Are you sure you want to close this post?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('market.closed'), t('market.deletePost'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Close',
+        text: t('common.close'),
         style: 'destructive',
         onPress: () => {
           closePost(post.id);

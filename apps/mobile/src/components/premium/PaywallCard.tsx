@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, ActivityIn
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { usePremium } from '@/src/hooks/usePremium';
 import { usePremiumStore } from '@/src/stores/premium';
@@ -23,6 +24,7 @@ function openSubscriptionSettings() {
 }
 
 export function PaywallCard() {
+  const { t } = useTranslation();
   const { isPremium, purchase, restore } = usePremium();
   const premiumExpiresAt = usePremiumStore((s) => s.premiumExpiresAt);
   const [purchasing, setPurchasing] = useState(false);
@@ -48,14 +50,14 @@ export function PaywallCard() {
 
   if (isPremium) {
     const expiryText = premiumExpiresAt
-      ? `Renews ${new Date(premiumExpiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      ? t('profile.premiumExpires', { date: new Date(premiumExpiresAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) })
       : '';
 
     return (
       <View style={styles.card}>
         <View style={styles.headerRow}>
           <PremiumBadge size={20} />
-          <Text style={styles.activeTitle}>Premium Active</Text>
+          <Text style={styles.activeTitle}>{t('profile.premiumMember')}</Text>
         </View>
 
         {expiryText ? <Text style={styles.expiryText}>{expiryText}</Text> : null}
@@ -65,12 +67,12 @@ export function PaywallCard() {
           onPress={() => router.push('/analytics' as any)}
         >
           <Ionicons name="analytics" size={18} color={colors.primary} />
-          <Text style={styles.linkText}>View Analytics</Text>
+          <Text style={styles.linkText}>{t('premium.analyticsTitle')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.linkButton} onPress={openSubscriptionSettings}>
           <Ionicons name="settings-outline" size={18} color={colors.textSecondary} />
-          <Text style={[styles.linkText, { color: colors.textSecondary }]}>Manage Subscription</Text>
+          <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t('profile.settings')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -80,7 +82,7 @@ export function PaywallCard() {
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <PremiumBadge size={22} />
-        <Text style={styles.title}>Go Premium</Text>
+        <Text style={styles.title}>{t('profile.upgradeToPremium')}</Text>
       </View>
 
       <View style={styles.featureList}>
@@ -102,7 +104,7 @@ export function PaywallCard() {
         {purchasing ? (
           <ActivityIndicator size="small" color={colors.background} />
         ) : (
-          <Text style={styles.subscribeText}>Subscribe</Text>
+          <Text style={styles.subscribeText}>{t('profile.upgradeToPremium')}</Text>
         )}
       </TouchableOpacity>
 
@@ -112,7 +114,7 @@ export function PaywallCard() {
         disabled={purchasing || restoring}
       >
         <Text style={styles.restoreLinkText}>
-          {restoring ? 'Restoring...' : 'Restore Purchases'}
+          {restoring ? t('common.loading') : t('common.retry')}
         </Text>
       </TouchableOpacity>
     </View>

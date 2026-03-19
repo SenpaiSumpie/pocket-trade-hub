@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RarityBadge } from './RarityBadge';
 import { LuckCalculator } from './LuckCalculator';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
@@ -52,11 +53,7 @@ const PRIORITY_COLORS: Record<Priority, string> = {
   low: colors.textMuted,
 };
 
-const PRIORITY_LABELS: Record<Priority, string> = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
+// Priority labels handled via capitalization in PriorityPicker
 
 /* ------------------------------------------------------------------ */
 /*  Inline QuantityStepper                                            */
@@ -137,6 +134,7 @@ function StatusBanner({
   priority?: Priority;
   mode: 'browse' | 'collection' | 'wanted';
 }) {
+  const { t } = useTranslation();
   const inCollection = qty > 0;
   const isWanted = priority != null;
 
@@ -148,7 +146,7 @@ function StatusBanner({
         <View style={statusStyles.badge}>
           <Ionicons name="checkmark-circle" size={14} color={colors.success} />
           <Text style={statusStyles.badgeText}>
-            In Collection ({qty})
+            {t('cards.myCollection')} ({qty})
           </Text>
         </View>
       )}
@@ -156,7 +154,7 @@ function StatusBanner({
         <View style={[statusStyles.badge, statusStyles.badgeWanted]}>
           <Ionicons name="heart" size={14} color="#e74c3c" />
           <Text style={[statusStyles.badgeText, { color: '#e74c3c' }]}>
-            Wanted ({PRIORITY_LABELS[priority!]})
+            {t('cards.wanted')} ({priority!.charAt(0).toUpperCase() + priority!.slice(1)})
           </Text>
         </View>
       )}
@@ -204,6 +202,7 @@ function TranslationBadges({
   onSelectTranslation: (translation: CardTranslation | null) => void;
   selectedLanguage: string | null;
 }) {
+  const { t } = useTranslation();
   const translations = useCardsStore((s) => s.translationsByCardId[cardId]);
   const translationsLoading = useCardsStore((s) => s.translationsLoading);
   const fetchTranslations = useCardsStore((s) => s.fetchTranslations);
@@ -220,7 +219,7 @@ function TranslationBadges({
 
   return (
     <View style={translationStyles.container}>
-      <Text style={translationStyles.label}>Available in</Text>
+      <Text style={translationStyles.label}>{t('cardDetail.availableLanguages')}</Text>
       <View style={translationStyles.badgeRow}>
         {/* Original / EN badge */}
         <Pressable
@@ -236,7 +235,7 @@ function TranslationBadges({
               selectedLanguage === null && translationStyles.badgeTextActive,
             ]}
           >
-            Original
+            EN
           </Text>
         </Pressable>
         {ALL_LANGUAGES.map((lang) => {
@@ -350,6 +349,7 @@ function CardDetailPage({
   onRemoveFromWanted?: (cardId: string) => void;
   onUpdatePriority?: (cardId: string, priority: Priority) => void;
 }) {
+  const { t } = useTranslation();
   const qty = collectionQuantity?.(card.id) ?? 0;
   const priority = wantedPriority?.(card.id);
   const [activeTranslation, setActiveTranslation] = useState<CardTranslation | null>(null);
@@ -388,7 +388,7 @@ function CardDetailPage({
         <Text style={styles.cardName}>{displayName}</Text>
         {activeTranslation && (
           <Text style={styles.translationIndicator}>
-            {activeTranslation.language.toUpperCase()} translation
+            {activeTranslation.language.toUpperCase()} {t('cardDetail.translations').toLowerCase()}
           </Text>
         )}
         <View style={styles.subtitleRow}>
@@ -433,14 +433,14 @@ function CardDetailPage({
               onPress={() => onAddToCollection?.(card.id)}
             >
               <Ionicons name="add-circle" size={18} color={colors.primary} />
-              <Text style={styles.quickBtnText}>Add to Collection</Text>
+              <Text style={styles.quickBtnText}>{t('cards.addToCollection')}</Text>
             </Pressable>
           )}
           {qty > 0 && (
             <View style={styles.quickBtnGroup}>
               <View style={styles.quickBtn}>
                 <Ionicons name="layers" size={18} color={colors.primary} />
-                <Text style={styles.quickBtnText}>Qty: {qty}</Text>
+                <Text style={styles.quickBtnText}>{t('cards.quantity')}: {qty}</Text>
                 <QuantityStepper
                   quantity={qty}
                   onDecrement={() => onUpdateQuantity?.(card.id, Math.max(0, qty - 1))}
@@ -455,13 +455,13 @@ function CardDetailPage({
               onPress={() => onAddToWanted?.(card.id)}
             >
               <Ionicons name="heart-outline" size={18} color={colors.primary} />
-              <Text style={styles.quickBtnText}>Add to Wanted</Text>
+              <Text style={styles.quickBtnText}>{t('cards.addToWanted')}</Text>
             </Pressable>
           )}
           {priority && (
             <View style={styles.quickBtn}>
               <Ionicons name="flag" size={18} color={PRIORITY_COLORS[priority]} />
-              <Text style={styles.quickBtnText}>Priority</Text>
+              <Text style={styles.quickBtnText}>{t('cards.priority')}</Text>
               <PriorityPicker
                 current={priority}
                 onChange={(p) => onUpdatePriority?.(card.id, p)}
@@ -476,7 +476,7 @@ function CardDetailPage({
           onPress={() => setLuckCalcVisible(true)}
         >
           <Ionicons name="calculator-outline" size={18} color={colors.primary} />
-          <Text style={styles.oddsBtnText}>Calculate odds</Text>
+          <Text style={styles.oddsBtnText}>{t('cardDetail.calculateOdds')}</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </Pressable>
 
@@ -548,7 +548,7 @@ function CardDetailPage({
               onPress={() => onRemoveFromCollection?.(card.id)}
             >
               <Ionicons name="trash-outline" size={16} color={colors.error} />
-              <Text style={styles.dangerBtnText}>Remove from Collection</Text>
+              <Text style={styles.dangerBtnText}>{t('cards.removeFromCollection')}</Text>
             </Pressable>
           )}
           {priority && (
@@ -557,7 +557,7 @@ function CardDetailPage({
               onPress={() => onRemoveFromWanted?.(card.id)}
             >
               <Ionicons name="heart-dislike-outline" size={16} color={colors.error} />
-              <Text style={styles.dangerBtnText}>Remove from Wanted</Text>
+              <Text style={styles.dangerBtnText}>{t('cards.removeFromWanted')}</Text>
             </Pressable>
           )}
         </View>

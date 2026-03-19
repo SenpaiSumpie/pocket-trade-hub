@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import { useRating } from '@/src/hooks/useRating';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 
@@ -22,6 +23,7 @@ interface RatingModalProps {
 const STAR_COUNT = 5;
 
 export function RatingModal({ visible, onClose, proposalId, partnerName }: RatingModalProps) {
+  const { t } = useTranslation();
   const [selectedStars, setSelectedStars] = useState(0);
   const { submitRating, submitting } = useRating();
 
@@ -31,8 +33,7 @@ export function RatingModal({ visible, onClose, proposalId, partnerName }: Ratin
     if (success) {
       Toast.show({
         type: 'success',
-        text1: 'Rating submitted',
-        text2: `You rated ${partnerName} ${selectedStars} star${selectedStars !== 1 ? 's' : ''}.`,
+        text1: t('trades.ratingSubmitted'),
         visibilityTime: 3000,
       });
     }
@@ -54,9 +55,9 @@ export function RatingModal({ visible, onClose, proposalId, partnerName }: Ratin
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          <Text style={styles.heading}>Rate your trade</Text>
+          <Text style={styles.heading}>{t('trades.rateThisTrade')}</Text>
           <Text style={styles.subheading}>
-            How was your trade with {partnerName}?
+            {partnerName}
           </Text>
 
           {/* Star row */}
@@ -91,7 +92,7 @@ export function RatingModal({ visible, onClose, proposalId, partnerName }: Ratin
             {submitting ? (
               <ActivityIndicator color={colors.background} size="small" />
             ) : (
-              <Text style={styles.submitText}>Submit</Text>
+              <Text style={styles.submitText}>{t('trades.submitRating')}</Text>
             )}
           </TouchableOpacity>
 
@@ -100,7 +101,7 @@ export function RatingModal({ visible, onClose, proposalId, partnerName }: Ratin
             onPress={handleSkip}
             activeOpacity={0.7}
           >
-            <Text style={styles.skipText}>Skip</Text>
+            <Text style={styles.skipText}>{t('common.skipForNow')}</Text>
           </TouchableOpacity>
         </View>
       </View>

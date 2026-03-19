@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { usePosts } from '@/src/hooks/usePosts';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -35,6 +36,7 @@ interface CardPickerItem {
 type Step = 'type' | 'card' | 'confirm';
 
 export function PostCreationModal({ visible, onClose, onCreated }: PostCreationModalProps) {
+  const { t } = useTranslation();
   const { createPost } = usePosts();
   const [step, setStep] = useState<Step>('type');
   const [postType, setPostType] = useState<PostType | null>(null);
@@ -172,9 +174,9 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
               </Pressable>
             )}
             <Text style={styles.title}>
-              {step === 'type' && 'Create Post'}
-              {step === 'card' && (postType === 'offering' ? 'Select from Collection' : 'Select from Wanted')}
-              {step === 'confirm' && 'Confirm Post'}
+              {step === 'type' && t('market.createPost')}
+              {step === 'card' && (postType === 'offering' ? t('market.selectCards') : t('market.selectCards'))}
+              {step === 'confirm' && t('market.createPost')}
             </Text>
             <View style={{ width: 24 }} />
           </View>
@@ -182,16 +184,16 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
           {/* Step 1: Select type */}
           {step === 'type' && (
             <View style={styles.typeContainer}>
-              <Text style={styles.stepLabel}>What kind of post?</Text>
+              <Text style={styles.stepLabel}>{t('market.postType')}</Text>
               <Pressable
                 style={[styles.typeCard, { borderColor: colors.success }]}
                 onPress={() => selectType('offering')}
               >
                 <Ionicons name="arrow-up-circle" size={32} color={colors.success} />
                 <View style={styles.typeCardContent}>
-                  <Text style={styles.typeCardTitle}>Offering</Text>
+                  <Text style={styles.typeCardTitle}>{t('market.offering')}</Text>
                   <Text style={styles.typeCardDesc}>
-                    Post a card from your collection for trade
+                    {t('cards.myCollection')}
                   </Text>
                 </View>
               </Pressable>
@@ -201,9 +203,9 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
               >
                 <Ionicons name="arrow-down-circle" size={32} color="#3b82f6" />
                 <View style={styles.typeCardContent}>
-                  <Text style={styles.typeCardTitle}>Seeking</Text>
+                  <Text style={styles.typeCardTitle}>{t('market.seeking')}</Text>
                   <Text style={styles.typeCardDesc}>
-                    Post a card from your wanted list that you need
+                    {t('cards.wanted')}
                   </Text>
                 </View>
               </Pressable>
@@ -215,7 +217,7 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
             <View style={styles.cardPickerContainer}>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search cards..."
+                placeholder={t('cards.searchPlaceholder')}
                 placeholderTextColor={colors.textMuted}
                 value={search}
                 onChangeText={setSearch}

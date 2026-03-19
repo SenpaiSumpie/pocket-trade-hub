@@ -17,6 +17,7 @@ import { PaywallCard } from '@/src/components/premium/PaywallCard';
 import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
 import { usePremiumStore } from '@/src/stores/premium';
 import RedeemCodeForm from '@/src/components/promo/RedeemCodeForm';
+import { LanguageSelector } from '@/src/components/LanguageSelector';
 
 interface UserReputation {
   avgRating: number;
@@ -364,6 +365,8 @@ export default function ProfileScreen() {
         <Ionicons name="log-out-outline" size={20} color={colors.error} />
         <Text style={styles.logoutButtonText}>{t('profile.logOut')}</Text>
       </TouchableOpacity>
+
+      <LanguageSelector visible={languageVisible} onClose={() => setLanguageVisible(false)} />
     </ScrollView>
   );
 }
