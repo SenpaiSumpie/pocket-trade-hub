@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { useCollectionStore } from './collection';
 import { useTradesStore } from './trades';
+import { useLanguageStore } from './language';
 import { configureGoogleSignIn, signInWithGoogle, signOutGoogle } from '../services/google-auth';
 import { signInWithApple } from '../services/apple-auth';
 
@@ -15,6 +16,7 @@ interface User {
   avatarId: string | null;
   friendCode: string | null;
   preferredCardLanguage?: string;
+  uiLanguage?: string;
   createdAt?: string;
 }
 
@@ -92,6 +94,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await secureSet('refreshToken', refreshToken);
     await secureSet('user', JSON.stringify(user));
     set({ accessToken, refreshToken, user, isLoggedIn: true });
+    useLanguageStore.getState().initLanguage(user.uiLanguage);
   },
 
   logout: async () => {
@@ -148,6 +151,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user = await res.json();
           await secureSet('user', JSON.stringify(user));
           set({ accessToken, refreshToken, user, isLoggedIn: true, isHydrated: true });
+          useLanguageStore.getState().initLanguage(user?.uiLanguage);
           return;
         }
 
@@ -180,6 +184,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               isLoggedIn: true,
               isHydrated: true,
             });
+            useLanguageStore.getState().initLanguage(user?.uiLanguage);
             return;
           }
         }
@@ -187,6 +192,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Network error - use cached user data if available
         if (user) {
           set({ accessToken, refreshToken, user, isLoggedIn: true, isHydrated: true });
+          useLanguageStore.getState().initLanguage(user.uiLanguage);
           return;
         }
       }

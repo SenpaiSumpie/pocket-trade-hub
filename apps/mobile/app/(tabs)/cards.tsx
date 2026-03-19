@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { SearchBar } from '@/src/components/cards/SearchBar';
 import { SetPicker } from '@/src/components/cards/SetPicker';
 import { FilterChips } from '@/src/components/cards/FilterChips';
@@ -30,13 +31,14 @@ const LANGUAGE_OPTIONS = [
 
 type Mode = 'browse' | 'collection' | 'wanted';
 
-const SEGMENTS: Array<{ key: Mode; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { key: 'browse', label: 'Browse', icon: 'grid-outline' },
-  { key: 'collection', label: 'My Collection', icon: 'albums-outline' },
-  { key: 'wanted', label: 'Wanted', icon: 'heart-outline' },
+const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { key: 'browse', labelKey: 'cards.browse', icon: 'grid-outline' },
+  { key: 'collection', labelKey: 'cards.myCollection', icon: 'albums-outline' },
+  { key: 'wanted', labelKey: 'cards.wanted', icon: 'heart-outline' },
 ];
 
 export default function CardsScreen() {
+  const { t } = useTranslation();
   const { sets, loading: setsLoading } = useSets();
   const {
     selectedSetId,
@@ -257,18 +259,18 @@ export default function CardsScreen() {
 
   // Set dropdown options
   const setOptions = useMemo(() => {
-    return [{ id: '', name: 'All Sets' }, ...sets];
-  }, [sets]);
+    return [{ id: '', name: t('cards.allSets') }, ...sets];
+  }, [sets, t]);
 
   const selectedSetLabel = setFilterId
-    ? sets.find((s) => s.id === setFilterId)?.name ?? 'All Sets'
-    : 'All Sets';
+    ? sets.find((s) => s.id === setFilterId)?.name ?? t('cards.allSets')
+    : t('cards.allSets');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Tab bar with icons and dividers */}
       <View style={styles.tabBar}>
-        {SEGMENTS.map((seg, i) => {
+        {SEGMENT_KEYS.map((seg, i) => {
           const active = mode === seg.key;
           return (
             <View key={seg.key} style={styles.tabItemWrapper}>
@@ -283,7 +285,7 @@ export default function CardsScreen() {
                   color={active ? colors.primary : colors.textMuted}
                 />
                 <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                  {seg.label}
+                  {t(seg.labelKey)}
                 </Text>
               </Pressable>
             </View>
@@ -334,7 +336,7 @@ export default function CardsScreen() {
             >
               {selectedLanguage
                 ? selectedLanguage.toUpperCase()
-                : 'Language'}
+                : t('cards.language')}
             </Text>
             {selectedLanguage ? (
               <Pressable
@@ -451,7 +453,7 @@ export default function CardsScreen() {
         <View style={styles.floatingBar}>
           <View style={styles.floatingBarInner}>
             <Text style={styles.floatingCount}>
-              {multiSelectIds.size} selected
+              {t('cards.selected', { count: multiSelectIds.size })}
             </Text>
             <View style={styles.floatingActions}>
               {(mode === 'browse' || mode === 'collection') && (
@@ -460,7 +462,7 @@ export default function CardsScreen() {
                   onPress={handleMultiSelectAddToCollection}
                 >
                   <Ionicons name="add-circle" size={20} color={colors.primary} />
-                  <Text style={styles.floatingBtnText}>Collect</Text>
+                  <Text style={styles.floatingBtnText}>{t('cards.collect')}</Text>
                 </Pressable>
               )}
               {(mode === 'browse' || mode === 'wanted') && (
@@ -469,7 +471,7 @@ export default function CardsScreen() {
                   onPress={handleMultiSelectAddToWanted}
                 >
                   <Ionicons name="heart" size={20} color={colors.primary} />
-                  <Text style={styles.floatingBtnText}>Want</Text>
+                  <Text style={styles.floatingBtnText}>{t('cards.want')}</Text>
                 </Pressable>
               )}
               {(mode === 'collection' || mode === 'wanted') && (
@@ -478,7 +480,7 @@ export default function CardsScreen() {
                   onPress={handleMultiSelectRemove}
                 >
                   <Ionicons name="trash" size={20} color={colors.error} />
-                  <Text style={[styles.floatingBtnText, { color: colors.error }]}>Remove</Text>
+                  <Text style={[styles.floatingBtnText, { color: colors.error }]}>{t('cards.remove')}</Text>
                 </Pressable>
               )}
               <Pressable style={styles.floatingBtnCancel} onPress={exitMultiSelect}>
@@ -515,9 +517,9 @@ export default function CardsScreen() {
       >
         <Pressable style={styles.langOverlay} onPress={() => setShowLanguagePicker(false)}>
           <View style={styles.langSheet}>
-            <Text style={styles.langSheetTitle}>Select Language</Text>
+            <Text style={styles.langSheetTitle}>{t('cards.selectLanguage')}</Text>
             <FlatList
-              data={[{ code: '', label: 'All Languages' }, ...LANGUAGE_OPTIONS]}
+              data={[{ code: '', label: t('cards.allLanguages') }, ...LANGUAGE_OPTIONS]}
               keyExtractor={(item) => item.code || '__all__'}
               renderItem={({ item }) => (
                 <Pressable

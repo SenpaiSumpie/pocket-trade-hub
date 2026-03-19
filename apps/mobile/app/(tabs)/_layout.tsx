@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
 import { useNotificationStore } from '@/src/stores/notifications';
@@ -11,6 +12,7 @@ import { useMatchSocket } from '@/src/hooks/useMatchSocket';
 import { NotificationBell } from '@/src/components/notifications/NotificationBell';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   const pendingProposals = useTradesStore((s) => {
     try {
       return (s.proposals ?? []).filter((p) => p && p.status === 'pending').length;
@@ -60,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -69,7 +71,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cards"
         options={{
-          title: 'Cards',
+          title: t('tabs.cards'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="albums" size={size} color={color} />
           ),
@@ -78,7 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="market"
         options={{
-          title: 'Market',
+          title: t('tabs.market'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'storefront' : 'storefront-outline'}
@@ -91,7 +93,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="trades"
         options={{
-          title: 'Trades',
+          title: t('tabs.trades'),
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal" size={size} color={color} />
@@ -103,7 +105,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

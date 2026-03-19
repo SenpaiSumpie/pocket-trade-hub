@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { useMarketplace } from '@/src/hooks/useMarketplace';
 import { MarketFilters } from '@/src/components/market/MarketFilters';
@@ -19,6 +20,7 @@ import { PostCreationModal } from '@/src/components/market/PostCreationModal';
 import type { MarketPost } from '@/src/stores/posts';
 
 export default function MarketScreen() {
+  const { t } = useTranslation();
   const { posts, loading, hasMore, refresh, loadMore } = useMarketplace();
   const [selectedPost, setSelectedPost] = useState<MarketPost | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -67,11 +69,11 @@ export default function MarketScreen() {
     return (
       <View style={styles.empty}>
         <Ionicons name="storefront-outline" size={48} color={colors.textMuted} />
-        <Text style={styles.emptyTitle}>No posts yet</Text>
-        <Text style={styles.emptySubtitle}>Create the first one!</Text>
+        <Text style={styles.emptyTitle}>{t('market.noPostsFound')}</Text>
+        <Text style={styles.emptySubtitle}>{t('market.noPostsSubtitle')}</Text>
         <Pressable style={styles.emptyButton} onPress={() => setShowCreate(true)}>
           <Ionicons name="add-circle-outline" size={20} color={colors.background} />
-          <Text style={styles.emptyButtonText}>Create Post</Text>
+          <Text style={styles.emptyButtonText}>{t('market.createPost')}</Text>
         </Pressable>
       </View>
     );

@@ -13,6 +13,7 @@ import { MyPostDetailModal } from '@/src/components/trades/MyPostDetailModal';
 import { ProposalCard } from '@/src/components/trades/ProposalCard';
 import { ProposalDetailModal } from '@/src/components/trades/ProposalDetailModal';
 import { RatingModal } from '@/src/components/trades/RatingModal';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradePost, TradeProposal } from '@pocket-trade-hub/shared';
 
@@ -24,18 +25,19 @@ type ProposalView = 'active' | 'history';
 const ACTIVE_STATUSES = ['pending', 'accepted', 'countered'];
 const HISTORY_STATUSES = ['completed', 'rejected', 'cancelled'];
 
-const SEGMENTS: Array<{ key: ActiveSegment; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { key: 'posts', label: 'My Posts', icon: 'newspaper-outline' },
-  { key: 'proposals', label: 'Proposals', icon: 'document-text-outline' },
+const SEGMENT_KEYS: Array<{ key: ActiveSegment; labelKey: string; icon: keyof typeof Ionicons.glyphMap }> = [
+  { key: 'posts', labelKey: 'trades.myPosts', icon: 'newspaper-outline' },
+  { key: 'proposals', labelKey: 'trades.proposals', icon: 'document-text-outline' },
 ];
 
-const DIRECTION_OPTIONS: { value: ProposalDirection; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'incoming', label: 'Incoming' },
-  { value: 'outgoing', label: 'Outgoing' },
+const DIRECTION_KEYS: { value: ProposalDirection; labelKey: string }[] = [
+  { value: 'all', labelKey: 'trades.all' },
+  { value: 'incoming', labelKey: 'trades.incoming' },
+  { value: 'outgoing', labelKey: 'trades.outgoing' },
 ];
 
 export default function TradesScreen() {
+  const { t } = useTranslation();
   const { myPosts, myPostsLoading, fetchMyPosts } = usePosts();
   const { proposals, loading: proposalsLoading, fetchProposals, direction } = useProposals();
   const activeSegment = useTradesStore((s) => s.activeSegment);
@@ -122,7 +124,7 @@ export default function TradesScreen() {
 
   const handleRatePartner = useCallback((proposalId: string, _partnerId: string) => {
     setRatingProposalId(proposalId);
-    setRatingPartnerName('your trade partner');
+    setRatingPartnerName(t('trades.rateYourPartner'));
     setRatingModalVisible(true);
   }, []);
 
@@ -140,7 +142,7 @@ export default function TradesScreen() {
     [setActiveSegment],
   );
 
-  const directionLabel = DIRECTION_OPTIONS.find((o) => o.value === direction)?.label ?? 'All';
+  const directionLabel = DIRECTION_KEYS.find((o) => o.value === direction)?.labelKey ?? 'trades.all';
 
   const loading = activeSegment === 'posts' ? myPostsLoading : proposalsLoading;
   const isEmpty = activeSegment === 'posts' ? myPosts.length === 0 : filteredProposals.length === 0;
@@ -149,7 +151,7 @@ export default function TradesScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Tab bar */}
       <View style={styles.tabBar}>
-        {SEGMENTS.map((seg, i) => {
+        {SEGMENT_KEYS.map((seg, i) => {
           const active = activeSegment === seg.key;
           const badgeCount = seg.key === 'posts' ? activePostCount : pendingProposalCount;
           return (
@@ -174,7 +176,7 @@ export default function TradesScreen() {
                   )}
                 </View>
                 <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                  {seg.label}
+                  {t(seg.labelKey)}
                 </Text>
               </Pressable>
             </View>
@@ -192,7 +194,7 @@ export default function TradesScreen() {
               onPress={() => setProposalView('active')}
             >
               <Text style={[styles.viewToggleText, proposalView === 'active' && styles.viewToggleTextActive]}>
-                Active
+                {t('trades.activeProposals')}
               </Text>
             </Pressable>
             <Pressable
@@ -200,7 +202,7 @@ export default function TradesScreen() {
               onPress={() => setProposalView('history')}
             >
               <Text style={[styles.viewToggleText, proposalView === 'history' && styles.viewToggleTextActive]}>
-                History
+                {t('trades.history')}
               </Text>
             </Pressable>
           </View>
@@ -210,7 +212,7 @@ export default function TradesScreen() {
             onPress={() => setShowDirectionDropdown(!showDirectionDropdown)}
           >
             <Ionicons name="arrow-back-outline" size={14} color={colors.textSecondary} />
-            <Text style={styles.filterDropdownLabel}>{directionLabel}</Text>
+            <Text style={styles.filterDropdownLabel}>{t(directionLabel)}</Text>
             <Ionicons
               name={showDirectionDropdown ? 'chevron-up' : 'chevron-down'}
               size={12}
@@ -223,7 +225,7 @@ export default function TradesScreen() {
       {/* Direction dropdown menu */}
       {showDirectionDropdown && (
         <View style={styles.dropdownMenu}>
-          {DIRECTION_OPTIONS.map((opt) => {
+          {DIRECTION_KEYS.map((opt) => {
             const isActive = direction === opt.value;
             return (
               <Pressable
@@ -235,7 +237,7 @@ export default function TradesScreen() {
                 }}
               >
                 <Text style={[styles.dropdownItemText, isActive && styles.dropdownItemTextActive]}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </Text>
                 {isActive && <Ionicons name="checkmark" size={16} color={colors.primary} />}
               </Pressable>
@@ -249,7 +251,7 @@ export default function TradesScreen() {
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>
-            {activeSegment === 'posts' ? 'Loading your posts...' : 'Loading proposals...'}
+            {activeSegment === 'posts' ? t('trades.loadingPosts') : t('trades.loadingProposals')}
           </Text>
         </View>
       ) : !loading && isEmpty ? (
@@ -258,29 +260,29 @@ export default function TradesScreen() {
           {activeSegment === 'posts' ? (
             <>
               <Ionicons name="newspaper-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No posts yet</Text>
+              <Text style={styles.emptyTitle}>{t('trades.noPosts')}</Text>
               <Text style={styles.emptySubtitle}>
-                You don't have any posts yet. Go to Market to create one!
+                {t('trades.noPostsHint')}
               </Text>
-              <Text style={styles.emptyHint}>Tap the Market tab to get started</Text>
+              <Text style={styles.emptyHint}>{t('trades.goToMarket')}</Text>
             </>
           ) : proposalView === 'active' ? (
             <>
               <Ionicons name="document-text-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No active proposals</Text>
+              <Text style={styles.emptyTitle}>{t('trades.noActiveProposals')}</Text>
               <Text style={styles.emptySubtitle}>
-                Browse the Market and send proposals on posts you're interested in!
+                {t('trades.noActiveProposalsHint')}
               </Text>
               <Text style={styles.emptyHint}>
-                Tap a post in the Market tab to propose a trade
+                {t('trades.proposalHint')}
               </Text>
             </>
           ) : (
             <>
               <Ionicons name="time-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyTitle}>No trade history</Text>
+              <Text style={styles.emptyTitle}>{t('trades.noTradeHistory')}</Text>
               <Text style={styles.emptySubtitle}>
-                Completed, rejected, and cancelled trades will appear here
+                {t('trades.noTradeHistoryHint')}
               </Text>
             </>
           )}

@@ -1,3 +1,4 @@
+import '../src/i18n';
 import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet as RNStyleSheet } from 'react-native';
 import { Stack, router } from 'expo-router';
@@ -6,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import { useNotificationSetup } from '@/src/hooks/useNotifications';
 
@@ -89,6 +91,7 @@ Notifications.setNotificationHandler({
 });
 
 export default function RootLayout() {
+  const { t } = useTranslation();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -127,7 +130,7 @@ export default function RootLayout() {
             name="edit-profile"
             options={{
               headerShown: true,
-              headerTitle: 'Edit Profile',
+              headerTitle: t('profile.editProfile'),
               headerStyle: { backgroundColor: '#0f0f1a' },
               headerTintColor: '#ffffff',
             }}
@@ -136,7 +139,7 @@ export default function RootLayout() {
             name="notifications"
             options={{
               headerShown: true,
-              headerTitle: 'Notifications',
+              headerTitle: t('notifications.title'),
               headerStyle: { backgroundColor: '#0f0f1a' },
               headerTintColor: '#ffffff',
             }}
@@ -145,7 +148,7 @@ export default function RootLayout() {
             name="analytics"
             options={{
               headerShown: true,
-              headerTitle: 'Card Analytics',
+              headerTitle: t('premium.analyticsTitle'),
               headerStyle: { backgroundColor: '#0f0f1a' },
               headerTintColor: '#ffffff',
             }}
@@ -154,7 +157,7 @@ export default function RootLayout() {
             name="user/[id]"
             options={{
               headerShown: true,
-              headerTitle: 'Profile',
+              headerTitle: t('profile.title'),
               headerStyle: { backgroundColor: '#0f0f1a' },
               headerTintColor: '#ffffff',
             }}

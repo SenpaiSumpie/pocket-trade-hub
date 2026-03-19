@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import SetupChecklist from '@/src/components/SetupChecklist';
 import CollectionSummary from '@/src/components/cards/CollectionSummary';
@@ -10,33 +11,34 @@ import { colors, typography, spacing, borderRadius } from '@/src/constants/theme
 
 interface PreviewCard {
   icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
+  titleKey: string;
+  descKey: string;
   color: string;
 }
 
 const PREVIEWS: PreviewCard[] = [
   {
     icon: 'albums',
-    title: 'Cards Database',
-    description: 'Browse all Pokemon TCG Pocket cards and manage your collection.',
+    titleKey: 'home.cardsDatabase',
+    descKey: 'home.cardsDatabaseDesc',
     color: '#3498db',
   },
   {
     icon: 'git-compare',
-    title: 'Trade Matching',
-    description: 'Find players who have cards you want and want cards you have.',
+    titleKey: 'home.tradeMatching',
+    descKey: 'home.tradeMatchingDesc',
     color: '#2ecc71',
   },
   {
     icon: 'paper-plane',
-    title: 'Trade Proposals',
-    description: 'Send and receive trade proposals with built-in friend code sharing.',
+    titleKey: 'home.tradeProposals',
+    descKey: 'home.tradeProposalsDesc',
     color: '#e74c3c',
   },
 ];
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const displayName = user?.displayName || 'Trainer';
@@ -44,8 +46,8 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.welcome}>Welcome, {displayName}!</Text>
-      <Text style={styles.subtitle}>Your trading dashboard</Text>
+      <Text style={styles.welcome}>{t('home.welcome', { name: displayName })}</Text>
+      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
       {/* Setup Checklist */}
       {user && (
@@ -74,17 +76,17 @@ export default function HomeScreen() {
                 <Ionicons name="analytics" size={28} color={colors.primary} />
               </View>
               <View style={styles.previewContent}>
-                <Text style={styles.previewTitle}>Card Analytics</Text>
+                <Text style={styles.previewTitle}>{t('premium.analyticsTitle')}</Text>
                 <Text style={styles.previewDescription}>
-                  See which cards are most wanted, least available, and trending
+                  {t('premium.analyticsDescription')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           ) : (
             <LockedFeatureCard
-              title="Card Analytics"
-              description="See which cards are most wanted, least available, and trending"
+              title={t('premium.analyticsTitle')}
+              description={t('premium.analyticsDescription')}
               icon="analytics"
               onPress={() => router.push('/(tabs)/profile')}
             />
@@ -93,15 +95,15 @@ export default function HomeScreen() {
       )}
 
       {/* Coming Soon Previews */}
-      <Text style={styles.previewsTitle}>Coming Soon</Text>
+      <Text style={styles.previewsTitle}>{t('home.comingSoon')}</Text>
       {PREVIEWS.map((preview, index) => (
         <View key={index} style={styles.previewCard}>
           <View style={[styles.previewIcon, { backgroundColor: preview.color + '20' }]}>
             <Ionicons name={preview.icon} size={28} color={preview.color} />
           </View>
           <View style={styles.previewContent}>
-            <Text style={styles.previewTitle}>{preview.title}</Text>
-            <Text style={styles.previewDescription}>{preview.description}</Text>
+            <Text style={styles.previewTitle}>{t(preview.titleKey)}</Text>
+            <Text style={styles.previewDescription}>{t(preview.descKey)}</Text>
           </View>
         </View>
       ))}
