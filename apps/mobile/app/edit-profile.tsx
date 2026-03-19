@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import AvatarPicker from '@/src/components/AvatarPicker';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -28,6 +29,7 @@ interface UpdateProfileResponse {
 }
 
 export default function EditProfileScreen() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -65,8 +67,8 @@ export default function EditProfileScreen() {
       const firstError = result.error.errors[0];
       Toast.show({
         type: 'error',
-        text1: 'Validation Error',
-        text2: firstError?.message || 'Please check your input',
+        text1: t('profile.validationError'),
+        text2: firstError?.message || t('profile.checkInput'),
       });
       return;
     }
@@ -87,15 +89,15 @@ export default function EditProfileScreen() {
       }
       Toast.show({
         type: 'success',
-        text1: 'Profile Updated',
+        text1: t('profile.profileUpdated'),
         visibilityTime: 1500,
       });
       router.back();
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Update Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('profile.updateFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -113,7 +115,7 @@ export default function EditProfileScreen() {
       >
         {/* Avatar Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Avatar</Text>
+          <Text style={styles.sectionTitle}>{t('profile.avatar')}</Text>
           <AvatarPicker
             selectedId={selectedAvatar}
             onSelect={setSelectedAvatar}
@@ -122,10 +124,10 @@ export default function EditProfileScreen() {
 
         {/* Display Name */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Display Name</Text>
+          <Text style={styles.sectionTitle}>{t('profile.displayName')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="What should we call you?"
+            placeholder={t('profile.displayNamePlaceholder')}
             placeholderTextColor={colors.textMuted}
             maxLength={30}
             value={displayName}
@@ -136,7 +138,7 @@ export default function EditProfileScreen() {
 
         {/* Friend Code */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pokemon TCG Pocket Friend Code</Text>
+          <Text style={styles.sectionTitle}>{t('profile.pokemonFriendCode')}</Text>
           <TextInput
             style={styles.input}
             placeholder="XXXX-XXXX-XXXX-XXXX"
@@ -157,7 +159,7 @@ export default function EditProfileScreen() {
           {loading ? (
             <ActivityIndicator color={colors.background} />
           ) : (
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <Text style={styles.saveButtonText}>{t('common.saveChanges')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

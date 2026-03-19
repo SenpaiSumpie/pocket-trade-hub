@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '@pocket-trade-hub/shared';
 import type { z } from 'zod';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
 import { OAuthButtons } from '@/src/components/auth/OAuthButtons';
@@ -37,6 +38,7 @@ interface LoginResponse {
 }
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
 
@@ -61,8 +63,8 @@ export default function LoginScreen() {
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Login Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('auth.loginFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -81,14 +83,14 @@ export default function LoginScreen() {
         {/* Branding */}
         <View style={styles.brandSection}>
           <Text style={styles.logoEmoji}>&#9876;&#65039;</Text>
-          <Text style={styles.appName}>Pocket Trade Hub</Text>
-          <Text style={styles.tagline}>Trade smarter. Collect faster.</Text>
+          <Text style={styles.appName}>{t('app.name')}</Text>
+          <Text style={styles.tagline}>{t('app.tagline')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formSection}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('auth.email')}</Text>
             <Controller
               control={control}
               name="email"
@@ -112,7 +114,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <Controller
               control={control}
               name="password"
@@ -141,13 +143,13 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={styles.buttonText}>Log In</Text>
+              <Text style={styles.buttonText}>{t('auth.login')}</Text>
             )}
           </TouchableOpacity>
 
           <Link href="/(auth)/reset-password" asChild>
             <TouchableOpacity style={styles.linkButton}>
-              <Text style={styles.linkText}>Forgot Password?</Text>
+              <Text style={styles.linkText}>{t('auth.forgotPassword')}</Text>
             </TouchableOpacity>
           </Link>
 
@@ -160,10 +162,10 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>{t('auth.dontHaveAccount')} </Text>
           <Link href="/(auth)/signup" asChild>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Sign Up</Text>
+              <Text style={styles.footerLink}>{t('auth.signUp')}</Text>
             </TouchableOpacity>
           </Link>
         </View>

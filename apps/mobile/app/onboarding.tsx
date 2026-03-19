@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import AvatarPicker from '@/src/components/AvatarPicker';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -28,6 +29,7 @@ interface UpdateProfileResponse {
 }
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [friendCode, setFriendCode] = useState('');
@@ -55,8 +57,8 @@ export default function OnboardingScreen() {
       if (!result.success) {
         Toast.show({
           type: 'error',
-          text1: 'Invalid Friend Code',
-          text2: 'Format: XXXX-XXXX-XXXX-XXXX (digits only)',
+          text1: t('profile.invalidFriendCode'),
+          text2: t('profile.friendCodeFormat'),
         });
         return;
       }
@@ -81,8 +83,8 @@ export default function OnboardingScreen() {
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Update Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('profile.updateFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -98,14 +100,14 @@ export default function OnboardingScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Welcome to Pocket Trade Hub!</Text>
+        <Text style={styles.title}>{t('onboarding.welcomeTitle')}</Text>
         <Text style={styles.subtitle}>
-          Let's set up your trainer profile. You can always change these later.
+          {t('onboarding.welcomeSubtitle')}
         </Text>
 
         {/* Avatar Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose Your Avatar</Text>
+          <Text style={styles.sectionTitle}>{t('onboarding.chooseAvatar')}</Text>
           <AvatarPicker
             selectedId={selectedAvatar}
             onSelect={setSelectedAvatar}
@@ -114,10 +116,10 @@ export default function OnboardingScreen() {
 
         {/* Display Name */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Display Name</Text>
+          <Text style={styles.sectionTitle}>{t('onboarding.displayName')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="What should we call you?"
+            placeholder={t('profile.displayNamePlaceholder')}
             placeholderTextColor={colors.textMuted}
             maxLength={30}
             value={displayName}
@@ -128,7 +130,7 @@ export default function OnboardingScreen() {
 
         {/* Friend Code */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pokemon TCG Pocket Friend Code</Text>
+          <Text style={styles.sectionTitle}>{t('onboarding.friendCode')}</Text>
           <TextInput
             style={styles.input}
             placeholder="XXXX-XXXX-XXXX-XXXX"
@@ -149,7 +151,7 @@ export default function OnboardingScreen() {
           {loading ? (
             <ActivityIndicator color={colors.background} />
           ) : (
-            <Text style={styles.primaryButtonText}>Get Started</Text>
+            <Text style={styles.primaryButtonText}>{t('common.getStarted')}</Text>
           )}
         </TouchableOpacity>
 
@@ -157,7 +159,7 @@ export default function OnboardingScreen() {
           style={styles.skipButton}
           onPress={() => router.replace('/(tabs)')}
         >
-          <Text style={styles.skipButtonText}>Skip for now</Text>
+          <Text style={styles.skipButtonText}>{t('common.skipForNow')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

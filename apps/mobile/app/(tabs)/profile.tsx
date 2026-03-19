@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, 
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
+import { UI_LANGUAGES } from '@pocket-trade-hub/shared';
 import { useAuthStore } from '@/src/stores/auth';
+import { useLanguageStore } from '@/src/stores/language';
 import { getAvatarById } from '@/src/constants/avatars';
 import FriendCodeBadge from '@/src/components/FriendCodeBadge';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -20,9 +23,9 @@ interface UserReputation {
   tradeCount: number;
 }
 
-function ReputationStars({ avgRating, tradeCount }: UserReputation) {
+function ReputationStars({ avgRating, tradeCount, t }: UserReputation & { t: (key: string, opts?: Record<string, unknown>) => string }) {
   if (tradeCount === 0) {
-    return <Text style={styles.noRatingsText}>No ratings yet</Text>;
+    return <Text style={styles.noRatingsText}>{t('profile.noRatings')}</Text>;
   }
 
   const fullStars = Math.floor(avgRating);
@@ -41,19 +44,22 @@ function ReputationStars({ avgRating, tradeCount }: UserReputation) {
         ))}
       </View>
       <Text style={styles.ratingText}>
-        {avgRating.toFixed(1)} ({tradeCount} trade{tradeCount !== 1 ? 's' : ''})
+        {avgRating.toFixed(1)} ({t('trades.tradeCount', { count: tradeCount })})
       </Text>
     </View>
   );
 }
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const linkedProviders = useAuthStore((s) => s.linkedProviders);
   const setLinkedProviders = useAuthStore((s) => s.setLinkedProviders);
   const linkAccount = useAuthStore((s) => s.linkAccount);
+  const currentLanguage = useLanguageStore((s) => s.currentLanguage);
+  const [languageVisible, setLanguageVisible] = useState(false);
   const [reputation, setReputation] = useState<UserReputation>({ avgRating: 0, tradeCount: 0 });
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const isPremium = usePremiumStore((s) => s.isPremium);
@@ -80,24 +86,24 @@ export default function ProfileScreen() {
       if (!idToken) return;
       // Prompt for password to confirm linking
       if (Platform.OS === 'web') {
-        const password = window.prompt('Enter your password to link your Google account:');
+        const password = window.prompt(t('profile.enterPasswordToConfirm'));
         if (!password) return;
         await linkAccount('google', idToken, password);
       } else {
         Alert.prompt(
-          'Link Google Account',
-          'Enter your password to confirm:',
+          t('profile.linkGoogleAccount'),
+          t('profile.enterPasswordToConfirm'),
           async (password) => {
             if (!password) return;
             try {
               await linkAccount('google', idToken, password);
               setLinkedProviders([...linkedProviders, 'google']);
-              Toast.show({ type: 'success', text1: 'Google account linked' });
+              Toast.show({ type: 'success', text1: t('profile.googleAccountLinked') });
             } catch (err) {
               Toast.show({
                 type: 'error',
-                text1: 'Link Failed',
-                text2: err instanceof Error ? err.message : 'Something went wrong',
+                text1: t('profile.linkFailed'),
+                text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
               });
             }
           },
@@ -107,8 +113,8 @@ export default function ProfileScreen() {
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Google Sign-In Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('profile.googleSignInFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLinkingProvider(null);
@@ -122,19 +128,19 @@ export default function ProfileScreen() {
       if (!result) return;
       if (Platform.OS === 'web') return; // Apple only on iOS
       Alert.prompt(
-        'Link Apple Account',
-        'Enter your password to confirm:',
+        t('profile.linkAppleAccount'),
+        t('profile.enterPasswordToConfirm'),
         async (password) => {
           if (!password) return;
           try {
             await linkAccount('apple', result.idToken, password);
             setLinkedProviders([...linkedProviders, 'apple']);
-            Toast.show({ type: 'success', text1: 'Apple account linked' });
+            Toast.show({ type: 'success', text1: t('profile.appleAccountLinked') });
           } catch (err) {
             Toast.show({
               type: 'error',
-              text1: 'Link Failed',
-              text2: err instanceof Error ? err.message : 'Something went wrong',
+              text1: t('profile.linkFailed'),
+              text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
             });
           }
         },
@@ -143,8 +149,8 @@ export default function ProfileScreen() {
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Apple Sign-In Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('profile.appleSignInFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLinkingProvider(null);
@@ -156,28 +162,28 @@ export default function ProfileScreen() {
     const hasPassword = true; // Assume user has password if they have email/password account
     if (linkedProviders.length <= 1 && !hasPassword) {
       Alert.alert(
-        'Cannot Unlink',
-        'This is your only sign-in method. Set a password first before unlinking.',
+        t('profile.cannotUnlink'),
+        t('profile.cannotUnlinkMessage'),
       );
       return;
     }
 
     const label = provider === 'google' ? 'Google' : 'Apple';
-    Alert.alert(`Unlink ${label}`, `Are you sure you want to unlink your ${label} account?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('profile.unlinkAccount'), t('profile.unlinkConfirm', { provider: label }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Unlink',
+        text: t('profile.unlinkAccount'),
         style: 'destructive',
         onPress: async () => {
           try {
             await apiFetch(`/auth/unlink/${provider}`, { method: 'DELETE' });
             setLinkedProviders(linkedProviders.filter((p) => p !== provider));
-            Toast.show({ type: 'success', text1: `${label} account unlinked` });
+            Toast.show({ type: 'success', text1: t('profile.accountUnlinked', { provider: label }) });
           } catch (err) {
             Toast.show({
               type: 'error',
-              text1: 'Unlink Failed',
-              text2: err instanceof Error ? err.message : 'Something went wrong',
+              text1: t('profile.unlinkFailed'),
+              text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
             });
           }
         },
@@ -187,15 +193,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to log out?')) {
+      if (window.confirm(t('profile.logOutConfirm'))) {
         logout();
       }
       return;
     }
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('profile.logOut'), t('profile.logOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Log Out',
+        text: t('profile.logOut'),
         style: 'destructive',
         onPress: () => logout(),
       },
@@ -203,13 +209,15 @@ export default function ProfileScreen() {
   };
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'Unknown';
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    if (!dateStr) return t('common.noResults');
+    return new Date(dateStr).toLocaleDateString(currentLanguage, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   };
+
+  const currentLanguageName = UI_LANGUAGES.find((l) => l.code === currentLanguage)?.nativeName ?? currentLanguage;
 
   const avatar = getAvatarById(user?.avatarId);
 
@@ -226,13 +234,13 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.nameRow}>
           <Text style={styles.displayName}>
-            {user?.displayName || 'No display name'}
+            {user?.displayName || t('profile.noDisplayName')}
           </Text>
           {isPremium && <PremiumBadge size={18} />}
         </View>
         <Text style={styles.email}>{user?.email}</Text>
         <View style={styles.reputationSection}>
-          <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} />
+          <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} t={t} />
         </View>
       </View>
 
@@ -251,7 +259,7 @@ export default function ProfileScreen() {
 
       {/* Linked Accounts */}
       <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>Linked Accounts</Text>
+        <Text style={styles.sectionTitle}>{t('profile.linkedAccounts')}</Text>
         <View style={styles.divider} />
 
         {/* Google */}
@@ -262,7 +270,7 @@ export default function ProfileScreen() {
           </View>
           {linkedProviders.includes('google') ? (
             <TouchableOpacity onPress={() => handleUnlink('google')}>
-              <Text style={styles.unlinkText}>Unlink</Text>
+              <Text style={styles.unlinkText}>{t('profile.unlinkAccount')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -273,7 +281,7 @@ export default function ProfileScreen() {
               {linkingProvider === 'google' ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : (
-                <Text style={styles.linkProviderText}>Link</Text>
+                <Text style={styles.linkProviderText}>{t('profile.linkAccount')}</Text>
               )}
             </TouchableOpacity>
           )}
@@ -290,7 +298,7 @@ export default function ProfileScreen() {
               </View>
               {linkedProviders.includes('apple') ? (
                 <TouchableOpacity onPress={() => handleUnlink('apple')}>
-                  <Text style={styles.unlinkText}>Unlink</Text>
+                  <Text style={styles.unlinkText}>{t('profile.unlinkAccount')}</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
@@ -301,7 +309,7 @@ export default function ProfileScreen() {
                   {linkingProvider === 'apple' ? (
                     <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
-                    <Text style={styles.linkProviderText}>Link</Text>
+                    <Text style={styles.linkProviderText}>{t('profile.linkAccount')}</Text>
                   )}
                 </TouchableOpacity>
               )}
@@ -315,16 +323,32 @@ export default function ProfileScreen() {
         {!user?.friendCode && (
           <>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Friend Code</Text>
-              <Text style={styles.infoValue}>Not set</Text>
+              <Text style={styles.infoLabel}>{t('profile.friendCode')}</Text>
+              <Text style={styles.infoValue}>{t('profile.friendCodeNotSet')}</Text>
             </View>
             <View style={styles.divider} />
           </>
         )}
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Member Since</Text>
+          <Text style={styles.infoLabel}>{t('profile.memberSince')}</Text>
           <Text style={styles.infoValue}>{formatDate(user?.createdAt)}</Text>
         </View>
+      </View>
+
+      {/* Language */}
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>{t('profile.language')}</Text>
+        <View style={styles.divider} />
+        <TouchableOpacity
+          style={styles.infoRow}
+          onPress={() => setLanguageVisible(true)}
+        >
+          <Text style={styles.infoLabel}>{t('profile.currentLanguage')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <Text style={styles.infoValue}>{currentLanguageName}</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Actions */}
@@ -333,12 +357,12 @@ export default function ProfileScreen() {
         onPress={() => router.push('/edit-profile')}
       >
         <Ionicons name="create-outline" size={20} color={colors.background} />
-        <Text style={styles.editButtonText}>Edit Profile</Text>
+        <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color={colors.error} />
-        <Text style={styles.logoutButtonText}>Log Out</Text>
+        <Text style={styles.logoutButtonText}>{t('profile.logOut')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

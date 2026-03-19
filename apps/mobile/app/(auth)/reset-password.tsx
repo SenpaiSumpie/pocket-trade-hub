@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { resetRequestSchema, resetConfirmSchema } from '@pocket-trade-hub/shared';
 import type { z } from 'zod';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '@/src/hooks/useApi';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
@@ -23,6 +24,7 @@ type ResetRequestForm = z.infer<typeof resetRequestSchema>;
 type ResetConfirmForm = z.infer<typeof resetConfirmSchema>;
 
 export default function ResetPasswordScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'request' | 'confirm'>('request');
   const [loading, setLoading] = useState(false);
   const [resetToken, setResetToken] = useState('');
@@ -55,15 +57,15 @@ export default function ResetPasswordScreen() {
       }
       Toast.show({
         type: 'success',
-        text1: 'Check Your Email',
-        text2: 'Password reset instructions have been sent.',
+        text1: t('auth.resetSent'),
+        text2: t('auth.resetSentMessage'),
       });
       setStep('confirm');
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Request Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('auth.requestFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -80,15 +82,15 @@ export default function ResetPasswordScreen() {
       });
       Toast.show({
         type: 'success',
-        text1: 'Password Reset',
-        text2: 'Your password has been updated. Please log in.',
+        text1: t('auth.resetPassword'),
+        text2: t('auth.passwordResetSuccess'),
       });
       router.replace('/(auth)/login');
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Reset Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('auth.resetFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -105,18 +107,18 @@ export default function ResetPasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.title}>{t('auth.resetPassword')}</Text>
           <Text style={styles.subtitle}>
             {step === 'request'
-              ? "Enter your email and we'll send reset instructions."
-              : 'Enter the reset token and your new password.'}
+              ? t('auth.enterEmailResetInstructions')
+              : t('auth.enterTokenAndNewPassword')}
           </Text>
         </View>
 
         {step === 'request' ? (
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('auth.email')}</Text>
               <Controller
                 control={requestForm.control}
                 name="email"
@@ -152,14 +154,14 @@ export default function ResetPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <Text style={styles.buttonText}>Send Reset Link</Text>
+                <Text style={styles.buttonText}>{t('auth.sendResetLink')}</Text>
               )}
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.formSection}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Reset Token</Text>
+              <Text style={styles.label}>{t('auth.resetToken')}</Text>
               <Controller
                 control={confirmForm.control}
                 name="token"
@@ -169,7 +171,7 @@ export default function ResetPasswordScreen() {
                       styles.input,
                       confirmForm.formState.errors.token && styles.inputError,
                     ]}
-                    placeholder="Paste reset token"
+                    placeholder={t('auth.pasteResetToken')}
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -187,7 +189,7 @@ export default function ResetPasswordScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>{t('auth.newPassword')}</Text>
               <Controller
                 control={confirmForm.control}
                 name="newPassword"
@@ -198,7 +200,7 @@ export default function ResetPasswordScreen() {
                       confirmForm.formState.errors.newPassword &&
                         styles.inputError,
                     ]}
-                    placeholder="At least 8 characters"
+                    placeholder={t('auth.passwordTooShort')}
                     placeholderTextColor={colors.textMuted}
                     secureTextEntry
                     onBlur={onBlur}
@@ -222,7 +224,7 @@ export default function ResetPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <Text style={styles.buttonText}>Reset Password</Text>
+                <Text style={styles.buttonText}>{t('auth.resetPassword')}</Text>
               )}
             </TouchableOpacity>
 
@@ -230,7 +232,7 @@ export default function ResetPasswordScreen() {
               style={styles.linkButton}
               onPress={() => setStep('request')}
             >
-              <Text style={styles.linkText}>Back to email entry</Text>
+              <Text style={styles.linkText}>{t('auth.backToEmailEntry')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -238,7 +240,7 @@ export default function ResetPasswordScreen() {
         {/* Back to Login */}
         <View style={styles.footer}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.footerLink}>Back to Log In</Text>
+            <Text style={styles.footerLink}>{t('auth.backToLogin')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

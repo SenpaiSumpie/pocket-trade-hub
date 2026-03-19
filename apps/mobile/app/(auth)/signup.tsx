@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema } from '@pocket-trade-hub/shared';
 import type { z } from 'zod';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
 import { OAuthButtons } from '@/src/components/auth/OAuthButtons';
@@ -37,6 +38,7 @@ interface SignupResponse {
 }
 
 export default function SignupScreen() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
 
@@ -62,8 +64,8 @@ export default function SignupScreen() {
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Sign Up Failed',
-        text2: err instanceof Error ? err.message : 'Something went wrong',
+        text1: t('auth.signUpFailed'),
+        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -81,14 +83,14 @@ export default function SignupScreen() {
       >
         {/* Header */}
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join the trading community</Text>
+          <Text style={styles.title}>{t('auth.createAccount')}</Text>
+          <Text style={styles.subtitle}>{t('auth.joinCommunity')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formSection}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t('auth.email')}</Text>
             <Controller
               control={control}
               name="email"
@@ -112,14 +114,14 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <Controller
               control={control}
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[styles.input, errors.password && styles.inputError]}
-                  placeholder="At least 8 characters"
+                  placeholder={t('auth.passwordTooShort')}
                   placeholderTextColor={colors.textMuted}
                   secureTextEntry
                   onBlur={onBlur}
@@ -134,7 +136,7 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirm Password</Text>
+            <Text style={styles.label}>{t('auth.confirmPassword')}</Text>
             <Controller
               control={control}
               name="confirmPassword"
@@ -144,7 +146,7 @@ export default function SignupScreen() {
                     styles.input,
                     errors.confirmPassword && styles.inputError,
                   ]}
-                  placeholder="Re-enter your password"
+                  placeholder={t('auth.confirmPassword')}
                   placeholderTextColor={colors.textMuted}
                   secureTextEntry
                   onBlur={onBlur}
@@ -168,7 +170,7 @@ export default function SignupScreen() {
             {loading ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
+              <Text style={styles.buttonText}>{t('auth.createAccount')}</Text>
             )}
           </TouchableOpacity>
 
@@ -181,10 +183,10 @@ export default function SignupScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={styles.footerText}>{t('auth.alreadyHaveAccount')} </Text>
           <Link href="/(auth)/login" asChild>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Log In</Text>
+              <Text style={styles.footerLink}>{t('auth.login')}</Text>
             </TouchableOpacity>
           </Link>
         </View>
