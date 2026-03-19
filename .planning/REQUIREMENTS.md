@@ -50,8 +50,8 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 
 - [ ] **PLAT-01**: Users can access the app via web browser (companion web app)
 - [ ] **PLAT-02**: Web app supports browse, search, and trading features
-- [ ] **PLAT-03**: App UI supports 10 languages via i18n
-- [ ] **PLAT-04**: User can select preferred app language
+- [x] **PLAT-03**: App UI supports 10 languages via i18n
+- [x] **PLAT-04**: User can select preferred app language
 
 ## Future Requirements
 
@@ -112,8 +112,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INTL-05 | Phase 9 | Pending |
 | DISC-03 | Phase 9 | Pending |
 | DISC-04 | Phase 9 | Complete |
-| PLAT-03 | Phase 10 | Pending |
-| PLAT-04 | Phase 10 | Pending |
+| PLAT-03 | Phase 10 | Complete |
+| PLAT-04 | Phase 10 | Complete |
 | DISC-01 | Phase 11 | Pending |
 | DISC-02 | Phase 11 | Pending |
 | INTL-01 | Phase 12 | Pending |
