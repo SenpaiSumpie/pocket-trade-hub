@@ -12,6 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
+import { useNotificationStore } from '@/hooks/useSocket';
 
 const NAV_ITEMS = [
   { href: '/cards', label: 'Cards', icon: LayoutGrid },
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const logout = useAuthStore((s) => s.logout);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
 
   return (
     <aside className="flex w-16 flex-col border-r border-border bg-surface lg:w-60">
@@ -45,7 +47,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-gold/10 text-gold'
                   : 'text-text-muted hover:bg-surface-hover hover:text-text'
@@ -56,6 +58,11 @@ export function Sidebar() {
                 className={isActive ? 'text-gold' : 'text-text-muted'}
               />
               <span className="hidden lg:inline">{label}</span>
+              {href === '/proposals' && unreadCount > 0 && (
+                <span className="absolute right-2 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

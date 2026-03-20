@@ -5,13 +5,18 @@ import { useAuthStore } from '@/stores/auth';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileGate } from '@/components/layout/MobileGate';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useSocket } from '@/hooks/useSocket';
+import { NotificationToast } from '@/components/layout/NotificationToast';
 
 export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isHydrated, hydrate } = useAuthStore();
+  const { isHydrated, isLoggedIn, hydrate } = useAuthStore();
+
+  // Connect socket when authenticated
+  useSocket();
 
   useEffect(() => {
     hydrate();
@@ -30,6 +35,7 @@ export default function AppLayout({
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="flex-1 overflow-auto p-6">{children}</main>
+        <NotificationToast />
       </div>
     </MobileGate>
   );
