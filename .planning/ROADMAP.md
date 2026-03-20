@@ -114,12 +114,13 @@ Plans:
   2. User can browse the current competitive deck meta with top decks, win rates, and tournament results
   3. User can view curated tier lists ranking current meta decks
   4. User can create and share their own custom tier lists
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
-- [ ] 11-03: TBD
+- [ ] 11-01-PLAN.md -- DB schema, shared types, meta scraper, and meta data service
+- [ ] 11-02-PLAN.md -- Suggestion service, tier list service, API routes, and BullMQ workers
+- [ ] 11-03-PLAN.md -- Mobile Meta tab with deck rankings and tier list browser
+- [ ] 11-04-PLAN.md -- Smart Trades on Home tab, tier list creator, and i18n keys
 
 ### Phase 12: Web App Companion
 **Goal**: Users can access core trading and collection features from a web browser
@@ -154,5 +155,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Post-Based Trading | 4/4 | Complete   | 2011-03-15 | - |
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
-| 11. Intelligence | v2.0 | 0/TBD | Not started | - |
+| 11. Intelligence | v2.0 | 0/4 | Not started | - |
 | 12. Web App Companion | v2.0 | 0/TBD | Not started | - |
