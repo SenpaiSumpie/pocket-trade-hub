@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: in_progress
-stopped_at: Completed 11-00-PLAN.md
-last_updated: "2026-03-20T01:53:00.000Z"
-last_activity: 2026-03-20 -- Completed Phase 11 Plan 00 (wave 0 test stubs)
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-20T01:54:00.000Z"
+last_activity: 2026-03-20 -- Completed Phase 11 Plan 01 (data layer and scraping infrastructure)
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 20
-  completed_plans: 16
-  percent: 80
+  completed_plans: 17
+  percent: 85
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 11 of 12 (Intelligence)
-Plan: 1 of 5 complete
+Plan: 2 of 5 complete
 Status: Executing Phase 11
-Last activity: 2026-03-20 -- Completed Phase 11 Plan 00 (wave 0 test stubs)
+Last activity: 2026-03-20 -- Completed Phase 11 Plan 01 (data layer and scraping infrastructure)
 
-Progress: [████████░░] 80%
+Progress: [████████▓░] 85%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 80%
 | 10    | 02   | 12 min   | 2     | 16    |
 | 10    | 03   | 25 min   | 2     | 28    |
 | 11    | 00   | 2 min    | 2     | 5     |
+| 11    | 01   | 3 min    | 2     | 10    |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Phase 10 decisions:
 
 Phase 11 decisions:
 - Used beforeEach(cleanDb) pattern consistent with existing test files for wave 0 stubs
+- randomUUID from crypto for ID generation (matches existing service pattern, no nanoid dep)
+- Basis points (integer) for win/usage rates to avoid float precision issues
+- Retry with exponential backoff (2 attempts, 3s base delay) for scraper network resilience
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T01:53:00.000Z
-Stopped at: Completed 11-00-PLAN.md
-Resume file: .planning/phases/11-intelligence/11-01-PLAN.md
+Last session: 2026-03-20T01:54:00.000Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: .planning/phases/11-intelligence/11-02-PLAN.md
