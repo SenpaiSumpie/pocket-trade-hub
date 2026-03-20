@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import {
   signupSchema,
   loginSchema,
@@ -19,6 +19,27 @@ import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { t, parseAcceptLanguage } from '../i18n';
 
+function setAuthCookies(
+  reply: FastifyReply,
+  accessToken: string,
+  refreshToken: string
+) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOpts = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    path: '/',
+  };
+
+  reply
+    .setCookie('accessToken', accessToken, { ...cookieOpts, maxAge: 15 * 60 })
+    .setCookie('refreshToken', refreshToken, {
+      ...cookieOpts,
+      maxAge: 7 * 24 * 60 * 60,
+    });
+}
+
 export default async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/signup
   fastify.post('/auth/signup', async (request, reply) => {
@@ -38,6 +59,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
     const user = await createUser(fastify.db, email, password);
     const tokens = await issueTokens(fastify, user.id);
+
+    setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
 
     return reply.code(201).send({
       ...tokens,
@@ -71,6 +94,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
     const tokens = await issueTokens(fastify, user.id);
 
+    setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
+
     return reply.code(200).send({
       ...tokens,
       user: {
@@ -87,7 +112,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/refresh
   fastify.post('/auth/refresh', async (request, reply) => {
     const lang = parseAcceptLanguage(request.headers['accept-language']);
-    const { refreshToken } = request.body as { refreshToken?: string };
+    const body = request.body as { refreshToken?: string } | undefined;
+    const refreshToken = body?.refreshToken || request.cookies?.refreshToken;
 
     if (!refreshToken) {
       return reply.code(400).send({ error: t('errors.validationFailed', lang) });
@@ -95,6 +121,9 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
     try {
       const tokens = await refreshAccessToken(fastify, refreshToken);
+
+      setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
+
       return reply.code(200).send(tokens);
     } catch {
       return reply.code(401).send({ error: t('errors.unauthorized', lang) });
@@ -106,11 +135,16 @@ export default async function authRoutes(fastify: FastifyInstance) {
     '/auth/logout',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
-      const { refreshToken } = request.body as { refreshToken?: string };
+      const body = request.body as { refreshToken?: string } | undefined;
+      const refreshToken = body?.refreshToken || request.cookies?.refreshToken;
 
       if (refreshToken) {
         await revokeRefreshToken(fastify.db, refreshToken);
       }
+
+      reply
+        .clearCookie('accessToken', { path: '/' })
+        .clearCookie('refreshToken', { path: '/' });
 
       return reply.code(200).send({ message: 'Logged out successfully' });
     }

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -34,7 +35,11 @@ export async function buildTestApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
 
   // CORS
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: (origin, cb) => { cb(null, true); },
+    credentials: true,
+  });
+  await app.register(cookie);
 
   // Database
   const connectionString =
@@ -59,7 +64,18 @@ export async function buildTestApp(): Promise<FastifyInstance> {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         await request.jwtVerify();
-      } catch (err) {
+      } catch {
+        // Fall back to cookie-based auth (web clients)
+        const token = request.cookies?.accessToken;
+        if (token) {
+          try {
+            const decoded = app.jwt.verify<{ sub: string; type?: string }>(token);
+            request.user = decoded;
+            return;
+          } catch {
+            // Cookie token invalid, fall through to 401
+          }
+        }
         reply.code(401).send({ error: 'Unauthorized' });
       }
     }

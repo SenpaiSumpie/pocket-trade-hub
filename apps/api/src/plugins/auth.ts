@@ -33,8 +33,20 @@ export default fp(async (fastify: FastifyInstance) => {
     'authenticate',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
+        // Try Bearer header first (mobile clients)
         await request.jwtVerify();
-      } catch (err) {
+      } catch {
+        // Fall back to cookie-based auth (web clients)
+        const token = request.cookies?.accessToken;
+        if (token) {
+          try {
+            const decoded = fastify.jwt.verify<{ sub: string; type?: string }>(token);
+            request.user = decoded;
+            return;
+          } catch {
+            // Cookie token invalid, fall through to 401
+          }
+        }
         reply.code(401).send({ error: 'Unauthorized' });
       }
     }

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import dbPlugin from './plugins/db';
 import authPlugin from './plugins/auth';
 import redisPlugin from './plugins/redis';
@@ -35,7 +36,11 @@ export async function buildApp(opts = {}) {
   const app = Fastify(opts);
 
   // Plugins
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: (origin, cb) => { cb(null, true); },
+    credentials: true,
+  });
+  await app.register(cookie);
   await app.register(dbPlugin);
   await app.register(authPlugin);
   await app.register(redisPlugin);
