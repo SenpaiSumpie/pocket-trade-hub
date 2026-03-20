@@ -160,4 +160,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
 | 11. Intelligence | 5/5 | Complete    | 2026-03-20 | - |
-| 12. Web App Companion | 7/7 | Complete   | 2026-03-20 | - |
+| 12. Web App Companion | 7/7 | Complete    | 2026-03-20 | - |
