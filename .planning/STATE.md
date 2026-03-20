@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-20T23:12:43.819Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 02 (Next.js scaffold and core libraries)
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-20T23:13:17Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 03 (Layouts, sidebar, auth middleware)
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 22
-  percent: 87
+  completed_plans: 23
+  percent: 89
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 12 of 12 (Web App Companion)
-Plan: 2 of 7 complete
+Plan: 3 of 7 complete
 Status: Executing Phase 12
-Last activity: 2026-03-20 -- Completed Phase 12 Plan 02 (Next.js scaffold and core libraries)
+Last activity: 2026-03-20 -- Completed Phase 12 Plan 03 (Layouts, sidebar, auth middleware)
 
-Progress: [████████▓░] 87%
+Progress: [████████▓░] 89%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [████████▓░] 87%
 | 11    | 01   | 3 min    | 2     | 10    |
 | 12    | 01   | 8 min    | 2     | 11    |
 | 12    | 02   | 5 min    | 2     | 43    |
+| 12    | 03   | 7 min    | 2     | 1     |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Phase 12 decisions:
 - [Phase 12]: Tailwind v4 CSS-first @theme config instead of JS config file
 - [Phase 12]: apiFetch retries original fetch after refresh for cleaner control flow (not recursive)
 - [Phase 12]: Auth middleware uses PUBLIC_PATHS array for simple route matching
+- [Phase 12]: Sidebar collapses to 64px icon-only below 1024px (lg breakpoint)
+- [Phase 12]: Active nav uses bg-gold/10 opacity overlay for subtle highlight
 
 ### Pending Todos
 
@@ -150,6 +153,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:12:43.816Z
-Stopped at: Completed 12-02-PLAN.md
-Resume file: .planning/phases/12-web-app-companion/12-03-PLAN.md
+Last session: 2026-03-20T23:13:17Z
+Stopped at: Completed 12-03-PLAN.md
+Resume file: .planning/phases/12-web-app-companion/12-04-PLAN.md
