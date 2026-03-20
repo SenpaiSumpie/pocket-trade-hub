@@ -103,6 +103,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="meta"
+        options={{
+          title: t('tabs.meta'),
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? 'trophy' : 'trophy-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: t('tabs.profile'),
