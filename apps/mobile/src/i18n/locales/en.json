@@ -354,7 +354,42 @@
     "createdBy": "by {{name}}",
     "deleteTierList": "Delete Tier List",
     "deleteConfirm": "Are you sure you want to delete this tier list?",
-    "tierListDeleted": "Tier list deleted"
+    "tierListDeleted": "Tier list deleted",
+    "deckDetail": "Deck Detail",
+    "goodAgainst": "Good Against",
+    "badAgainst": "Bad Against",
+    "noData": "No deck data available yet",
+    "premiumOnly": "Premium Feature",
+    "unlockDetails": "Upgrade to see full deck details"
+  },
+  "tierlists": {
+    "create": "Create Tier List",
+    "title": "Title",
+    "description": "Description (optional)",
+    "addDecks": "Add Decks",
+    "unranked": "Unranked",
+    "save": "Save Tier List",
+    "cancel": "Cancel",
+    "official": "Official",
+    "mostLiked": "Most Liked",
+    "newest": "Newest",
+    "noTierLists": "No tier lists yet. Create the first one!",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this tier list?",
+    "likes_one": "{{count}} like",
+    "likes_other": "{{count}} likes",
+    "titleRequired": "Title is required",
+    "needDecks": "Add at least one deck to a tier"
+  },
+  "suggestions": {
+    "smartTrades": "Smart Trades",
+    "give": "Give",
+    "get": "Get",
+    "unlock": "Unlock Smart Trades",
+    "unlockDescription": "Get AI-powered trade suggestions",
+    "noSuggestions": "No suggestions yet",
+    "addMoreCards": "Add more cards to your collection and wanted list for better suggestions",
+    "notEnoughData": "Not enough trading data yet"
   },
   "app": {
     "name": "Pocket Trade Hub",
