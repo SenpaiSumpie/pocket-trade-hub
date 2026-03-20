@@ -332,3 +332,70 @@ export const tradePosts = pgTable('trade_posts', {
   index('trade_posts_created_at_idx').on(table.createdAt),
   index('trade_posts_cards_gin_idx').using('gin', sql`${table.cards} jsonb_path_ops`),
 ]);
+
+export const deckMeta = pgTable('deck_meta', {
+  id: text('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  winRate: integer('win_rate'),
+  usageRate: integer('usage_rate'),
+  playCount: integer('play_count'),
+  matchRecord: varchar('match_record', { length: 50 }),
+  cards: jsonb('cards'),
+  matchups: jsonb('matchups'),
+  tournamentResults: jsonb('tournament_results'),
+  scrapedAt: timestamp('scraped_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('deck_meta_win_rate_idx').on(table.winRate),
+  index('deck_meta_usage_rate_idx').on(table.usageRate),
+]);
+
+export const tradeSuggestions = pgTable('trade_suggestions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  giveCardId: text('give_card_id')
+    .notNull()
+    .references(() => cards.id),
+  getCardId: text('get_card_id')
+    .notNull()
+    .references(() => cards.id),
+  score: integer('score').notNull(),
+  reasoning: text('reasoning').notNull(),
+  computedAt: timestamp('computed_at').defaultNow().notNull(),
+}, (table) => [
+  index('trade_suggestions_user_idx').on(table.userId),
+]);
+
+export const tierLists = pgTable('tier_lists', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  title: varchar('title', { length: 100 }).notNull(),
+  description: text('description'),
+  tiers: jsonb('tiers').notNull(),
+  isOfficial: boolean('is_official').default(false).notNull(),
+  upvoteCount: integer('upvote_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('tier_lists_user_id_idx').on(table.userId),
+  index('tier_lists_official_idx').on(table.isOfficial),
+  index('tier_lists_upvote_idx').on(table.upvoteCount),
+]);
+
+export const tierListVotes = pgTable('tier_list_votes', {
+  id: text('id').primaryKey(),
+  tierListId: text('tier_list_id')
+    .notNull()
+    .references(() => tierLists.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('tier_list_votes_list_user_idx').on(table.tierListId, table.userId),
+]);
