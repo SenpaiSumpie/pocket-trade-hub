@@ -10,12 +10,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@pocket-trade-hub/shared": "workspace:*",
     "i18next": "^25.8",
     "lucide-react": "^0.500",
     "next": "^15.2",
     "react": "^19.1",
     "react-dom": "^19.1",
+    "react-hook-form": "^7.71.2",
     "react-i18next": "^16.5",
     "socket.io-client": "^4.8",
     "zod": "^3.24",

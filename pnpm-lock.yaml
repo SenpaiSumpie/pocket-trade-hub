@@ -262,6 +262,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.71.2(react@19.1.0))
       '@pocket-trade-hub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -280,6 +283,9 @@ importers:
       react-dom:
         specifier: ^19.1
         version: 19.1.0(react@19.1.0)
+      react-hook-form:
+        specifier: ^7.71.2
+        version: 7.71.2(react@19.1.0)
       react-i18next:
         specifier: ^16.5
         version: 16.5.8(i18next@25.8.18(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
