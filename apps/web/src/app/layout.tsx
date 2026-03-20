@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Pocket Trade Hub',
-  description: 'Trade Pokemon cards with players worldwide',
+  description: 'Trade Pokemon cards with collectors worldwide',
 };
 
 export default function RootLayout({

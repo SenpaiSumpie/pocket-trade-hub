@@ -10,8 +10,3 @@
   --color-gold: #f0c040;
   --color-gold-hover: #d4a830;
 }
-
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    sans-serif;
-}
