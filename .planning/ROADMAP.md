@@ -130,14 +130,16 @@ Plans:
   1. User can access the app via web browser and see the same cards, posts, and collection data
   2. User can browse, search, and create trade posts from the web app
   3. User can manage their collection and view deck meta content from the web app
-**Plans**: 5 plans
+**Plans**: 7 plans
 
 Plans:
-- [ ] 12-01-PLAN.md -- API cookie auth, CORS update, Next.js scaffold with Tailwind dark theme and sidebar layout
-- [ ] 12-02-PLAN.md -- Auth UI (login/signup forms, Google OAuth sign-in)
-- [ ] 12-03-PLAN.md -- Card browsing and collection management pages with grid, search, filters
-- [ ] 12-04-PLAN.md -- Marketplace posts and proposals pages with full trading workflow
-- [ ] 12-05-PLAN.md -- Deck meta, tier lists pages, and Socket.IO real-time notifications
+- [ ] 12-01-PLAN.md -- API cookie auth, CORS update, and Wave 0 test infrastructure
+- [ ] 12-02-PLAN.md -- Next.js project scaffold with Tailwind dark theme and core libraries
+- [ ] 12-03-PLAN.md -- Layouts, sidebar navigation, auth middleware, and mobile gate
+- [ ] 12-04-PLAN.md -- Auth UI (login/signup forms, Google OAuth sign-in)
+- [ ] 12-05-PLAN.md -- Card browsing and collection management pages
+- [ ] 12-06-PLAN.md -- Marketplace posts and proposals pages with full trading workflow
+- [ ] 12-07-PLAN.md -- Deck meta, tier lists pages, and Socket.IO real-time notifications
 
 ## Progress
 
@@ -158,4 +160,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
 | 11. Intelligence | 5/5 | Complete    | 2026-03-20 | - |
-| 12. Web App Companion | v2.0 | 0/5 | Not started | - |
+| 12. Web App Companion | v2.0 | 0/7 | Not started | - |
