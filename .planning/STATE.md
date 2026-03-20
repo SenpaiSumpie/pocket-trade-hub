@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 12-05-PLAN.md
-last_updated: "2026-03-20T23:22:07Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 05 (Cards and Collection Pages)
+stopped_at: Completed 12-07-PLAN.md
+last_updated: "2026-03-20T23:33:54.412Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 07 (Meta, Tier Lists, Socket.IO)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 25
-  percent: 93
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 12 of 12 (Web App Companion)
-Plan: 5 of 7 complete
+Plan: 6 of 7 complete
 Status: Executing Phase 12
-Last activity: 2026-03-20 -- Completed Phase 12 Plan 05 (Cards and Collection Pages)
+Last activity: 2026-03-20 -- Completed Phase 12 Plan 06 (Marketplace and Proposals)
 
-Progress: [█████████▓] 93%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -64,6 +64,8 @@ Progress: [█████████▓] 93%
 | 12    | 03   | 7 min    | 2     | 1     |
 | 12    | 04   | 5 min    | 2     | 9     |
 | 12    | 05   | 5 min    | 2     | 13    |
+| 12    | 06   | 5 min    | 2     | 13    |
+| Phase 12 P07 | 6 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -145,6 +147,12 @@ Phase 12 decisions:
 - [Phase 12]: OAuth routes now set cookies matching auth route pattern for web auth
 - [Phase 12]: Collection store uses optimistic updates with rollback on API error
 - [Phase 12]: CardDetailModal dual mode (browse/collection) via prop for reuse across pages
+- [Phase 12]: Fairness score thresholds: >=80 Great, >=60 Fair, >=40 Uneven, <40 Poor
+- [Phase 12]: Accept/reject confirmation dialogs to prevent accidental proposal actions
+- [Phase 12]: Counter-offer form inline in ProposalDetailModal rather than separate modal
+- [Phase 12]: Notification store separate from socket hook for cross-component access (badge + toast)
+- [Phase 12]: TierListCreator uses click-to-assign with move buttons, no drag-and-drop library
+- [Phase 12]: DeckRankings uses table on desktop, cards on tablet for responsive layout
 
 ### Pending Todos
 
@@ -159,6 +167,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:22:07Z
-Stopped at: Completed 12-05-PLAN.md
-Resume file: .planning/phases/12-web-app-companion/12-06-PLAN.md
+Last session: 2026-03-20T23:33:54.410Z
+Stopped at: Completed 12-06-PLAN.md
+Resume file: None

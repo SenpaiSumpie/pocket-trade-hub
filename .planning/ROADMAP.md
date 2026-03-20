@@ -34,7 +34,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
 - [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2011-03-19)
 - [x] **Phase 11: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists (completed 2026-03-20)
-- [ ] **Phase 12: Web App Companion** - Browser-based access to trading, collection, and meta features
+- [x] **Phase 12: Web App Companion** - Browser-based access to trading, collection, and meta features (completed 2026-03-20)
 
 ## Phase Details
 
@@ -160,4 +160,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
 | 11. Intelligence | 5/5 | Complete    | 2026-03-20 | - |
-| 12. Web App Companion | 5/7 | In Progress|  | - |
+| 12. Web App Companion | 7/7 | Complete   | 2026-03-20 | - |
