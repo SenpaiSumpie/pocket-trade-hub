@@ -15,7 +15,7 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 - [x] **TRAD-04**: User gets matched with complementary posts (my Offering matches their Seeking and vice versa)
 - [x] **TRAD-05**: User can send a trade proposal directly from a matched post
 - [x] **TRAD-06**: Posts include card language to prevent language mismatches
-- [ ] **TRAD-07**: User receives smart trade suggestions on app open based on their posts and activity (premium)
+- [x] **TRAD-07**: User receives smart trade suggestions on app open based on their posts and activity (premium)
 
 ### Cards
 
@@ -33,10 +33,10 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 
 ### Intelligence
 
-- [ ] **INTL-01**: User can view AI-powered trade suggestions with reasoning (premium)
-- [ ] **INTL-02**: User can browse competitive deck meta (top decks, win rates, tournament results)
-- [ ] **INTL-03**: User can view tier lists for current meta decks
-- [ ] **INTL-04**: User can create and share custom tier lists
+- [x] **INTL-01**: User can view AI-powered trade suggestions with reasoning (premium)
+- [x] **INTL-02**: User can browse competitive deck meta (top decks, win rates, tournament results)
+- [x] **INTL-03**: User can view tier lists for current meta decks
+- [x] **INTL-04**: User can create and share custom tier lists
 - [ ] **INTL-05**: User can calculate pack opening probabilities for specific cards
 
 ### Discovery
@@ -116,11 +116,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-04 | Phase 10 | Complete |
 | DISC-01 | Removed | Removed (local trade finder not needed for virtual trades) |
 | DISC-02 | Removed | Removed (local trade finder not needed for virtual trades) |
-| INTL-01 | Phase 12 | Pending |
-| TRAD-07 | Phase 12 | Pending |
-| INTL-02 | Phase 12 | Pending |
-| INTL-03 | Phase 12 | Pending |
-| INTL-04 | Phase 12 | Pending |
+| INTL-01 | Phase 12 | Complete |
+| TRAD-07 | Phase 12 | Complete |
+| INTL-02 | Phase 12 | Complete |
+| INTL-03 | Phase 12 | Complete |
+| INTL-04 | Phase 12 | Complete |
 | PLAT-01 | Phase 12 | Pending |
 | PLAT-02 | Phase 12 | Pending |
 
