@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 12-04-PLAN.md
-last_updated: "2026-03-20T23:21:54Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 04 (Auth pages - login, signup, Google OAuth)
+stopped_at: Completed 12-05-PLAN.md
+last_updated: "2026-03-20T23:22:07Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 05 (Cards and Collection Pages)
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 24
-  percent: 89
+  completed_plans: 25
+  percent: 93
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 5 of 7 complete
 Status: Executing Phase 12
 Last activity: 2026-03-20 -- Completed Phase 12 Plan 05 (Cards and Collection Pages)
 
-Progress: [████████▓░] 89%
+Progress: [█████████▓] 93%
 
 ## Performance Metrics
 
@@ -41,9 +41,9 @@ Progress: [████████▓░] 89%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 13
-- Average duration: 7.1 min
-- Total execution time: 1.5 hours
+- Total plans completed: 14
+- Average duration: 7.0 min
+- Total execution time: 1.6 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -63,6 +63,7 @@ Progress: [████████▓░] 89%
 | 12    | 02   | 5 min    | 2     | 43    |
 | 12    | 03   | 7 min    | 2     | 1     |
 | 12    | 04   | 5 min    | 2     | 9     |
+| 12    | 05   | 5 min    | 2     | 13    |
 
 ## Accumulated Context
 
@@ -142,6 +143,8 @@ Phase 12 decisions:
 - [Phase 12]: Active nav uses bg-gold/10 opacity overlay for subtle highlight
 - [Phase 12]: GoogleSignIn gracefully renders null when GOOGLE_CLIENT_ID not set
 - [Phase 12]: OAuth routes now set cookies matching auth route pattern for web auth
+- [Phase 12]: Collection store uses optimistic updates with rollback on API error
+- [Phase 12]: CardDetailModal dual mode (browse/collection) via prop for reuse across pages
 
 ### Pending Todos
 
@@ -156,6 +159,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:21:54Z
-Stopped at: Completed 12-04-PLAN.md
-Resume file: .planning/phases/12-web-app-companion/12-05-PLAN.md
+Last session: 2026-03-20T23:22:07Z
+Stopped at: Completed 12-05-PLAN.md
+Resume file: .planning/phases/12-web-app-companion/12-06-PLAN.md
