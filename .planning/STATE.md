@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-03-20T22:18:18.071Z"
-last_activity: 2026-03-20 -- Completed Phase 11 Plan 01 (data layer and scraping infrastructure)
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-20T23:02:00.000Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 01 (API cookie auth and web test infrastructure)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
-  percent: 85
+  total_plans: 21
+  completed_plans: 21
+  percent: 87
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** v2.0 Full Platform -- Phase 11 in progress
+**Current focus:** v2.0 Full Platform -- Phase 12 in progress
 
 ## Current Position
 
-Phase: 11 of 12 (Intelligence)
-Plan: 2 of 5 complete
-Status: Executing Phase 11
-Last activity: 2026-03-20 -- Completed Phase 11 Plan 01 (data layer and scraping infrastructure)
+Phase: 12 of 12 (Web App Companion)
+Plan: 1 of 7 complete
+Status: Executing Phase 12
+Last activity: 2026-03-20 -- Completed Phase 12 Plan 01 (API cookie auth and web test infrastructure)
 
-Progress: [████████▓░] 85%
+Progress: [████████▓░] 87%
 
 ## Performance Metrics
 
@@ -41,9 +41,9 @@ Progress: [████████▓░] 85%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 12
-- Average duration: 7.0 min
-- Total execution time: 1.4 hours
+- Total plans completed: 13
+- Average duration: 7.1 min
+- Total execution time: 1.5 hours
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -59,6 +59,7 @@ Progress: [████████▓░] 85%
 | 10    | 03   | 25 min   | 2     | 28    |
 | 11    | 00   | 2 min    | 2     | 5     |
 | 11    | 01   | 3 min    | 2     | 10    |
+| 12    | 01   | 8 min    | 2     | 11    |
 
 ## Accumulated Context
 
@@ -126,6 +127,12 @@ Phase 11 decisions:
 - Basis points (integer) for win/usage rates to avoid float precision issues
 - Retry with exponential backoff (2 attempts, 3s base delay) for scraper network resilience
 
+Phase 12 decisions:
+- Cookie fallback auth: try Bearer header first, then cookies -- mobile backward compat preserved
+- Always set cookies on auth responses (harmless for mobile, required for web)
+- Refresh token read from body OR cookie, supporting both mobile and web clients
+- Test files placed in apps/api/__tests__/ matching existing project convention (not src/__tests__/)
+
 ### Pending Todos
 
 None.
@@ -139,6 +146,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T22:18:18.069Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-web-app-companion/12-CONTEXT.md
+Last session: 2026-03-20T23:02:00.000Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: .planning/phases/12-web-app-companion/12-02-PLAN.md
