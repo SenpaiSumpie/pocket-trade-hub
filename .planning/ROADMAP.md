@@ -2,20 +2,20 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** -- Phases 1-6 (shipped 2026-03-11)
+- ✅ **v1.0 MVP** -- Phases 1-6 (shipped 2011-03-11)
 - 🚧 **v2.0 Full Platform** -- Phases 7-13 (in progress)
 
 ## Phases
 
 <details>
-<summary>v1.0 MVP (Phases 1-6) -- SHIPPED 2026-03-11</summary>
+<summary>v1.0 MVP (Phases 1-6) -- SHIPPED 2011-03-11</summary>
 
-- [x] Phase 1: Foundation and Auth (2/2 plans) -- completed 2026-03-08
-- [x] Phase 2: Card Database (3/3 plans) -- completed 2026-03-09
-- [x] Phase 3: Collection Management (3/3 plans) -- completed 2026-03-09
-- [x] Phase 4: Trade Matching Engine (2/2 plans) -- completed 2026-03-09
-- [x] Phase 5: Trade Proposals and Reputation (4/4 plans) -- completed 2026-03-11
-- [x] Phase 6: Premium Tier (3/3 plans) -- completed 2026-03-11
+- [x] Phase 1: Foundation and Auth (2/2 plans) -- completed 2011-03-08
+- [x] Phase 2: Card Database (3/3 plans) -- completed 2011-03-09
+- [x] Phase 3: Collection Management (3/3 plans) -- completed 2011-03-09
+- [x] Phase 4: Trade Matching Engine (2/2 plans) -- completed 2011-03-09
+- [x] Phase 5: Trade Proposals and Reputation (4/4 plans) -- completed 2011-03-11
+- [x] Phase 6: Premium Tier (3/3 plans) -- completed 2011-03-11
 
 Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
@@ -29,13 +29,12 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - Integer phases (7, 8, 9...): Planned milestone work
 - Decimal phases (8.1, 8.2): Urgent insertions (marked with INSERTED)
 
-- [x] **Phase 7: Multi-Language Cards and OAuth** - Language-aware card database for 9 languages plus Google/Apple sign-in (completed 2026-03-14)
-- [x] **Phase 8: Post-Based Trading** - Offering/Seeking trade posts replacing automatic-only matching (completed 2026-03-15)
+- [x] **Phase 7: Multi-Language Cards and OAuth** - Language-aware card database for 9 languages plus Google/Apple sign-in (completed 2011-03-14)
+- [x] **Phase 8: Post-Based Trading** - Offering/Seeking trade posts replacing automatic-only matching (completed 2011-03-15)
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
-- [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2026-03-19)
-- [ ] **Phase 11: Local Trade Finder** - Nearby trader discovery with privacy-preserving location sharing
-- [ ] **Phase 12: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists
-- [ ] **Phase 13: Web App Companion** - Browser-based access to trading, collection, and meta features
+- [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2011-03-19)
+- [ ] **Phase 11: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists
+- [ ] **Phase 11: Web App Companion** - Browser-based access to trading, collection, and meta features
 
 ## Phase Details
 
@@ -106,21 +105,7 @@ Plans:
 - [ ] 10-02-PLAN.md -- Mobile string replacement with t() calls and language selector UI
 - [ ] 10-03-PLAN.md -- 9 non-English translation files and server-side i18n wiring
 
-### Phase 11: Local Trade Finder
-**Goal**: Users can discover nearby traders for convenient local trading
-**Depends on**: Phase 8 (posts provide content for local discovery)
-**Requirements**: DISC-01, DISC-02
-**Success Criteria** (what must be TRUE):
-  1. User can opt in to share their approximate location for local trade discovery
-  2. User can browse nearby traders within a configurable distance range
-  3. User can disable location sharing at any time and their location data is removed
-**Plans**: TBD
-
-Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
-
-### Phase 12: Intelligence
+### Phase 11: Intelligence
 **Goal**: Users get AI-powered trade guidance and competitive deck analytics
 **Depends on**: Phase 8 (post and trade history data needed for meaningful suggestions)
 **Requirements**: INTL-01, TRAD-07, INTL-02, INTL-03, INTL-04
@@ -132,11 +117,11 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
-- [ ] 12-03: TBD
+- [ ] 11-01: TBD
+- [ ] 11-02: TBD
+- [ ] 11-03: TBD
 
-### Phase 13: Web App Companion
+### Phase 11: Web App Companion
 **Goal**: Users can access core trading and collection features from a web browser
 **Depends on**: Phase 10 (i18n should be in place so web app launches localized)
 **Requirements**: PLAT-01, PLAT-02
@@ -147,9 +132,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
-- [ ] 13-03: TBD
+- [ ] 11-01: TBD
+- [ ] 11-02: TBD
+- [ ] 11-03: TBD
 
 ## Progress
 
@@ -159,16 +144,15 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundation and Auth | v1.0 | 2/2 | Complete | 2026-03-08 |
-| 2. Card Database | v1.0 | 3/3 | Complete | 2026-03-09 |
-| 3. Collection Management | v1.0 | 3/3 | Complete | 2026-03-09 |
-| 4. Trade Matching Engine | v1.0 | 2/2 | Complete | 2026-03-09 |
-| 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2026-03-11 |
-| 6. Premium Tier | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2026-03-15 | - |
-| 8. Post-Based Trading | 4/4 | Complete   | 2026-03-15 | - |
-| 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2026-03-15 |
-| 10. Internationalization | 3/3 | Complete    | 2026-03-19 | - |
-| 11. Local Trade Finder | v2.0 | 0/TBD | Not started | - |
-| 12. Intelligence | v2.0 | 0/TBD | Not started | - |
-| 13. Web App Companion | v2.0 | 0/TBD | Not started | - |
+| 1. Foundation and Auth | v1.0 | 2/2 | Complete | 2011-03-08 |
+| 2. Card Database | v1.0 | 3/3 | Complete | 2011-03-09 |
+| 3. Collection Management | v1.0 | 3/3 | Complete | 2011-03-09 |
+| 4. Trade Matching Engine | v1.0 | 2/2 | Complete | 2011-03-09 |
+| 5. Trade Proposals and Reputation | v1.0 | 4/4 | Complete | 2011-03-11 |
+| 6. Premium Tier | v1.0 | 3/3 | Complete | 2011-03-11 |
+| 7. Multi-Language Cards and OAuth | 5/5 | Complete   | 2011-03-15 | - |
+| 8. Post-Based Trading | 4/4 | Complete   | 2011-03-15 | - |
+| 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
+| 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
+| 11. Intelligence | v2.0 | 0/TBD | Not started | - |
+| 11. Web App Companion | v2.0 | 0/TBD | Not started | - |
