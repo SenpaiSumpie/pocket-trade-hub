@@ -155,5 +155,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Post-Based Trading | 4/4 | Complete   | 2011-03-15 | - |
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
-| 11. Intelligence | 3/5 | In Progress|  | - |
+| 11. Intelligence | 4/5 | In Progress|  | - |
 | 12. Web App Companion | v2.0 | 0/TBD | Not started | - |
