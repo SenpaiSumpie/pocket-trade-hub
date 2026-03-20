@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-nati
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { router } from 'expo-router';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useTierListStore } from '@/src/stores/tierlists';
 import { TierListCard } from './TierListCard';
@@ -117,8 +118,8 @@ export function TierListBrowser() {
         }
       />
 
-      {/* Create Tier List FAB - navigates to creator in Plan 04 */}
-      <Pressable style={styles.fab}>
+      {/* Create Tier List FAB */}
+      <Pressable style={styles.fab} onPress={() => router.push('/create-tier-list' as any)}>
         <Ionicons name="add" size={28} color={colors.background} />
       </Pressable>
     </View>

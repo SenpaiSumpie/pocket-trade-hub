@@ -1,12 +1,15 @@
+import { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import SetupChecklist from '@/src/components/SetupChecklist';
 import CollectionSummary from '@/src/components/cards/CollectionSummary';
 import { LockedFeatureCard } from '@/src/components/premium/LockedFeatureCard';
+import { SmartTradesSection } from '@/src/components/suggestions/SmartTradesSection';
 import { usePremiumStore } from '@/src/stores/premium';
+import { useSuggestionsStore } from '@/src/stores/suggestions';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 interface PreviewCard {
@@ -43,6 +46,16 @@ export default function HomeScreen() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const displayName = user?.displayName || 'Trainer';
   const isPremium = usePremiumStore((s) => s.isPremium);
+  const fetchSuggestions = useSuggestionsStore((s) => s.fetchSuggestions);
+
+  // Fetch suggestions when Home tab gains focus
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn) {
+        fetchSuggestions();
+      }
+    }, [isLoggedIn, fetchSuggestions]),
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -60,6 +73,13 @@ export default function HomeScreen() {
       {isLoggedIn && (
         <View style={styles.section}>
           <CollectionSummary />
+        </View>
+      )}
+
+      {/* Smart Trades Section (requires auth) */}
+      {isLoggedIn && (
+        <View style={styles.section}>
+          <SmartTradesSection />
         </View>
       )}
 
