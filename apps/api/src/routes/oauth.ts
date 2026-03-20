@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import { oauthLoginSchema, linkAccountSchema } from '@pocket-trade-hub/shared';
 import {
   verifyGoogleToken,
@@ -7,6 +7,27 @@ import {
   linkOAuthAccount,
 } from '../services/oauth.service';
 import { issueTokens } from '../services/auth.service';
+
+function setAuthCookies(
+  reply: FastifyReply,
+  accessToken: string,
+  refreshToken: string,
+) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOpts = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    path: '/',
+  };
+
+  reply
+    .setCookie('accessToken', accessToken, { ...cookieOpts, maxAge: 15 * 60 })
+    .setCookie('refreshToken', refreshToken, {
+      ...cookieOpts,
+      maxAge: 7 * 24 * 60 * 60,
+    });
+}
 
 export default async function oauthRoutes(fastify: FastifyInstance) {
   // POST /auth/oauth/google
@@ -40,6 +61,7 @@ export default async function oauthRoutes(fastify: FastifyInstance) {
     }
 
     const tokens = await issueTokens(fastify, result.user!.id);
+    setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
     return reply.code(200).send({
       ...tokens,
       user: result.user,
@@ -76,6 +98,7 @@ export default async function oauthRoutes(fastify: FastifyInstance) {
     }
 
     const tokens = await issueTokens(fastify, result.user!.id);
+    setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
     return reply.code(200).send({
       ...tokens,
       user: result.user,

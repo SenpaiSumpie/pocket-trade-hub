@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@pocket-trade-hub/shared": "workspace:*",
+    "@react-oauth/google": "^0.13.4",
     "i18next": "^25.8",
     "lucide-react": "^0.500",
     "next": "^15.2",
