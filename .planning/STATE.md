@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-20T23:02:00.000Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 01 (API cookie auth and web test infrastructure)
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-03-20T23:12:43.819Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 02 (Next.js scaffold and core libraries)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 27
+  completed_plans: 22
   percent: 87
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 12 of 12 (Web App Companion)
-Plan: 1 of 7 complete
+Plan: 2 of 7 complete
 Status: Executing Phase 12
-Last activity: 2026-03-20 -- Completed Phase 12 Plan 01 (API cookie auth and web test infrastructure)
+Last activity: 2026-03-20 -- Completed Phase 12 Plan 02 (Next.js scaffold and core libraries)
 
 Progress: [████████▓░] 87%
 
@@ -60,6 +60,7 @@ Progress: [████████▓░] 87%
 | 11    | 00   | 2 min    | 2     | 5     |
 | 11    | 01   | 3 min    | 2     | 10    |
 | 12    | 01   | 8 min    | 2     | 11    |
+| 12    | 02   | 5 min    | 2     | 43    |
 
 ## Accumulated Context
 
@@ -132,6 +133,9 @@ Phase 12 decisions:
 - Always set cookies on auth responses (harmless for mobile, required for web)
 - Refresh token read from body OR cookie, supporting both mobile and web clients
 - Test files placed in apps/api/__tests__/ matching existing project convention (not src/__tests__/)
+- [Phase 12]: Tailwind v4 CSS-first @theme config instead of JS config file
+- [Phase 12]: apiFetch retries original fetch after refresh for cleaner control flow (not recursive)
+- [Phase 12]: Auth middleware uses PUBLIC_PATHS array for simple route matching
 
 ### Pending Todos
 
@@ -146,6 +150,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:02:00.000Z
-Stopped at: Completed 12-01-PLAN.md
-Resume file: .planning/phases/12-web-app-companion/12-02-PLAN.md
+Last session: 2026-03-20T23:12:43.816Z
+Stopped at: Completed 12-02-PLAN.md
+Resume file: .planning/phases/12-web-app-companion/12-03-PLAN.md
