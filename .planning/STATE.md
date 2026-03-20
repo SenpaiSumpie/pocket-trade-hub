@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: executing
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-03-20T23:13:17Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 03 (Layouts, sidebar, auth middleware)
+stopped_at: Completed 12-04-PLAN.md
+last_updated: "2026-03-20T23:21:54Z"
+last_activity: 2026-03-20 -- Completed Phase 12 Plan 04 (Auth pages - login, signup, Google OAuth)
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 23
+  completed_plans: 24
   percent: 89
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 12 of 12 (Web App Companion)
-Plan: 3 of 7 complete
+Plan: 5 of 7 complete
 Status: Executing Phase 12
-Last activity: 2026-03-20 -- Completed Phase 12 Plan 03 (Layouts, sidebar, auth middleware)
+Last activity: 2026-03-20 -- Completed Phase 12 Plan 05 (Cards and Collection Pages)
 
 Progress: [████████▓░] 89%
 
@@ -62,6 +62,7 @@ Progress: [████████▓░] 89%
 | 12    | 01   | 8 min    | 2     | 11    |
 | 12    | 02   | 5 min    | 2     | 43    |
 | 12    | 03   | 7 min    | 2     | 1     |
+| 12    | 04   | 5 min    | 2     | 9     |
 
 ## Accumulated Context
 
@@ -139,6 +140,8 @@ Phase 12 decisions:
 - [Phase 12]: Auth middleware uses PUBLIC_PATHS array for simple route matching
 - [Phase 12]: Sidebar collapses to 64px icon-only below 1024px (lg breakpoint)
 - [Phase 12]: Active nav uses bg-gold/10 opacity overlay for subtle highlight
+- [Phase 12]: GoogleSignIn gracefully renders null when GOOGLE_CLIENT_ID not set
+- [Phase 12]: OAuth routes now set cookies matching auth route pattern for web auth
 
 ### Pending Todos
 
@@ -153,6 +156,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:13:17Z
-Stopped at: Completed 12-03-PLAN.md
-Resume file: .planning/phases/12-web-app-companion/12-04-PLAN.md
+Last session: 2026-03-20T23:21:54Z
+Stopped at: Completed 12-04-PLAN.md
+Resume file: .planning/phases/12-web-app-companion/12-05-PLAN.md
