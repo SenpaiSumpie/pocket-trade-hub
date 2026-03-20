@@ -33,7 +33,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 8: Post-Based Trading** - Offering/Seeking trade posts replacing automatic-only matching (completed 2011-03-15)
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
 - [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2011-03-19)
-- [ ] **Phase 11: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists
+- [x] **Phase 11: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists (completed 2026-03-20)
 - [ ] **Phase 12: Web App Companion** - Browser-based access to trading, collection, and meta features
 
 ## Phase Details
@@ -155,5 +155,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Post-Based Trading | 4/4 | Complete   | 2011-03-15 | - |
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
-| 11. Intelligence | 4/5 | In Progress|  | - |
+| 11. Intelligence | 5/5 | Complete   | 2026-03-20 | - |
 | 12. Web App Companion | v2.0 | 0/TBD | Not started | - |
