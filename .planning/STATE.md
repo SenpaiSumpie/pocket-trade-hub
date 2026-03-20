@@ -127,7 +127,7 @@ None.
 - App Store/Google Play IAP policies need verification before production launch
 - Existing proposal/rating service tests have FK constraint failures needing seed data fixes
 - TCGdex language completeness varies -- audit needed during Phase 7 card import
-- PostGIS support on production host must be verified before Phase 11
+- ~~PostGIS support on production host~~ — resolved: Phase 11 (Local Trade Finder) removed
 
 ## Session Continuity
 

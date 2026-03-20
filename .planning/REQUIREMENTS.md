@@ -41,8 +41,8 @@ Requirements for v2.0 Full Platform release. Each maps to roadmap phases.
 
 ### Discovery
 
-- [ ] **DISC-01**: User can opt-in to share approximate location for local trade finder
-- [ ] **DISC-02**: User can browse nearby traders within configurable distance
+- ~~**DISC-01**: User can opt-in to share approximate location for local trade finder~~ (Removed — not needed for virtual trades)
+- ~~**DISC-02**: User can browse nearby traders within configurable distance~~ (Removed — not needed for virtual trades)
 - [x] **DISC-03**: User can export collection or trade posts as shareable images
 - [x] **DISC-04**: User can redeem gift/promo codes for premium time or benefits
 
@@ -114,15 +114,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISC-04 | Phase 9 | Complete |
 | PLAT-03 | Phase 10 | Complete |
 | PLAT-04 | Phase 10 | Complete |
-| DISC-01 | Phase 11 | Pending |
-| DISC-02 | Phase 11 | Pending |
+| DISC-01 | Removed | Removed (local trade finder not needed for virtual trades) |
+| DISC-02 | Removed | Removed (local trade finder not needed for virtual trades) |
 | INTL-01 | Phase 12 | Pending |
 | TRAD-07 | Phase 12 | Pending |
 | INTL-02 | Phase 12 | Pending |
 | INTL-03 | Phase 12 | Pending |
 | INTL-04 | Phase 12 | Pending |
-| PLAT-01 | Phase 13 | Pending |
-| PLAT-02 | Phase 13 | Pending |
+| PLAT-01 | Phase 12 | Pending |
+| PLAT-02 | Phase 12 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 28 total

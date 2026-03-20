@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** -- Phases 1-6 (shipped 2011-03-11)
-- 🚧 **v2.0 Full Platform** -- Phases 7-13 (in progress)
+- 🚧 **v2.0 Full Platform** -- Phases 7-12 (in progress)
 
 ## Phases
 
@@ -34,7 +34,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [ ] **Phase 9: Engagement Quick Wins** - Luck calculator, image export, and promo codes
 - [x] **Phase 10: Internationalization** - App UI translated to 10 languages with user language selection (completed 2011-03-19)
 - [ ] **Phase 11: Intelligence** - AI trade suggestions, deck meta analytics, and tier lists
-- [ ] **Phase 11: Web App Companion** - Browser-based access to trading, collection, and meta features
+- [ ] **Phase 12: Web App Companion** - Browser-based access to trading, collection, and meta features
 
 ## Phase Details
 
@@ -121,7 +121,7 @@ Plans:
 - [ ] 11-02: TBD
 - [ ] 11-03: TBD
 
-### Phase 11: Web App Companion
+### Phase 12: Web App Companion
 **Goal**: Users can access core trading and collection features from a web browser
 **Depends on**: Phase 10 (i18n should be in place so web app launches localized)
 **Requirements**: PLAT-01, PLAT-02
@@ -132,14 +132,14 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
-- [ ] 11-03: TBD
+- [ ] 12-01: TBD
+- [ ] 12-02: TBD
+- [ ] 12-03: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
+Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 (Decimal phases, if inserted, execute between their surrounding integers.)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -155,4 +155,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
 | 9. Engagement Quick Wins | v2.0 | 3/3 | Complete | 2011-03-15 |
 | 10. Internationalization | 3/3 | Complete    | 2011-03-19 | - |
 | 11. Intelligence | v2.0 | 0/TBD | Not started | - |
-| 11. Web App Companion | v2.0 | 0/TBD | Not started | - |
+| 12. Web App Companion | v2.0 | 0/TBD | Not started | - |
