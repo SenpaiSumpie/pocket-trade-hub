@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A React Native mobile app (with companion web app) that is the primary trade coordination platform for Pokemon TCG Pocket players. Users create Offering and Seeking trade posts to get matched with compatible partners, negotiate via structured proposals with fairness evaluation, rate partners, track multi-language card collections, access deck meta analytics, and use AI-powered trade suggestions — then execute the actual trades in-game.
+A React Native mobile app with Next.js web companion that is the primary trade coordination platform for Pokemon TCG Pocket players. Users create Offering and Seeking trade posts in 9 card languages to get matched with compatible partners, negotiate via structured proposals with fairness evaluation, rate partners, track multi-language card collections, access AI-powered trade suggestions and deck meta analytics, browse and create tier lists, calculate pack odds, and share branded collection images — all in 10 UI languages with premium features via subscription.
 
 ## Core Value
 
@@ -28,23 +28,26 @@ Players can instantly find other players who have cards they want AND want cards
 - ✓ Card demand analytics (most wanted, least available, trending) — v1.0
 - ✓ Premium match boost (priority placement) — v1.0
 - ✓ Advanced card alerts for wanted cards — v1.0
+- ✓ Multi-language card database (9 languages) with translated names and images — v2.0
+- ✓ Card language selection in collection and wanted flows — v2.0
+- ✓ Card language filtering and search — v2.0
+- ✓ Google and Apple OAuth sign-in with account linking — v2.0
+- ✓ Offering/Seeking post-based trade model with JSONB matching — v2.0
+- ✓ Post browsing with filters (card, set, rarity, language) — v2.0
+- ✓ Complementary post matching with notifications — v2.0
+- ✓ AI-powered trade suggestions with reasoning (premium) — v2.0
+- ✓ Deck meta analytics (top decks, win rates, tournament results) — v2.0
+- ✓ Tier list browser and creator with voting — v2.0
+- ✓ Luck calculator with hypergeometric pull rates — v2.0
+- ✓ Branded image export with native share sheet — v2.0
+- ✓ Promo code system for premium time grants — v2.0
+- ✓ Full i18n (10 UI languages) with per-user preferences — v2.0
+- ✓ Next.js web companion with cards, collection, marketplace, proposals, meta — v2.0
+- ✓ Socket.IO real-time notifications on web — v2.0
 
 ### Active
 
-- [ ] Offering/Seeking post-based trade model (replaces automatic inventory matching)
-- [ ] Multi-language card database and card language selection in collection
-- [ ] OAuth login (Google/Apple)
-- [ ] Card scanning via camera/screenshot recognition
-- [ ] AI-powered trade suggestions
-- [ ] Local trade finder (nearby traders)
-- [ ] Web app companion
-- [ ] Smart trade suggestions (pre-computed on app open)
-- [ ] Multi-language UI support
-- [ ] Deck meta system (competitive decks, win rates, tournament results)
-- [ ] Luck calculator (pack opening statistics)
-- [ ] Tier list system (deck sharing/recommendations)
-- [ ] Image export (shareable collection images)
-- [ ] Gift/promo code system
+(None — define in next milestone)
 
 ### Out of Scope
 
@@ -54,38 +57,26 @@ Players can instantly find other players who have cards they want AND want cards
 - Social feed / timeline — scope bloat; users come to trade, not scroll
 - Gamification / badges / leaderboards — encourages fake trades; simple reputation sufficient
 - Other TCGs (Magic, Yu-Gi-Oh) — long-term expansion only
-
-## Current Milestone: v2.0 Full Platform
-
-**Goal:** Transform Pocket Trade Hub from MVP into a full-featured trading platform with competitive parity to PokeHub plus unique differentiators (deck meta, AI suggestions, fairness eval, local finder, structured proposals over chat).
-
-**Target features:**
-- Post-based Offering/Seeking trade model (architecture overhaul)
-- Multi-language card database + card language selection
-- OAuth login, card scanning, AI trade suggestions, local trade finder
-- Web app companion
-- Deck meta system, luck calculator, tier lists
-- Image export, gift/promo codes
-- Multi-language UI, smart trade suggestions
+- On-device ML for card scanning — 50-200MB app bloat for worse accuracy than server-side
 
 ## Context
 
-Shipped v1.0 MVP with 20,382 LOC TypeScript across 232 files.
-Tech stack: Expo (React Native) + Fastify + PostgreSQL + Redis + BullMQ + Socket.IO + RevenueCat.
+Shipped v2.0 Full Platform with 40,275 LOC TypeScript.
+Tech stack: Expo (React Native) + Next.js + Fastify + PostgreSQL + Redis + BullMQ + Socket.IO + RevenueCat.
 Monorepo via Turborepo with pnpm workspaces and shared Zod schemas.
 Dark theme with Pokemon-inspired gold accent (#f0c040).
-Built in 5 days (2026-03-07 → 2026-03-11), 109 commits, 2.0 hours execution time.
+Built across 2 milestones over 14 days (2026-03-07 → 2026-03-20), 242 commits, ~5.6 hours total execution time.
 
-Competitor analysis: PokeHub (4.72 stars, 35k ratings) is the primary competitor. Weaknesses: excessive ads, aggressive VIP popups, poor filtering, language mismatches. Our advantages: no ads, structured proposals (cleaner than chat), fairness evaluation, deck meta, AI suggestions.
+Competitor analysis: PokeHub (4.72 stars, 35k ratings) is the primary competitor. Weaknesses: excessive ads, aggressive VIP popups, poor filtering, language mismatches. Our advantages: no ads, structured proposals (cleaner than chat), fairness evaluation, deck meta, AI suggestions, web companion.
 
 Known issues:
 - App Store/Google Play IAP policies need verification before production launch
-- Some Phase 5 traceability shows "Backend Complete" — mobile UI was built in plans 05-02/03/04
-- Existing proposal/rating service tests have FK constraint failures needing seed data fixes
+- Some v1 proposal/rating service tests have FK constraint failures needing seed data fixes
+- TCGdex language completeness varies (ja, ko, zh return 404 from API)
 
 ## Constraints
 
-- **Platform**: React Native mobile app (iOS + Android) via Expo
+- **Platform**: React Native mobile app (iOS + Android) via Expo + Next.js web companion
 - **Backend**: Fastify + PostgreSQL + Redis + BullMQ
 - **Card data source**: TCGdex API with rarity mapping to diamond/star/crown enum
 - **Trade execution**: Coordination only — actual trades happen in-game
@@ -98,10 +89,6 @@ Known issues:
 |----------|-----------|---------|
 | Mobile-first (React Native/Expo) | Players are on their phones, matches the game platform | ✓ Good |
 | Trade coordination, not execution | Actual trades happen in Pokemon TCG Pocket | ✓ Good |
-| Deck meta deferred to v2 | Keep v1 focused on core trading loop | ✓ Good — now building in v2 |
-| Post-based trading model for v2 | Replace automatic matching with Offering/Seeking posts (PokeHub model) — gives users more control | — Pending |
-| No chat, keep structured proposals | Moderation liability avoided; proposals are cleaner than freeform chat; differentiator vs PokeHub | — Pending |
-| Web app companion for v2 | Expand beyond mobile-only; web complements mobile | — Pending |
 | Free + Premium in v1 | Monetization from launch, premium adds analytics and priority | ✓ Good |
 | Background + real-time matching | Suggested trades on open + live notifications for new matches | ✓ Good |
 | Turborepo monorepo with shared Zod schemas | Type safety across API and mobile with single source of truth | ✓ Good |
@@ -112,10 +99,18 @@ Known issues:
 | BullMQ for background jobs | Debounced match recomputation, analytics cron, card alerts | ✓ Good |
 | RevenueCat for IAP | Cross-platform subscription management, graceful no-op in dev | ✓ Good |
 | Zustand per-domain stores | State isolation (auth, cards, collection, trades, notifications, premium) | ✓ Good |
-| Optimistic updates with revert-on-error | Responsive UI for collection/wanted mutations | ✓ Good |
-| Cursor-based pagination | Efficient mobile scrolling for notification inbox | ✓ Good |
 | Rarity-based fairness scoring | diamond1=1 to crown=100 with Great/Fair/Unfair thresholds | ✓ Good |
 | Dark theme with gold accent | Branded, immersive Pokemon feel | ✓ Good |
+| Post-based trading model | Offering/Seeking posts give users control; JSONB for flexible card matching | ✓ Good |
+| No chat, keep structured proposals | Moderation liability avoided; proposals are cleaner than freeform chat | ✓ Good |
+| Multi-language cards in same phase as OAuth | Both are foundations; parallel work efficiency | ✓ Good |
+| JSONB for post card arrays | Flexible querying with GIN indexes; complementary matching via containment | ✓ Good |
+| Cookie + Bearer dual auth | Mobile uses Bearer, web uses cookies — both supported seamlessly | ✓ Good |
+| Next.js web companion | Expand beyond mobile-only; shares API and Zod schemas | ✓ Good |
+| Tailwind v4 CSS-first config | Modern approach, dark theme via @theme variables | ✓ Good |
+| Basis points for win/usage rates | Integer math avoids float precision issues in meta analytics | ✓ Good |
+| Text codes for language display | Culturally neutral (EN, DE) instead of flag emojis | ✓ Good |
+| 10 UI languages (includes Thai) | Broader audience reach beyond the 9 card languages | ✓ Good |
 
 ---
-*Last updated: 2026-03-11 after v2.0 milestone start*
+*Last updated: 2026-03-20 after v2.0 milestone*

@@ -1,5 +1,23 @@
 # Milestones
 
+## v2.0 Full Platform (Shipped: 2026-03-20)
+
+**Phases completed:** 6 phases, 27 plans
+**Timeline:** 10 days (2026-03-11 → 2026-03-20)
+**Execution time:** ~3.6 hours (avg 7.0 min/plan)
+**Codebase:** 40,275 LOC TypeScript
+**Git range:** feat(07-01) → feat(12-07), 133 commits
+
+**Key accomplishments:**
+1. Multi-language card database (9 languages) with Google/Apple OAuth sign-in and account linking
+2. Post-based Offering/Seeking trade model with JSONB complementary matching, replacing automatic-only inventory matching
+3. Engagement features: hypergeometric luck calculator, promo code system, branded image export with native share sheet
+4. Full internationalization (10 languages) across mobile and API with per-user language preferences
+5. Intelligence suite: AI trade suggestions, Limitless TCG deck meta scraper, tier list browser and creator
+6. Next.js web companion with cards, collection, marketplace, proposals, meta, and Socket.IO notifications
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-11)
 
 **Phases completed:** 6 phases, 17 plans

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Full Platform
 status: completed
-stopped_at: Completed 12-06-PLAN.md
-last_updated: "2026-03-20T23:40:43.058Z"
-last_activity: 2026-03-20 -- Completed Phase 12 Plan 07 (Meta, Tier Lists, Socket.IO)
+stopped_at: Milestone v2.0 archived
+last_updated: "2026-03-20T23:50:00.000Z"
+last_activity: 2026-03-20 -- Milestone v2.0 Full Platform archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,19 +18,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-11)
+See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** v2.0 Full Platform -- Phase 12 in progress
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 12 of 12 (Web App Companion)
-Plan: 7 of 7 complete
-Status: Phase 12 Complete
-Last activity: 2026-03-20 -- Completed Phase 12 Plan 07 (Meta, Tier Lists, Socket.IO)
-
-Progress: [██████████] 100%
+Milestone v2.0 Full Platform: SHIPPED 2026-03-20
+Next: `/gsd:new-milestone` to start v3.0
 
 ## Performance Metrics
 
@@ -41,118 +37,16 @@ Progress: [██████████] 100%
 - Timeline: 5 days (2026-03-07 -> 2026-03-11)
 
 **v2.0 Velocity:**
-- Total plans completed: 14
+- Total plans completed: 27
 - Average duration: 7.0 min
-- Total execution time: 1.6 hours
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 08    | 01   | 6 min    | 2     | 9     |
-| 08    | 02   | 8 min    | 2     | 10    |
-| 08    | 03   | 8 min    | 2     | 9     |
-| 08    | 04   | 6 min    | 2     | 9     |
-| 09    | 01   | 7 min    | 2     | 8     |
-| 09    | 02   | 8 min    | 2     | 11    |
-| 09    | 03   | 8 min    | 3     | 10    |
-| 10    | 01   | 9 min    | 2     | 16    |
-| 10    | 02   | 12 min   | 2     | 16    |
-| 10    | 03   | 25 min   | 2     | 28    |
-| 11    | 00   | 2 min    | 2     | 5     |
-| 11    | 01   | 3 min    | 2     | 10    |
-| 12    | 01   | 8 min    | 2     | 11    |
-| 12    | 02   | 5 min    | 2     | 43    |
-| 12    | 03   | 7 min    | 2     | 1     |
-| 12    | 04   | 5 min    | 2     | 9     |
-| 12    | 05   | 5 min    | 2     | 13    |
-| 12    | 06   | 5 min    | 2     | 13    |
-| Phase 12 P07 | 6 min | 3 tasks | 14 files |
+- Total execution time: ~3.6 hours
+- Timeline: 10 days (2026-03-11 -> 2026-03-20)
 
 ## Accumulated Context
 
 ### Decisions
 
-All v1.0 decisions documented in PROJECT.md Key Decisions table.
-v2.0 roadmap decisions:
-- Multi-language cards + OAuth in same phase (parallel work, both are foundations)
-- Post-based trading depends on language-aware cards (avoid PokeHub's language mismatch problem)
-- AI suggestions + deck meta + tier lists merged into single Intelligence phase (standard granularity)
-- Web app last (benefits from all features being stable, i18n in place)
-- Card scanning deferred to v3 (per REQUIREMENTS.md)
-
-Phase 7 decisions:
-- 9 languages in schema constant but only 6 seedable from TCGdex currently (ja, ko, zh return 404)
-- Translation ID format: {cardId}-{lang} for deterministic IDs
-- OAuth providers limited to Google and Apple
-- jose ESM-only: OAuth routes registered per-test-file with mocks, excluded from shared test setup
-- needs_linking returns 200 with { needsLinking: true } rather than error status
-- Text codes (EN, DE) for language display, not flag emojis -- culturally neutral
-- Composite key cardId:language for collection entries to support same card in multiple languages
-- Tappable badges for translation switching in card detail (supports 9 languages)
-- OAuth buttons below email/password form (email/password remains primary, OAuth is convenient alternative)
-- Native OAuth over browser-based auth sessions for better UX and security
-
-Phase 8 decisions:
-- JSONB containment (@>) for language/rarity/setId filtering with GIN index
-- Free user post limit set to 15 active posts
-- isRelevant computed per-request from user wanted/collection in-memory sets
-- Case-insensitive card name search via jsonb_array_elements with lower()
-- Duplicated notification helpers in post-match service to avoid coupling with proposal service
-- 5-second BullMQ delay for post matching (shorter than 30s match-recompute for interactivity)
-- Per-user notification deduplication via Set-based grouping in processPostMatch
-- PostDetailModal sends proposals using post.id as matchId bridge until proper post-based proposals
-- MarketPost type extended with optional poster field for forward-compatible user profile display
-- Old matches fetch removed from tab layout; marketplace loads on Market tab focus
-- Kept useMatchSocket hook name to avoid breaking imports (minimal rename strategy)
-- PostDetailModal uses postId instead of matchId bridge now that 08-02 supports it
-- ProposalCreationModal dual mode via separate match/post props for backward compatibility
-
-Phase 9 decisions:
-- Offscreen positioning (left: -9999) instead of display:none for react-native-view-shot compatibility
-- Fixed 1080px width for export templates for consistent resolution across devices
-- file:// prefix on captureRef result for Android share compatibility
-- Promo codes stored and compared in uppercase for case-insensitive matching
-- db.transaction() for promo redemption to prevent race conditions
-- Premium time stacks: promo days added to existing expiry if user already premium
-- handleWebhookEvent EXPIRATION guarded to respect promo-granted premium time
-
-Phase 10 decisions:
-- 10 UI languages (adds Thai beyond the 9 card languages) for broader audience reach
-- compatibilityJSON v4 for React Native pluralization support
-- Optimistic language switching: UI changes immediately, server sync in background
-- Email template translation keys included per CONTEXT.md locked decision
-- Test DB requires separate drizzle-kit push (dev and test databases diverge)
-- Locale-aware date formatting uses undefined locale parameter to respect system/i18n language
-- ReputationStars t prop type widened to accept interpolation options for pluralization
-- parseAcceptLanguage for route-level language detection rather than per-request DB lookups
-- Per-user uiLanguage DB lookup for notification services (notifications are recipient-targeted)
-- Expanded server notification keys from 13 to 28+ to cover all service notification types
-
-Phase 11 decisions:
-- Used beforeEach(cleanDb) pattern consistent with existing test files for wave 0 stubs
-- randomUUID from crypto for ID generation (matches existing service pattern, no nanoid dep)
-- Basis points (integer) for win/usage rates to avoid float precision issues
-- Retry with exponential backoff (2 attempts, 3s base delay) for scraper network resilience
-
-Phase 12 decisions:
-- Cookie fallback auth: try Bearer header first, then cookies -- mobile backward compat preserved
-- Always set cookies on auth responses (harmless for mobile, required for web)
-- Refresh token read from body OR cookie, supporting both mobile and web clients
-- Test files placed in apps/api/__tests__/ matching existing project convention (not src/__tests__/)
-- [Phase 12]: Tailwind v4 CSS-first @theme config instead of JS config file
-- [Phase 12]: apiFetch retries original fetch after refresh for cleaner control flow (not recursive)
-- [Phase 12]: Auth middleware uses PUBLIC_PATHS array for simple route matching
-- [Phase 12]: Sidebar collapses to 64px icon-only below 1024px (lg breakpoint)
-- [Phase 12]: Active nav uses bg-gold/10 opacity overlay for subtle highlight
-- [Phase 12]: GoogleSignIn gracefully renders null when GOOGLE_CLIENT_ID not set
-- [Phase 12]: OAuth routes now set cookies matching auth route pattern for web auth
-- [Phase 12]: Collection store uses optimistic updates with rollback on API error
-- [Phase 12]: CardDetailModal dual mode (browse/collection) via prop for reuse across pages
-- [Phase 12]: Fairness score thresholds: >=80 Great, >=60 Fair, >=40 Uneven, <40 Poor
-- [Phase 12]: Accept/reject confirmation dialogs to prevent accidental proposal actions
-- [Phase 12]: Counter-offer form inline in ProposalDetailModal rather than separate modal
-- [Phase 12]: Notification store separate from socket hook for cross-component access (badge + toast)
-- [Phase 12]: TierListCreator uses click-to-assign with move buttons, no drag-and-drop library
-- [Phase 12]: DeckRankings uses table on desktop, cards on tablet for responsive layout
+All v1.0 and v2.0 decisions documented in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -161,12 +55,11 @@ None.
 ### Blockers/Concerns
 
 - App Store/Google Play IAP policies need verification before production launch
-- Existing proposal/rating service tests have FK constraint failures needing seed data fixes
-- TCGdex language completeness varies -- audit needed during Phase 7 card import
-- ~~PostGIS support on production host~~ — resolved: Phase 11 (Local Trade Finder) removed
+- Some v1 proposal/rating service tests have FK constraint failures needing seed data fixes
+- TCGdex language completeness varies (ja, ko, zh return 404)
 
 ## Session Continuity
 
-Last session: 2026-03-20T23:33:54.410Z
-Stopped at: Completed 12-06-PLAN.md
+Last session: 2026-03-20
+Stopped at: Milestone v2.0 archived
 Resume file: None
