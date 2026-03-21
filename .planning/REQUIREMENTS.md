@@ -38,7 +38,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 - [ ] **MOT-02**: Animated counter component for numeric transitions
 - [ ] **MOT-03**: Card flip and spring physics micro-interactions
 - [ ] **MOT-04**: Bottom sheet gesture interactions replacing modal components
-- [ ] **MOT-05**: Shimmer animation system for skeleton loading
+- [x] **MOT-05**: Shimmer animation system for skeleton loading
 
 ### Screen Migration
 
@@ -111,7 +111,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOT-02 | Phase 15 | Pending |
 | MOT-03 | Phase 15 | Pending |
 | MOT-04 | Phase 15 | Pending |
-| MOT-05 | Phase 15 | Pending |
+| MOT-05 | Phase 15 | Complete |
 | SCR-01 | Phase 16 | Pending |
 | SCR-02 | Phase 16 | Pending |
 | SCR-03 | Phase 16 | Pending |
