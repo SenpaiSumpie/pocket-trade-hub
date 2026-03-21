@@ -60,7 +60,11 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
   3. Existing screens render identically after migration -- the backward-compatible theme.ts shim keeps all un-migrated components working
   4. Web CSS custom properties are generated from the same TS token source, and both platforms show identical color/spacing values
   5. A hardcoded value audit has been completed across all 71+ theme-referencing files, with a migration tracking list produced
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 13-01-PLAN.md -- Token package (primitives + semantic) and backward-compatible theme.ts shim
+- [ ] 13-02-PLAN.md -- CSS token generation script and web app integration
+- [ ] 13-03-PLAN.md -- Hardcoded value audit script and migration tracking list
 
 ### Phase 14: Navigation Shell and App Chrome
 **Goal**: The app frame (tab bar, headers, icons, typography) feels custom and polished before any screen content is touched
@@ -153,7 +157,7 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 10. Internationalization | v2.0 | 3/3 | Complete | 2026-03-19 |
 | 11. Intelligence | v2.0 | 5/5 | Complete | 2026-03-20 |
 | 12. Web App Companion | v2.0 | 7/7 | Complete | 2026-03-20 |
-| 13. Design System Foundation | v3.0 | 0/TBD | Not started | - |
+| 13. Design System Foundation | v3.0 | 0/3 | Not started | - |
 | 14. Navigation Shell and App Chrome | v3.0 | 0/TBD | Not started | - |
 | 15. Animation Utilities and Motion System | v3.0 | 0/TBD | Not started | - |
 | 16. Screen Migration Tier 1 | v3.0 | 0/TBD | Not started | - |
