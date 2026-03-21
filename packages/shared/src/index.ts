@@ -199,3 +199,6 @@ export type {
   PostType,
   PostStatus,
 } from './schemas/post';
+
+// Design tokens
+export { palette, colors, typography as tokenTypography, spacing, elevation, motion, borderRadius } from './tokens';
