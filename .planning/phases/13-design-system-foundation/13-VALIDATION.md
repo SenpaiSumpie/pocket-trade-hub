@@ -38,11 +38,12 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 13-01-01 | 01 | 1 | DS-01 | unit | `cd packages/shared && pnpm test -- --testPathPattern=tokens` | ❌ W0 | ⬜ pending |
-| 13-01-02 | 01 | 1 | DS-02 | unit | `cd packages/shared && pnpm test -- --testPathPattern=tokens` | ❌ W0 | ⬜ pending |
-| 13-02-01 | 02 | 1 | DS-03 | unit | `cd packages/shared && pnpm test -- --testPathPattern=theme-shim` | ❌ W0 | ⬜ pending |
-| 13-03-01 | 03 | 2 | DS-04 | unit | `cd packages/shared && pnpm test -- --testPathPattern=generate-css` | ❌ W0 | ⬜ pending |
-| 13-04-01 | 04 | 2 | DS-05 | unit | `cd packages/shared && pnpm test -- --testPathPattern=audit` | ❌ W0 | ⬜ pending |
+| 13-01-T1 | 01 | 1 | DS-01, DS-02 | unit | `cd packages/shared && pnpm test -- --testPathPattern=tokens` | ❌ W0 | ⬜ pending |
+| 13-01-T2 | 01 | 1 | DS-03 | unit + tsc | `cd packages/shared && pnpm test -- --testPathPattern=theme-shim && cd ../../apps/mobile && npx tsc --noEmit` | ❌ W0 | ⬜ pending |
+| 13-02-T1 | 02 | 2 | DS-04 | unit | `cd packages/shared && pnpm test -- --testPathPattern=generate-css` | ❌ W0 | ⬜ pending |
+| 13-02-T2 | 02 | 2 | DS-04 | integration + tsc | `cd packages/shared && npx tsx scripts/generate-css-tokens.ts && grep "@theme" ../../apps/web/src/app/tokens.css && cd ../../apps/web && npx tsc --noEmit` | n/a | ⬜ pending |
+| 13-03-T1 | 03 | 2 | DS-05 | unit | `cd packages/shared && pnpm test -- --testPathPattern=audit` | ❌ W0 | ⬜ pending |
+| 13-03-T2 | 03 | 2 | DS-05 | integration | `test -f .planning/phases/13-design-system-foundation/AUDIT.md && grep "Suggested Token" .planning/phases/13-design-system-foundation/AUDIT.md` | n/a | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
