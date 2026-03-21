@@ -26,11 +26,11 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Navigation
 
-- [ ] **NAV-01**: Custom animated tab bar with icon morphing and indicator slide
+- [x] **NAV-01**: Custom animated tab bar with icon morphing and indicator slide
 - [ ] **NAV-02**: Custom collapsible scroll header
 - [x] **NAV-03**: Inter font integration via expo-font config plugin
 - [x] **NAV-04**: Phosphor icon migration replacing Ionicons
-- [ ] **NAV-05**: Haptic feedback on tab switch
+- [x] **NAV-05**: Haptic feedback on tab switch
 
 ### Motion
 
@@ -102,11 +102,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CL-04 | Phase 16 | Pending |
 | CL-05 | Phase 16 | Pending |
 | CL-06 | Phase 16 | Pending |
-| NAV-01 | Phase 14 | Pending |
+| NAV-01 | Phase 14 | Complete |
 | NAV-02 | Phase 14 | Pending |
 | NAV-03 | Phase 14 | Complete |
 | NAV-04 | Phase 14 | Complete |
-| NAV-05 | Phase 14 | Pending |
+| NAV-05 | Phase 14 | Complete |
 | MOT-01 | Phase 15 | Pending |
 | MOT-02 | Phase 15 | Pending |
 | MOT-03 | Phase 15 | Pending |
