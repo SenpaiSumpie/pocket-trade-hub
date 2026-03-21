@@ -11,6 +11,8 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
+import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { useMarketplace } from '@/src/hooks/useMarketplace';
 import { MarketFilters } from '@/src/components/market/MarketFilters';
@@ -20,6 +22,7 @@ import { PostCreationModal } from '@/src/components/market/PostCreationModal';
 import type { MarketPost } from '@/src/stores/posts';
 
 export default function MarketScreen() {
+  const { scrollHandler, headerStyle, searchRowStyle, titleStyle, borderStyle, HEADER_MAX } = useCollapsibleHeader();
   const { t } = useTranslation();
   const { posts, loading, hasMore, refresh, loadMore } = useMarketplace();
   const [selectedPost, setSelectedPost] = useState<MarketPost | null>(null);
@@ -81,7 +84,15 @@ export default function MarketScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MarketFilters />
+      <CollapsibleHeader
+        title={t('market.title', { defaultValue: 'Market' })}
+        headerStyle={headerStyle}
+        searchRowStyle={searchRowStyle}
+        titleStyle={titleStyle}
+        borderStyle={borderStyle}
+      >
+        <MarketFilters />
+      </CollapsibleHeader>
 
       <FlashList
         data={posts}
@@ -92,6 +103,8 @@ export default function MarketScreen() {
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -100,7 +113,7 @@ export default function MarketScreen() {
             colors={[colors.primary]}
           />
         }
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ ...styles.listContent, paddingTop: HEADER_MAX }}
       />
 
       {/* FAB to create post */}

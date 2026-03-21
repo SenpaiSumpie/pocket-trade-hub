@@ -16,7 +16,13 @@ const SORT_OPTIONS: Array<{ key: SortOption; labelKey: string }> = [
   { key: 'newest', labelKey: 'meta.sortNewest' },
 ];
 
-export function TierListBrowser() {
+interface TierListBrowserProps {
+  onScroll?: any;
+  scrollEventThrottle?: number;
+  contentContainerStyleExtra?: Record<string, any>;
+}
+
+export function TierListBrowser({ onScroll, scrollEventThrottle, contentContainerStyleExtra }: TierListBrowserProps = {}) {
   const { t } = useTranslation();
   const tierLists = useTierListStore((s) => s.tierLists);
   const loading = useTierListStore((s) => s.loading);
@@ -106,7 +112,9 @@ export function TierListBrowser() {
         onRefresh={handleRefresh}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.3}
-        contentContainerStyle={styles.listContent}
+        onScroll={onScroll}
+        scrollEventThrottle={scrollEventThrottle ?? 16}
+        contentContainerStyle={{ ...styles.listContent, ...contentContainerStyleExtra }}
         ListFooterComponent={
           loading && tierLists.length > 0 ? (
             <ActivityIndicator

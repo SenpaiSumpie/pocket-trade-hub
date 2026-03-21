@@ -16,7 +16,13 @@ const SORT_OPTIONS: Array<{ key: SortOption; labelKey: string }> = [
   { key: 'trending', labelKey: 'meta.trending' },
 ];
 
-export function DeckRankingList() {
+interface DeckRankingListProps {
+  onScroll?: any;
+  scrollEventThrottle?: number;
+  contentContainerStyleExtra?: Record<string, any>;
+}
+
+export function DeckRankingList({ onScroll, scrollEventThrottle, contentContainerStyleExtra }: DeckRankingListProps = {}) {
   const { t } = useTranslation();
   const decks = useMetaStore((s) => s.decks);
   const loading = useMetaStore((s) => s.loading);
@@ -145,7 +151,9 @@ export function DeckRankingList() {
         estimatedItemSize={90}
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        contentContainerStyle={styles.listContent}
+        onScroll={onScroll}
+        scrollEventThrottle={scrollEventThrottle ?? 16}
+        contentContainerStyle={{ ...styles.listContent, ...contentContainerStyleExtra }}
         ListFooterComponent={
           scrapedAt ? (
             <Text style={styles.footerText}>

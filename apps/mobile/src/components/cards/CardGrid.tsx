@@ -25,6 +25,9 @@ interface CardGridProps {
   checklistMode?: boolean;
   checklistSelections?: Set<string>;
   onCheckToggle?: (cardId: string) => void;
+  onScroll?: any;
+  scrollEventThrottle?: number;
+  contentContainerStyleExtra?: Record<string, any>;
 }
 
 function SkeletonCard() {
@@ -97,6 +100,9 @@ export function CardGrid({
   checklistMode = false,
   checklistSelections,
   onCheckToggle,
+  onScroll,
+  scrollEventThrottle,
+  contentContainerStyleExtra,
 }: CardGridProps) {
   if (loading && cards.length === 0) {
     return <LoadingSkeleton />;
@@ -151,9 +157,11 @@ export function CardGrid({
           />
         ) : null
       }
-      contentContainerStyle={{ paddingHorizontal: spacing.xs }}
+      contentContainerStyle={{ paddingHorizontal: spacing.xs, ...contentContainerStyleExtra }}
       onRefresh={onRefresh}
       refreshing={refreshing}
+      onScroll={onScroll}
+      scrollEventThrottle={scrollEventThrottle ?? 16}
     />
   );
 }

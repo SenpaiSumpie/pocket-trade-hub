@@ -14,6 +14,8 @@ import { ProposalCard } from '@/src/components/trades/ProposalCard';
 import { ProposalDetailModal } from '@/src/components/trades/ProposalDetailModal';
 import { RatingModal } from '@/src/components/trades/RatingModal';
 import { useTranslation } from 'react-i18next';
+import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
+import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradePost, TradeProposal } from '@pocket-trade-hub/shared';
 
@@ -37,6 +39,7 @@ const DIRECTION_KEYS: { value: ProposalDirection; labelKey: string }[] = [
 ];
 
 export default function TradesScreen() {
+  const { scrollHandler, headerStyle, searchRowStyle, titleStyle, borderStyle, HEADER_MAX } = useCollapsibleHeader();
   const { t } = useTranslation();
   const { myPosts, myPostsLoading, fetchMyPosts } = usePosts();
   const { proposals, loading: proposalsLoading, fetchProposals, direction } = useProposals();
@@ -149,44 +152,52 @@ export default function TradesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Tab bar */}
-      <View style={styles.tabBar}>
-        {SEGMENT_KEYS.map((seg, i) => {
-          const active = activeSegment === seg.key;
-          const badgeCount = seg.key === 'posts' ? activePostCount : pendingProposalCount;
-          return (
-            <View key={seg.key} style={styles.tabItemWrapper}>
-              {i > 0 && <View style={styles.tabDivider} />}
-              <Pressable
-                style={[styles.tabItem, active && styles.tabItemActive]}
-                onPress={() => handleSegmentSwitch(seg.key)}
-              >
-                <View style={styles.tabIconContainer}>
-                  <Ionicons
-                    name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
-                    size={18}
-                    color={active ? colors.primary : colors.textMuted}
-                  />
-                  {badgeCount > 0 && (
-                    <View style={styles.tabBadge}>
-                      <Text style={styles.tabBadgeText}>
-                        {badgeCount > 99 ? '99+' : badgeCount}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                  {t(seg.labelKey)}
-                </Text>
-              </Pressable>
-            </View>
-          );
-        })}
-      </View>
+      <CollapsibleHeader
+        title={t('tabs.trades', { defaultValue: 'Trades' })}
+        headerStyle={headerStyle}
+        searchRowStyle={searchRowStyle}
+        titleStyle={titleStyle}
+        borderStyle={borderStyle}
+      >
+        {/* Tab bar */}
+        <View style={styles.tabBar}>
+          {SEGMENT_KEYS.map((seg, i) => {
+            const active = activeSegment === seg.key;
+            const badgeCount = seg.key === 'posts' ? activePostCount : pendingProposalCount;
+            return (
+              <View key={seg.key} style={styles.tabItemWrapper}>
+                {i > 0 && <View style={styles.tabDivider} />}
+                <Pressable
+                  style={[styles.tabItem, active && styles.tabItemActive]}
+                  onPress={() => handleSegmentSwitch(seg.key)}
+                >
+                  <View style={styles.tabIconContainer}>
+                    <Ionicons
+                      name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                      size={18}
+                      color={active ? colors.primary : colors.textMuted}
+                    />
+                    {badgeCount > 0 && (
+                      <View style={styles.tabBadge}>
+                        <Text style={styles.tabBadgeText}>
+                          {badgeCount > 99 ? '99+' : badgeCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                    {t(seg.labelKey)}
+                  </Text>
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+      </CollapsibleHeader>
 
       {/* Filter row */}
       {activeSegment === 'proposals' && (
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { marginTop: HEADER_MAX }]}>
           {/* Active / History toggle */}
           <View style={styles.viewToggle}>
             <Pressable
@@ -248,7 +259,7 @@ export default function TradesScreen() {
 
       {/* Loading state */}
       {loading && isEmpty ? (
-        <View style={styles.centerContainer}>
+        <View style={[styles.centerContainer, { paddingTop: HEADER_MAX }]}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>
             {activeSegment === 'posts' ? t('trades.loadingPosts') : t('trades.loadingProposals')}
@@ -256,7 +267,7 @@ export default function TradesScreen() {
         </View>
       ) : !loading && isEmpty ? (
         /* Empty state */
-        <View style={styles.centerContainer}>
+        <View style={[styles.centerContainer, { paddingTop: HEADER_MAX }]}>
           {activeSegment === 'posts' ? (
             <>
               <Ionicons name="newspaper-outline" size={64} color={colors.textMuted} />
@@ -298,7 +309,9 @@ export default function TradesScreen() {
           estimatedItemSize={100}
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          contentContainerStyle={styles.listContent}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ ...styles.listContent, paddingTop: HEADER_MAX }}
         />
       ) : (
         /* Proposal list */
@@ -315,7 +328,9 @@ export default function TradesScreen() {
           estimatedItemSize={180}
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          contentContainerStyle={styles.listContent}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ ...styles.listContent, paddingTop: HEADER_MAX }}
         />
       )}
 

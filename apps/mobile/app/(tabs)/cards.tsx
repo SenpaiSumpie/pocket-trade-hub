@@ -14,6 +14,8 @@ import { useCardsStore } from '@/src/stores/cards';
 import { useCollectionStore } from '@/src/stores/collection';
 import { useLoadCollection, useAddToCollection, useRemoveFromCollection, useUpdateQuantity, useBulkUpdateCollection } from '@/src/hooks/useCollection';
 import { useLoadWanted, useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
+import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
+import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
 
@@ -38,6 +40,7 @@ const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; icon: keyof typeof Ioni
 ];
 
 export default function CardsScreen() {
+  const { scrollHandler, headerStyle, searchRowStyle, titleStyle, borderStyle, HEADER_MAX } = useCollapsibleHeader();
   const { t } = useTranslation();
   const { sets, loading: setsLoading } = useSets();
   const {
@@ -268,33 +271,43 @@ export default function CardsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Tab bar with icons and dividers */}
-      <View style={styles.tabBar}>
-        {SEGMENT_KEYS.map((seg, i) => {
-          const active = mode === seg.key;
-          return (
-            <View key={seg.key} style={styles.tabItemWrapper}>
-              {i > 0 && <View style={styles.tabDivider} />}
-              <Pressable
-                style={[styles.tabItem, active && styles.tabItemActive]}
-                onPress={() => handleModeSwitch(seg.key)}
-              >
-                <Ionicons
-                  name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
-                  size={18}
-                  color={active ? colors.primary : colors.textMuted}
-                />
-                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                  {t(seg.labelKey)}
-                </Text>
-              </Pressable>
-            </View>
-          );
-        })}
-      </View>
+      <CollapsibleHeader
+        title={t('tabs.cards')}
+        headerStyle={headerStyle}
+        searchRowStyle={searchRowStyle}
+        titleStyle={titleStyle}
+        borderStyle={borderStyle}
+      >
+        {/* Tab bar with icons and dividers */}
+        <View style={styles.tabBar}>
+          {SEGMENT_KEYS.map((seg, i) => {
+            const active = mode === seg.key;
+            return (
+              <View key={seg.key} style={styles.tabItemWrapper}>
+                {i > 0 && <View style={styles.tabDivider} />}
+                <Pressable
+                  style={[styles.tabItem, active && styles.tabItemActive]}
+                  onPress={() => handleModeSwitch(seg.key)}
+                >
+                  <Ionicons
+                    name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                    size={18}
+                    color={active ? colors.primary : colors.textMuted}
+                  />
+                  <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                    {t(seg.labelKey)}
+                  </Text>
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+      </CollapsibleHeader>
 
       {/* Search bar */}
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+      <View style={{ paddingTop: HEADER_MAX }}>
+        <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+      </View>
 
       {/* Set filter dropdown + language chip */}
       {!isSearchMode && !setsLoading && (
@@ -434,6 +447,8 @@ export default function CardsScreen() {
           onCardLongPress={(card) => handleLongPress(card)}
           checklistMode={multiSelectMode}
           checklistSelections={multiSelectIds}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           onCheckToggle={(cardId) => {
             setMultiSelectIds((prev) => {
               const next = new Set(prev);
