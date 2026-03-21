@@ -93,7 +93,13 @@ Plans:
   3. Card elements support flip animations and spring physics micro-interactions driven by Reanimated on the UI thread
   4. Modal-based detail views have been replaced by gesture-driven bottom sheets with drag-to-dismiss
   5. Skeleton loading placeholders use a consistent shimmer animation that matches the content layout they replace
-**Plans**: TBD
+**Plans:** 5 plans
+Plans:
+- [ ] 15-01-PLAN.md -- Spring/timing presets, useAnimatedPress, useStaggeredList hooks
+- [ ] 15-02-PLAN.md -- AnimatedCounter component, useCardFlip, useCardTilt hooks
+- [ ] 15-03-PLAN.md -- Shimmer animation system (useShimmer, Shimmer, ShimmerBox, ShimmerCircle, ShimmerText)
+- [ ] 15-04-PLAN.md -- Bottom sheet dependencies, GestureHandlerRootView, DetailSheet wrapper
+- [ ] 15-05-PLAN.md -- Convert 6 detail modals to DetailSheet bottom sheets
 
 ### Phase 16: Screen Migration Tier 1
 **Goal**: The three highest-traffic tabs (Home, Cards, Trades) are fully refreshed with new primitives, loading states, empty states, and motion -- delivering visible impact to the most users
@@ -163,8 +169,8 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 11. Intelligence | v2.0 | 5/5 | Complete | 2026-03-20 |
 | 12. Web App Companion | v2.0 | 7/7 | Complete | 2026-03-20 |
 | 13. Design System Foundation | v3.0 | 3/3 | Complete    | 2026-03-21 |
-| 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete   | 2026-03-21 |
-| 15. Animation Utilities and Motion System | v3.0 | 0/TBD | Not started | - |
+| 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
+| 15. Animation Utilities and Motion System | v3.0 | 0/5 | Planned | - |
 | 16. Screen Migration Tier 1 | v3.0 | 0/TBD | Not started | - |
 | 17. Screen Migration Tier 2 | v3.0 | 0/TBD | Not started | - |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
