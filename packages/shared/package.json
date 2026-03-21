@@ -6,7 +6,8 @@
   "types": "src/index.ts",
   "scripts": {
     "test": "jest",
-    "build": "echo 'shared package uses source imports'"
+    "build": "echo 'shared package uses source imports'",
+    "generate-tokens": "npx tsx scripts/generate-css-tokens.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"
