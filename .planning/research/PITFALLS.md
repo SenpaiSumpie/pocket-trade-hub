@@ -1,265 +1,260 @@
 # Pitfalls Research
 
-**Domain:** Pokemon TCG Pocket Trading Platform -- v2.0 Feature Additions
-**Researched:** 2026-03-11
-**Confidence:** HIGH (based on codebase analysis, competitor research, and established patterns)
+**Domain:** UI/UX Overhaul for Existing React Native + Next.js Trading App (v3.0)
+**Researched:** 2026-03-20
+**Confidence:** HIGH (based on codebase analysis of 50+ mobile components, web companion, theme system, and established refactoring patterns)
 
 ## Critical Pitfalls
 
-### Pitfall 1: Post-Based Model Migration Destroys Existing Matching/Proposal Chain
+### Pitfall 1: Big-Bang Refactor Breaks Working Features
 
 **What goes wrong:**
-The v1.0 schema tightly couples proposals to matches via `tradeProposals.matchId` referencing `tradeMatches.id`. The `createProposalSchema` in `packages/shared` requires `matchId` as a non-optional string. Moving to a post-based model (Offering/Seeking posts) means matches no longer originate from the automatic engine -- they originate from posts. If the migration drops or restructures `tradeMatches` without accounting for existing proposals, all in-progress proposals lose their context. Worse, the mobile app's `ProposalCreationModal` and `ProposalDetailModal` depend on match data to display what each party offers/wants.
+Attempting to refactor all 50+ mobile components and 30+ web components simultaneously creates a period where nothing works. Screens that depend on each other (e.g., MatchCard -> MatchDetailModal -> ProposalCreationModal) break when one is updated but its dependencies are not. The app becomes unusable for days or weeks during the transition, making it impossible to ship hotfixes for the working v2.0.
 
 **Why it happens:**
-Developers treat the post-based model as a replacement for matching rather than an evolution. The automatic matching system in `match.service.ts` computes two-way matches from collection/wanted data, stores them in `tradeMatches`, and proposals reference those matches. The temptation is to rip out `tradeMatches` entirely, but proposals in-flight depend on that data.
+The temptation in a "visual overhaul" is to redesign everything at once because piecemeal updates look inconsistent. Developers start with the design system foundation, then begin converting components, discover each component touches 3-4 others, and the blast radius expands until the entire app is in a broken intermediate state. This project has deep component nesting: tab screens -> list components -> card components -> modals -> sub-modals, all sharing `colors`/`spacing`/`borderRadius` from `theme.ts`.
 
 **How to avoid:**
-- Use the expand-contract pattern: add `tradePosts` table and `postId` column on `tradeProposals` alongside existing `matchId`. Make `matchId` nullable in the schema (it is already nullable in the DB column definition but required in the Zod schema).
-- Keep automatic matching running in parallel during transition. Let it coexist with posts -- users who have not adopted posts still get matched automatically.
-- Migrate the `createProposalSchema` to accept either `matchId` or `postId` (union type) so proposals can originate from either source.
-- Only deprecate automatic matching after post adoption is confirmed via analytics.
+- Use a strangler fig pattern: create new design system tokens alongside the old `theme.ts`. New components import from the new system, old components keep working with the old one. Migrate screen-by-screen, not component-by-component.
+- Define a migration order based on dependency depth: leaf components first (RarityBadge, PremiumBadge), then containers (MatchCard, PostCard), then screens (trades tab, market tab), then navigation shell (tab layout).
+- Every PR must leave the app in a shippable state. No "WIP" commits that break existing flows.
+- Keep `main` branch deployable at all times. Use a feature branch for the overhaul, but merge frequently with small, contained changes.
 
 **Warning signs:**
-- Proposals failing validation because `matchId` is missing.
-- Mobile app crashes when opening old proposals that reference deleted matches.
-- Users report "my trades disappeared" after update.
+- More than 20 files changed in a single PR.
+- Component imports shifting between old and new systems in the same file.
+- Manual QA finding regressions in features that were not intentionally touched.
+- "I'll fix that after I finish this other component" comments accumulating.
 
 **Phase to address:**
-Phase 1 (Post Model) -- must be the FIRST feature built because it is an architecture overhaul that every subsequent feature depends on.
+Phase 1 (Design System Foundation) must establish the coexistence strategy. Every subsequent phase must follow the incremental migration discipline.
 
 ---
 
-### Pitfall 2: Card Language Mismatch in Trades (The PokeHub Problem)
+### Pitfall 2: Design Token Explosion -- Over-Engineering the Token System
 
 **What goes wrong:**
-Users post cards in one language (e.g., Japanese Pikachu) but partners expect another language (e.g., English Pikachu). Pokemon TCG Pocket restricts trades to same-language cards. If the app does not enforce or clearly display card language at every step -- post creation, search results, proposal creation, proposal review -- users complete the coordination flow only to discover they cannot execute the trade in-game. This is PokeHub's most-reported UX failure.
+Creating hundreds of design tokens for every conceivable variant: `color-surface-card-hover-active`, `spacing-card-inner-horizontal-compact`, `border-radius-modal-header-left`. The token system becomes harder to learn than the old hardcoded values, slowing development to a crawl. New features take 3x longer because developers spend more time finding the right token than writing the component.
 
 **Why it happens:**
-The current `cards` table has a single `name` field with no `language` column. Card IDs from TCGdex are language-agnostic (same card, different language = different TCGdex ID). When adding multi-language support, developers add the language column to the database but forget to propagate it through every UI surface -- search filters, post creation, proposal cards display, and match results.
+Design system literature emphasizes tokens as the foundation. Developers, wanting to "do it right," create tokens for every value that appears in the codebase. The current `theme.ts` has 13 colors, 5 typography presets, 5 spacing values, and 4 border radii -- a total of ~27 tokens. Replacing this with 200+ semantic tokens is a net productivity loss for a 1-2 developer team.
 
 **How to avoid:**
-- Add `language` column to `cards` table and `userCollectionItems` (users may own cards in multiple languages).
-- Display language badges on EVERY card surface -- collection, search, posts, proposals.
-- Add a language filter that defaults to the user's game language and prominently warns when viewing cross-language results.
-- Validate at proposal creation that both sides' cards share the same language.
-- The card seed script must import cards per-language from TCGdex, not just English.
+- Keep it simple: the current `theme.ts` structure (flat color palette, spacing scale, typography presets, border radius scale) is already a design token system. Extend it, do not replace it with an enterprise-grade token architecture.
+- Cap at 3 layers maximum: primitive values -> semantic aliases -> component tokens. For this project, 2 layers (primitive + semantic) is sufficient.
+- Target 40-60 total tokens, not 200+. If a token is used in only one component, it should be a local constant, not a design token.
+- Measure: if adding a new screen requires looking up tokens more than twice, the system is too complex.
 
 **Warning signs:**
-- Cards display without language indicators anywhere in the UI.
-- No language filter on search or post browsing screens.
-- Proposals can be created between cards of different languages with no warning.
+- Token file exceeds 100 lines.
+- Developers copy-pasting hex values because they cannot find the right token name.
+- Token names requiring a naming convention document to understand.
+- Debates about token naming taking longer than implementing the feature.
 
 **Phase to address:**
-Phase 1 or 2 (Multi-Language Card Database) -- must ship BEFORE or WITH the post-based model, not after. Language-blind trading is the single biggest user complaint in the competitor app.
+Phase 1 (Design System Foundation) -- set a hard token count budget before writing code.
 
 ---
 
-### Pitfall 3: OAuth Account Linking Creates Duplicate/Orphaned Accounts
+### Pitfall 3: Cross-Platform Style Divergence Worsens During Overhaul
 
 **What goes wrong:**
-A user who registered with email/password tries to sign in with Google using the same email. The app creates a new account instead of linking to the existing one, resulting in duplicate accounts with split collection data. Conversely, Apple Sign-In's "Hide My Email" feature generates a `privaterelay.appleid.com` proxy email that never matches any existing account, so the user cannot link their Apple ID to their existing account.
+The mobile app uses `StyleSheet.create` with a `theme.ts` constants file. The web app uses Tailwind v4 with CSS `@theme` variables. The two already have divergent color values -- mobile background is `#0f0f1a`, web is `#0a0a0a`. During the overhaul, the gap widens because designers/developers work on mobile first (it is the primary platform), and web updates lag behind or use different visual decisions. Users who switch between platforms see two different apps.
 
 **Why it happens:**
-The current `users` table stores `email` and `passwordHash` with no OAuth provider columns. Adding OAuth without an account-linking flow means the app has no way to associate a Google/Apple identity with an existing email/password user. Developers add OAuth as a separate registration path without considering existing users.
+React Native and CSS have fundamentally different styling models. There is no shared stylesheet format. The current project has zero shared design tokens between `apps/mobile/src/constants/theme.ts` and `apps/web/src/app/globals.css`. Without a single source of truth, each platform drifts independently, especially under time pressure where "we'll sync it later" becomes permanent.
 
 **How to avoid:**
-- Add `authProviders` junction table: `userId, provider (google|apple|email), providerUserId, providerEmail`.
-- On OAuth sign-in, check if an email match exists (for Google where email is available). If yes, prompt the user to link accounts by verifying their existing password.
-- For Apple's hidden email: store the Apple user ID as the linking key, not email. On first Apple sign-in, require the user to confirm their existing account (enter email + password) to link.
-- Never auto-merge accounts silently -- always require user confirmation.
-- Add an account settings screen where users can view/manage linked providers.
+- Create a single source of truth: `packages/shared/src/tokens.ts` that exports platform-agnostic token values (plain objects/numbers). Mobile imports and maps to StyleSheet values. Web has a build step (or manual sync) that generates the `@theme` CSS variables from the same source.
+- Alternatively (simpler): maintain a `TOKENS.md` spec document and manually keep both platforms in sync. Less elegant but realistic for a small team.
+- Pick one: standardize both platforms on the same hex values NOW. The `#0f0f1a` vs `#0a0a0a` background discrepancy should be resolved in Phase 1 before any further visual work.
+- Review both platforms side-by-side after every screen refactor, not just the platform being worked on.
 
 **Warning signs:**
-- Users report "I can't find my cards" after signing in with Google.
-- Database shows duplicate emails or users with zero collection who should have data.
-- Support requests about "lost accounts."
+- Mobile and web use different hex values for the same semantic color.
+- PRs that only touch `apps/mobile` for visual changes with no corresponding web update.
+- Users or testers noting "the web looks different" without anyone having intentionally changed it.
 
 **Phase to address:**
-Phase 2 (OAuth) -- design the linking flow BEFORE implementing the OAuth providers. The database schema change (authProviders table) should be in the same migration.
+Phase 1 (Design System Foundation) -- token unification must happen before any screen-level visual work begins.
 
 ---
 
-### Pitfall 4: Web App Shares Too Much or Too Little with Mobile
+### Pitfall 4: Navigation Restructuring Breaks Deep Links, Back Stacks, and State
 
 **What goes wrong:**
-Adding a web app (`apps/web`) to the Turborepo monorepo leads to one of two failure modes. (A) Over-sharing: importing mobile components that use React Native APIs (`Animated`, `FlatList`, `TouchableOpacity`, platform-specific storage) into the web app, causing build failures or runtime crashes. (B) Under-sharing: duplicating all business logic and Zod schemas instead of using the shared package, leading to divergent behavior between web and mobile.
+Restructuring the information architecture -- e.g., moving from 6 tabs to 4 tabs, adding drawer navigation, restructuring modal flows -- breaks Expo Router's file-based routing paths. Existing deep links (push notifications linking to `/card/[id]` or `/notifications`) stop working. The Zustand stores that load data based on which screen is mounted (e.g., `useMatchSocket` in tab layout, `fetchUnreadCount` on login) lose their mounting points if the layout tree changes. Users pressing back get unexpected behavior because the new stack does not match the old mental model.
 
 **Why it happens:**
-The current monorepo has `apps/mobile` (Expo/React Native) and `packages/shared` (Zod schemas). The shared package only contains schemas -- no hooks, no API client, no business logic. When building the web app, developers either try to import from `apps/mobile/src` directly (breaks) or rebuild everything from scratch (diverges).
+Expo Router ties navigation to the filesystem (`app/(tabs)/`, `app/(auth)/`, `app/card/[id].tsx`). Renaming or restructuring these directories changes the URL paths. The current tab layout at `app/(tabs)/_layout.tsx` mounts Socket.IO, fetches notification counts, and manages premium status. Moving these responsibilities to a different layout level or splitting tabs means these side effects need new homes. Developers focus on the visual layout change and forget the invisible state management wired into the navigation tree.
 
 **How to avoid:**
-- Extract shared business logic into `packages/shared` BEFORE building the web app: API client, Zod schemas (already there), type definitions, fairness calculation, constants.
-- Keep UI components platform-specific: `apps/mobile/src/components` and `apps/web/src/components` -- do NOT try to share React Native components with web.
-- Use React Native for Web (via Expo) only if committing to a single codebase. If building a separate Next.js/React web app, do not import anything from `react-native`.
-- Shared hooks that use platform-agnostic APIs (fetch, Zod validation) go in `packages/shared`. Hooks that use AsyncStorage, SecureStore, or React Native modules stay in `apps/mobile`.
-- Zustand stores can be shared IF they do not import platform-specific persistence.
+- Map every current route and its side effects before restructuring. Document: route path, what loads on mount, what stores are affected, which push notification actions link to it.
+- If renaming routes, add redirect aliases from old paths to new paths so deep links and push notifications continue working during the transition.
+- Move side effects (Socket.IO connection, notification polling, premium status fetch) out of the tab layout into a dedicated provider component that lives above the navigation tree. This decouples state management from navigation structure.
+- Test push notification deep links explicitly after every navigation change -- they are the most commonly broken flow.
 
 **Warning signs:**
-- Web build fails with "Cannot resolve module react-native."
-- Same API endpoint behaves differently on web vs mobile.
-- Bug fixes applied to one platform but not the other.
-- Shared package imports growing to include React Native dependencies.
+- Push notification taps opening the wrong screen or the home screen.
+- Back button behavior feeling "wrong" (extra screens in the stack, or jumping to unexpected places).
+- Socket.IO disconnecting when switching between certain screens.
+- "White flash" between screens because layout mounts changed.
 
 **Phase to address:**
-Dedicated phase for shared package refactoring BEFORE the web app phase. Extract the API client and business logic first, then build the web app consuming those shared packages.
+Dedicated navigation restructuring phase -- do NOT mix navigation changes with visual component changes. Navigation restructuring should be its own phase, completed and verified before visual updates begin on the new screen structure.
 
 ---
 
-### Pitfall 5: Card Scanning Frustration Loop -- Low Accuracy Kills Trust
+### Pitfall 5: Animation Performance Tanks on Low-End Android Devices
 
 **What goes wrong:**
-Card scanning using camera/screenshot recognition achieves 80-85% accuracy in initial implementation. Users scan a card, get the wrong result, manually correct it, and after 3-4 bad scans, abandon the feature entirely. Worse, if incorrect scans silently add wrong cards to inventory, users discover errors later when trades fail. Pokemon TCG Pocket cards have subtle visual differences (same art, different rarity symbols) that trip up image recognition.
+Adding micro-interactions, transitions, and polish animations (card flip effects, skeleton loading shimmer, spring-based tab transitions, parallax scrolling) works beautifully on an iPhone 15 or Pixel 8 but causes visible jank, dropped frames, or complete freezes on budget Android devices (Samsung Galaxy A series, Xiaomi Redmi). The app feels worse after the "polish" phase than before it.
 
 **Why it happens:**
-Pokemon cards in the same set often share artwork across rarity variants (e.g., a regular Pikachu and a full-art Pikachu look nearly identical in photos). OCR struggles with the small rarity diamonds/stars. Developers ship the feature targeting the happy path (good lighting, flat card, clear shot) but real-world usage involves glare, angles, and screenshots with UI overlays.
+The current app uses `Animated` from react-native in only 3 files (CardGrid, CardThumbnail, FairnessMeter) -- it is essentially animation-free. Adding animations in a concentrated "polish" phase means adding dozens of animated components at once without incremental performance testing. React Native's `Animated` API runs on the JS thread by default. Even `useNativeDriver: true` only offloads opacity/transform -- layout animations still block the JS thread. Budget Android devices have 2-3GB RAM and slow CPUs that cannot handle 60fps animations alongside FlatList rendering and data fetching.
 
 **How to avoid:**
-- Always show a confirmation screen after scan with the detected card prominently displayed. NEVER auto-add to collection.
-- Show top-3 candidate matches with confidence scores, letting the user tap the correct one.
-- Support screenshot import (from game's collection screen) as the PRIMARY flow -- it is more reliable than camera because it eliminates lighting/angle variables.
-- Use fuzzy matching against the card database (name + set + rarity) rather than pure image matching. A 97% accuracy rate was achieved by combining fuzzy text search with probability analysis.
-- Implement a "report wrong scan" button that feeds back into accuracy improvement.
-- Gate the feature as "Beta" at launch to set expectations.
+- Use `react-native-reanimated` (worklet-based, runs on UI thread) instead of the built-in `Animated` API for any non-trivial animation. This is the single biggest performance lever.
+- Set a performance budget: animations must hit 60fps on a mid-range device (define the reference device -- e.g., Samsung Galaxy A14 or equivalent). Test on a real low-end device, not just the simulator.
+- Avoid animating layout properties (`width`, `height`, `top`, `left`). Stick to `transform` and `opacity` which can use the native driver.
+- Add animations incrementally per-component, not in a "polish all the things" batch phase. Measure before and after each addition.
+- For FlatList-heavy screens (cards tab with potentially hundreds of items), keep row rendering dead simple. No enter/exit animations on list items.
+- Use `LayoutAnimation` sparingly -- it is simple but animates the entire layout tree and can cause jank on complex screens.
 
 **Warning signs:**
-- Users scanning same card repeatedly getting different results.
-- High abandonment rate on the scan screen (analytics).
-- Inventory contains cards the user does not actually own (from silent mis-scans).
+- FPS drops below 50 during any transition (use React Native Perf Monitor).
+- Visible "stutter" when opening modals that have entrance animations.
+- Animations looking smooth on iOS but janky on Android (classic symptom of JS-thread animations).
+- Memory usage climbing during animation-heavy screens (leak from animated values not being cleaned up).
 
 **Phase to address:**
-Later phase (Phase 4+) -- this is a differentiator, not table stakes. Ship it when the core trading flow is solid, and ship it as beta with confirmation-first UX.
+Motion/animation should be the LAST visual phase, after all structural and component changes are stable. Each animation must be profiled individually on a reference device.
 
 ---
 
-### Pitfall 6: AI Trade Suggestions Feel Random Without Enough Data
+### Pitfall 6: Scope Creep -- "Just One More Polish" Infinite Loop
 
 **What goes wrong:**
-AI-powered trade suggestions require understanding card value, user preferences, and market dynamics. With a small user base (early v2.0), collaborative filtering has no signal. The system suggests trades that are technically valid (rarity matches) but feel random -- suggesting a user trade away a card they are actively using in their competitive deck, or suggesting low-demand cards nobody wants.
+The UI/UX overhaul becomes an endless project. After completing the design system and component library, there is always one more screen that "needs a little more work," one more micro-interaction that would "really elevate the experience," one more edge case layout that looks slightly off. The milestone that was supposed to take 2 weeks takes 6 weeks, and v3.0 never ships because the team is perpetually polishing.
 
 **Why it happens:**
-Cold start problem. The v1.0 matching engine uses a simple priority-weighted scoring system (`high=3, medium=2, low=1`). Upgrading to "AI suggestions" without sufficient training data means the model falls back to rule-based heuristics that are barely better than the existing system. Users expect "AI" to be magic, and when it is not, they distrust the feature permanently.
+Visual work has no natural completion boundary -- there is always a way to make something look better. Unlike feature development where "the API returns the right data" is a clear done-state, "the button looks good" is subjective and infinitely refinable. The project has 7 tab screens, 50+ components, and ~20 modals. If each gets 3 rounds of polish, that is 200+ design iterations.
 
 **How to avoid:**
-- Start with enhanced rule-based suggestions, not ML. Use card demand analytics (already in v1.0's `cardAnalytics` table), rarity balance, and community-wide want/have ratios.
-- Label it "Smart Suggestions" not "AI" to manage expectations.
-- Incorporate deck meta data: never suggest trading away cards that are core to popular competitive decks.
-- Add a "Not interested" / "Good suggestion" feedback mechanism to improve over time.
-- Only graduate to ML-based recommendations when you have 1000+ completed trades as training data.
+- Define explicit "done" criteria for each screen BEFORE starting work. "Done" means: uses new design tokens, matches approved mockup within reason, passes accessibility check, tested on iOS and Android. NOT "looks perfect."
+- Set a hard time-box for the entire overhaul milestone. When time runs out, ship what is done. Remaining polish goes to a follow-up milestone.
+- Batch screens into tiers: Tier 1 (high-traffic: home, cards, trades) gets full treatment. Tier 2 (medium: market, meta, profile) gets token migration and basic refresh. Tier 3 (low: onboarding, edit-profile, settings) gets token migration only.
+- No "polish" phase. Polish happens within each screen's phase, not as a separate open-ended phase.
+- Track progress as "screens converted / total screens" not "percentage complete" (which is subjective).
 
 **Warning signs:**
-- Users consistently dismissing suggestions (track dismiss rate).
-- Suggestions that propose trading crown-rarity cards for diamond-1 cards.
-- Suggestions involving cards the user has in their competitive deck.
+- Same screen being revisited more than twice for visual changes.
+- Milestone timeline extending without adding scope.
+- Discussing pixel-level adjustments in reviews instead of structural correctness.
+- "This is almost done, just need to tweak..." repeated for more than 3 days.
 
 **Phase to address:**
-Phase 5+ -- after deck meta, after post-based trading has generated enough trade completion data. The "smart" part requires data that does not exist yet.
+Every phase -- this is a process discipline pitfall, not a technical one. Must be enforced from Phase 1 onward with clear exit criteria per screen.
 
 ---
 
-### Pitfall 7: Local Trade Finder Exposes Precise User Locations
+### Pitfall 7: Accessibility Regressions During Visual Refresh
 
 **What goes wrong:**
-Implementing "nearby traders" by storing and sharing precise GPS coordinates. Users can be stalked or harassed if their exact location is visible. Even city-level granularity can be problematic for smaller towns. Under GDPR, location data is classified as personal data (and potentially sensitive data), requiring explicit opt-in consent, purpose limitation, and data minimization.
+The visual refresh introduces new color combinations that fail WCAG contrast ratios, removes or breaks existing touch targets, or introduces animations that cause issues for users with vestibular disorders. Custom-styled components that previously used React Native's built-in accessibility props (from `TouchableOpacity`, `Pressable`) lose those props when wrapped in custom animated containers or replaced with styled alternatives.
 
 **Why it happens:**
-The simplest implementation stores lat/lng on the user profile and queries by distance. Developers forget that showing "User X is 0.3km away" reveals approximate location, and repeated queries can triangulate exact position. The Pokemon TCG community includes minors, adding child safety concerns under regulations like the UK's Age Appropriate Design Code.
+The current gold-on-dark theme (`#f0c040` on `#0f0f1a`) has a contrast ratio of about 9.5:1 -- excellent. But refining the palette (lighter backgrounds, muted golds, new accent colors) can easily drop below 4.5:1 without anyone noticing until an accessibility audit. Additionally, the existing components use `TouchableOpacity` and `Pressable` which provide built-in `accessibilityRole`, `accessibilityLabel` support. If the overhaul replaces these with custom `View` + gesture handlers for fancier tap interactions, accessibility props get lost.
 
 **How to avoid:**
-- Never store precise coordinates. Snap to a grid (e.g., geohash at 5-character precision = ~5km area).
-- Display distance in ranges ("< 1km", "1-5km", "5-25km") not exact distances.
-- Location sharing must be opt-in, off by default, and easily toggled per-session.
-- Do NOT show location on profile -- only use it for filtering trade results.
-- Add a "city/region" text field as an alternative to GPS for users who refuse location access.
-- Implement server-side distance calculation so raw coordinates are never sent to other clients.
-- Auto-expire location data after 24 hours unless refreshed.
-- Privacy policy must explicitly cover location data collection, purpose, and retention.
+- Run a contrast ratio check on every new color pairing BEFORE implementing. Use the APCA or WCAG 2.1 AA standard (4.5:1 for normal text, 3:1 for large text).
+- Keep using `Pressable` or `TouchableOpacity` as the touchable base -- do not replace with raw `View` + `onPress` patterns for styling convenience.
+- Maintain minimum touch target sizes: 44x44 points (Apple HIG) / 48x48 dp (Material Design). The overhaul should increase these if anything, not decrease them.
+- If adding `prefers-reduced-motion` support on web (Tailwind's `motion-reduce:` prefix), also implement `AccessibilityInfo.isReduceMotionEnabled()` check on mobile.
+- Add a simple accessibility check to the screen completion checklist: all interactive elements have `accessibilityLabel`, color contrast passes, touch targets meet minimums.
 
 **Warning signs:**
-- Location data visible in API responses to other users.
-- No opt-in flow before location is requested.
-- Location persists indefinitely in database.
-- No alternative for users who decline location access.
+- New color combinations with gold text on lighter surfaces (contrast drops fast).
+- Interactive elements styled as `View` with no `accessibilityRole="button"`.
+- Touch targets smaller than 44x44 points for "sleeker" visual design.
+- No `accessibilityLabel` on icon-only buttons (the notification bell, share button, etc.).
 
 **Phase to address:**
-Phase 4+ -- requires careful privacy design. Should be designed with legal/privacy review before implementation.
+Phase 1 (Design System Foundation) must verify all new palette colors pass contrast requirements. Every subsequent phase's screen checklist must include accessibility verification.
 
 ---
 
-### Pitfall 8: i18n Retrofit Breaks Existing UI Layouts
+### Pitfall 8: Feature Parity Loss -- Mobile Gets the Overhaul, Web Gets Forgotten
 
 **What goes wrong:**
-Retrofitting internationalization into an existing app with 232 files and 20,382 LOC means touching nearly every component that displays text. German translations are 30-40% longer than English. Japanese/Chinese characters have different line-break rules. The gold-on-dark theme's carefully sized buttons, headers, and card labels overflow or truncate when text length changes. RTL languages (Arabic, Hebrew) break layouts that assume left-to-right flow.
+The overhaul focuses primarily on the mobile app (50+ components, primary platform) and the web companion (31 components, secondary platform) falls behind. After the mobile overhaul ships, the web app still looks like v2.0 -- different typography, different component styles, different spacing. Worse, if navigation restructuring changes what is visible where on mobile, the web app's page structure no longer corresponds, and features available on one platform are not on the other.
 
 **Why it happens:**
-The v1.0 app hardcodes all strings directly in JSX. Extracting to translation keys is mechanical but tedious, and developers inevitably miss strings in error messages, alerts, placeholder text, and accessibility labels. Layout testing only happens in English, so translation-length issues are discovered in production.
+Mobile is the primary platform for a Pokemon TCG Pocket trading app -- players are on their phones. The web companion was built as a secondary experience. During the overhaul, mobile naturally gets priority. Web components use a completely different styling system (Tailwind CSS classes vs StyleSheet.create), so every visual change requires reimplementation, not just porting.
 
 **How to avoid:**
-- Use a systematic extraction tool (e.g., `i18next-scanner`) to find all hardcoded strings rather than manual search.
-- Adopt `i18next` + `react-i18next` with namespace-per-screen organization.
-- Use pseudo-localization (extended characters that expand text by 40%) during development to catch layout overflow before real translations exist.
-- Set `numberOfLines` and `adjustsFontSizeToFit` on all text-constrained components.
-- If RTL is not in the initial language set (Pokemon TCG Pocket does not have Arabic/Hebrew releases), defer RTL support -- but do not write code that actively breaks it.
-- Store the language preference in user profile (server-side) and Zustand store (client-side), NOT just device locale, so web and mobile can share the setting.
+- Update both platforms in lockstep, screen by screen. When the mobile Cards tab is overhauled, the web Cards page gets updated in the same phase.
+- Create platform-specific component specs that share the same visual language: identical colors, equivalent spacing, comparable typography scales -- even though the implementation differs.
+- If a feature or screen does not exist on web yet and the overhaul adds it to mobile, explicitly document it as "mobile-only" to avoid confusion, or add it to web in the same phase.
+- Track progress with a matrix: rows = screens, columns = mobile/web, cells = status (not started / tokens migrated / fully overhauled).
 
 **Warning signs:**
-- Strings found in components without translation function wrapping.
-- Buttons that clip text in any non-English language.
-- Mixed translated/untranslated strings on the same screen.
-- Date/number formats not localized (e.g., showing "3/11/2026" to European users).
+- Web app's `globals.css` not updated when mobile's `theme.ts` changes.
+- Users reporting "the app looks different on my phone vs my computer."
+- Web pages still using old color values while mobile has new ones.
+- No web testing happening during "visual refresh" phases.
 
 **Phase to address:**
-Phase 3 (Multi-Language UI) -- should be done AFTER the post-based model and multi-language cards are stable, but BEFORE the web app so the web app is built i18n-first.
+Every phase that touches visual components. The screen-by-screen migration plan must have both platform columns.
 
 ---
 
-### Pitfall 9: TCGdex Multi-Language Card Data Has Gaps
+### Pitfall 9: Hardcoded Values Scattered Across 70+ Files Resist Migration
 
 **What goes wrong:**
-TCGdex supports 14 languages but completion varies dramatically. English is near-complete, but less common languages (Thai, Indonesian, Polish, Russian) may be missing entire sets. When the app queries TCGdex for a card in Portuguese and gets no result, it either shows a blank card, crashes, or silently falls back to English without telling the user -- all bad outcomes.
+The migration from old theme values to new design tokens stalls because hardcoded hex colors, magic number spacing, and inline font sizes are scattered throughout the codebase. The `theme.ts` constants are used in most components, but there are also inline values -- for example, `'#f0c040'` appears as a raw string in MatchCard (lines 36, 78), `'#e53e3e'` is hardcoded in the tab badge style, and inline numeric values like `fontSize: 10`, `marginTop: 4`, `width: 40` appear throughout. A grep shows ~1001 occurrences of color/theme references across 71 files.
 
 **Why it happens:**
-Developers test with English and maybe one other language (French, Japanese) and assume all languages are equally populated. The card seed script (`seed-cards.ts`) currently imports only one language. Expanding to multi-language without handling missing translations means the card database has holes.
+When building features under time pressure, developers use the theme constants for primary values but fall back to inline literals for one-off adjustments, edge cases, or values that do not quite match the token scale. Over 242 commits and 40K LOC, these accumulate. During the overhaul, every one of these needs to be found and migrated, or they create visual inconsistencies where some parts of a screen use the new palette and others still show old colors.
 
 **How to avoid:**
-- Query TCGdex's status endpoint to know which languages have complete data for which sets.
-- Implement a graceful fallback chain: requested language -> English -> null with "translation unavailable" indicator.
-- Store the source language for each card record so the UI can show "Shown in English (Japanese unavailable)".
-- Limit supported languages to those with 90%+ completion in TCGdex for the sets that Pokemon TCG Pocket actually uses.
-- Run a data completeness check as part of the card seed job and log/alert on gaps.
+- Before starting any visual changes, run a comprehensive audit: grep for all hex color literals, all `fontSize:` values, all `padding:`/`margin:` values not using `spacing.*`. Create a spreadsheet of every hardcoded value and which token it should map to.
+- Add an ESLint rule (or a custom script) that flags raw hex colors and magic numbers in style objects. This catches new instances during the overhaul.
+- Migrate hardcoded values to tokens in a dedicated "token adoption" pass per screen BEFORE doing any visual redesign. This separates "using the system" from "redesigning the visuals."
+- Accept that 100% token coverage is not required. Some one-off values (like the avatar size `40x40`) are genuinely local and do not need tokens.
 
 **Warning signs:**
-- Blank card names or images for non-English languages.
-- Users in non-English locales seeing a mix of English and localized card names.
-- Card counts per set differ across languages (indicates missing data).
+- After "completing" a screen's overhaul, opening it on a device reveals old colors or sizes that were not migrated.
+- Grep for old hex values (like `#1a1a2e` or `#f0c040`) still returning hits after a screen is supposedly migrated.
+- Inconsistent spacing within the same screen (some elements use new tokens, others use old magic numbers).
 
 **Phase to address:**
-Phase 2 (Multi-Language Card Database) -- the seed script must be updated to multi-language import before any user-facing language selection is available.
+Phase 1 (Design System Foundation) should include the audit. Each subsequent screen phase starts with token adoption before visual redesign.
 
 ---
 
-### Pitfall 10: Deck Meta Data Becomes Stale or Unreliable
+### Pitfall 10: Zustand Store Coupling to Component Structure Creates Hidden Breakage
 
 **What goes wrong:**
-Deck meta data (competitive decks, win rates, tier lists) is only as good as its data source. If sourcing from community sites like Limitless TCG, the data may be tournament-focused and not reflect casual play. If scraping third-party sites, they may change their format or block the scraper. Win rates shift dramatically with each new expansion release (monthly in Pokemon TCG Pocket), making cached data misleading within days of a new set.
+The app has 12 Zustand stores that are deeply integrated with specific components and screen lifecycles. Restructuring components -- splitting, merging, or reorganizing them -- breaks the assumptions stores make about when and where they are consumed. For example, `useTradesStore` is consumed in the tab layout to compute `pendingProposals` for the badge count. If the trades tab is restructured (e.g., split into sub-tabs for posts vs proposals), the badge logic may not receive updates because the component that triggers fetches has moved.
 
 **Why it happens:**
-Developers build the deck meta feature assuming a stable, reliable data pipeline. In reality, Pokemon TCG Pocket's meta shifts rapidly, community data sources have no SLA, and aggregating win rates from different sources (tournament vs. ladder) produces conflicting numbers.
+Zustand stores in this codebase serve as both data caches and implicit controller layers. Components call `fetchStatus()`, `reset()`, and other side effects on mount/unmount. When the visual overhaul restructures which components mount where, these side effects fire at different times or not at all. The coupling is invisible in the code -- stores look independent, but their behavior depends on component tree structure.
 
 **How to avoid:**
-- Display the "as of" date prominently on all meta data.
-- Use multiple data sources and show confidence levels ("High confidence -- based on 5000+ games" vs. "Limited data -- based on 200 games").
-- Build the deck meta as a curated editorial feature initially, not a fully automated pipeline. Manual curation with data backing is more trustworthy than pure automation.
-- Cache aggressively but show staleness indicators. Meta data older than 7 days after a new set release should display a warning.
-- If using Limitless TCG data, their API terms must be checked -- scraping may violate ToS.
+- Before restructuring any screen, map its store dependencies: which stores are read, which actions are called on mount, what data is fetched.
+- Move data-fetching side effects out of components and into a centralized initialization flow (e.g., an `AppDataProvider` that runs after auth). The current pattern of fetching in `TabLayout`'s `useEffect` is fragile.
+- If splitting or merging screens, verify that all store subscriptions still receive updates. Use Zustand's `subscribe` API to test in isolation.
+- Do not change component structure and store logic in the same PR. Restructure components first, verify stores still work, then iterate.
 
 **Warning signs:**
-- Tier list unchanged after a major expansion release.
-- Win rates that do not add up (both sides of a matchup showing >50%).
-- Data source returning errors silently, serving cached stale data.
+- Badge counts (notification bell, trade tab badge) showing stale data after navigation restructuring.
+- Data not loading on screens that previously worked (because the component that triggered the fetch no longer mounts at the right time).
+- `useEffect` cleanup functions firing unexpectedly due to new mount/unmount patterns.
+- Premium status not updating because `usePremiumStore.getState().fetchStatus()` no longer gets called.
 
 **Phase to address:**
-Phase 5 (Deck Meta System) -- this is a content feature that requires ongoing maintenance, not just initial development.
+Pre-navigation-restructuring audit. Must map store-component coupling before touching the navigation tree.
 
 ---
 
@@ -267,117 +262,110 @@ Phase 5 (Deck Meta System) -- this is a content feature that requires ongoing ma
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Keeping automatic matching AND post-based trading | Faster migration, no data loss | Two code paths to maintain, double the matching logic | During transition period only (3-6 months), then deprecate |
-| Hardcoding English fallback for missing translations | Feature ships faster | Users in non-English locales see mixed languages, feels broken | MVP only -- must add proper fallback UI before production |
-| Storing OAuth tokens in AsyncStorage instead of SecureStore | Simple implementation | Tokens accessible if device is compromised | Never -- use expo-secure-store for all auth tokens |
-| Single-language card seed then "add languages later" | Faster initial v2.0 launch | Users cannot trade cross-language cards, core feature blocked | Never -- multi-language cards are table stakes for v2.0 |
-| Screenshot scanning only (no camera) | Avoids camera permission complexity | Users expect camera scanning, feels incomplete | Acceptable for initial release, add camera in follow-up |
-| City-text field instead of GPS geolocation | No privacy concerns, no permissions | Less precise matching, worse UX than GPS-based | Acceptable as the ONLY option until privacy design is validated |
+| Keeping old `theme.ts` alongside new tokens during migration | Components keep working during incremental migration | Two theme systems to maintain, risk of using wrong one | During migration only (must fully remove old system by end of overhaul) |
+| Migrating mobile only, syncing web "later" | Faster mobile delivery | Web falls permanently behind, doubling visual debt | Never -- sync per-screen, not per-milestone |
+| Using inline styles for "quick fixes" during overhaul | Unblocks current screen conversion | Creates new hardcoded values while migrating old ones | Never -- defeats the purpose of the overhaul |
+| Skipping animation performance testing | Faster development iteration | Ship jank on low-end Android, reputation damage | Only for non-visible animations (opacity-only transitions) |
+| Converting components to new design but not updating accessibility | Faster visual delivery | Accessibility regression, potential legal exposure (ADA/EAA) | Never -- check contrast and labels as part of conversion |
+| Copy-pasting component styling instead of extracting shared patterns | Faster individual screen delivery | Style inconsistencies accumulate, same bug fixed in multiple places | Only for genuinely unique one-off components |
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| TCGdex API (multi-language) | Assuming all languages have same card coverage | Check completion per language per set; implement fallback chain |
-| Google OAuth | Not handling email mismatch between Google account and existing account | Check email match first, prompt account linking with password verification |
-| Apple Sign-In | Treating Apple's relay email as a real email for account lookup | Store Apple user ID as primary key; email is unreliable for linking |
-| Limitless TCG / meta sources | Scraping without checking API terms, no error handling | Verify ToS, implement circuit breaker pattern, cache with staleness indicators |
-| RevenueCat (existing) | Not gating new premium features behind entitlement checks | All new premium features must check `isPremium` -- use the existing premium middleware |
-| Expo Camera/Image Picker | Requesting camera permission on app launch | Request only when user taps "Scan Card", explain why in the permission prompt |
-| Geolocation APIs | Using `getCurrentPosition` in foreground with no timeout | Set timeout (10s), use `getLastKnownPosition` as fallback, handle permission denied gracefully |
+| Expo Router (file-based routing) | Renaming route files without updating deep links and push notification handlers | Create a route mapping document; add redirect aliases for old paths; test all push notification actions after every route change |
+| Tailwind v4 (web) | Changing `@theme` variables without verifying all utility class combinations still work | After any `@theme` change, visually scan all web pages -- Tailwind utilities are compile-time and silently render wrong colors |
+| React Native StyleSheet | Using `StyleSheet.create` with dynamic values (theme switching) -- StyleSheet is static by design | For dynamic theming, use inline objects or a style-factory function. `StyleSheet.create` is for static styles only |
+| expo-image / Image components | Changing image container sizes without updating `contentFit` -- images stretch or crop incorrectly | Always verify `contentFit` (cover/contain/fill) matches the new container aspect ratio after resizing |
+| Ionicons (current icon library) | Swapping to a different icon library and missing icon name mappings -- icons silently render nothing | If switching icon libraries, create a migration script that maps old icon names to new ones; verify every icon renders |
+| i18next (translations) | Adding new UI text during overhaul without adding translation keys | All new text strings (labels, button text, empty states) must go through `t()` from day one, even before translations exist |
+| Socket.IO connection lifecycle | Navigation restructuring unmounts the component that holds the Socket.IO connection | Move Socket.IO connection to a context provider above the navigation tree, not inside a layout component |
 
 ## Performance Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Post-based browsing without pagination | Scroll jank, memory pressure, crashes on older devices | Cursor-based pagination from day 1 (already used for notifications) | 500+ active posts |
-| Recomputing matches for all users when a post is created | API timeout, BullMQ queue backlog | Only compute matches for posts that overlap with the new post's cards | 1000+ users |
-| Loading all card images for multi-language card browser | Massive bandwidth on mobile data | Lazy-load images, use thumbnails for list views, CDN with aggressive caching | 5000+ cards across languages |
-| Full-text search across multi-language card names | Slow queries, wrong results for non-Latin scripts | PostgreSQL `pg_trgm` extension with GIN indexes per language, or dedicated search (Meilisearch) | 50,000+ card records |
-| AI suggestion computation on every app open | Slow cold start, server load spikes | Pre-compute suggestions in BullMQ job (already the pattern), cache results, refresh on collection change only | 5000+ users opening app simultaneously |
-| Geolocation distance queries on every search | O(n) scan of all users with location | PostGIS extension with spatial indexes, or geohash-based bucketing | 10,000+ users with location enabled |
+| Adding entrance animations to FlatList items | Scroll stuttering, frame drops, items "popping in" during fast scroll | Never animate FlatList item mounting. Use `LayoutAnimation` on the container at most, or skip list animations entirely | Lists with 50+ items on mid-range Android |
+| Excessive re-renders from theme context | All components re-render when any theme value changes | Use Zustand for theme tokens (atomic selectors) instead of React Context, or ensure theme context value is stable (memoized) | Any theme context change triggers full-app re-render |
+| Shadow/elevation overuse in new card designs | GPU overdraw on Android, visible frame drops during scroll | Limit shadows to 1-2 levels (card surface and modal). Use `borderWidth`/`borderColor` for secondary depth, not additional shadows | Scrolling lists with 20+ shadowed cards on Android |
+| Shimmer/skeleton loading animations running continuously | High CPU usage when screen is idle, battery drain | Stop shimmer animation when data loads. Use `cancelAnimation` in cleanup. Do not run shimmer off-screen | Multiple skeletons visible simultaneously |
+| Heavy gradient backgrounds | Paint thrashing on Android, especially with `LinearGradient` behind scrolling content | Use solid colors for backgrounds. If gradients are needed, limit to static headers, not full-screen behind scroll | Any gradient behind a FlatList |
+| Custom fonts not loaded before first render | Flash of unstyled text (FOUT), layout shifts as metrics change | Use `expo-font` with `SplashScreen.preventAutoHideAsync()` to ensure fonts load before app renders | Always -- this is a day-one concern |
 
 ## Security Mistakes
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Storing precise GPS coordinates in user profile accessible via API | Stalking, harassment, child safety violation | Never expose coordinates in API responses; compute distance server-side; return only distance ranges |
-| OAuth tokens stored in AsyncStorage instead of SecureStore | Token theft on rooted/jailbroken devices | Use `expo-secure-store` for all auth tokens; AsyncStorage is for non-sensitive data only |
-| Card scanning uploads sent to third-party AI without consent | Privacy violation, GDPR issue | Process scans on-device if possible; if server-side, obtain explicit consent and delete images after processing |
-| No rate limiting on post creation | Spam posts flooding the trading feed | Rate limit: max 10 posts per hour per user; premium gets higher limit |
-| Deck meta scraper credentials in client bundle | API keys exposed | All scraping/API calls happen server-side; client only receives processed data |
-| Gift/promo codes brute-forceable | Free premium access exploitation | Rate limit code attempts (5/hour), use cryptographically random codes (16+ chars), log attempts |
+| Exposing internal component state in accessibility labels | Screen readers read internal data (user IDs, debug info) aloud | Audit all `accessibilityLabel` values -- they should contain user-facing text only |
+| New web components missing CSRF protection on forms | Cross-site request forgery on authenticated actions | Ensure all web form submissions use the existing cookie auth with CSRF token validation |
+| Adding client-side feature flags for premium UI | Users inspect/modify feature flags to bypass paywall | Premium gating must remain server-side (`isPremium` middleware). Client-side flags are for layout only, never data access |
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Removing automatic matching without clear migration path | Existing users lose their workflow, feel abandoned | Keep matches visible as "Legacy Matches" for 30 days, guide users to create posts from their existing collection/wanted list |
-| Card language shown only in card detail, not in lists | Users browse, create posts, and proposals without realizing language mismatch | Language badge on EVERY card thumbnail in EVERY list/grid view |
-| AI suggestions with no explanation | Users see "Trade your Charizard for their Pikachu" with no reasoning, feels arbitrary | Show WHY: "This card is trending down, you have 3 copies, and Pikachu fits the Raichu deck you're building" |
-| Scan feature requires perfect conditions | Users in dim rooms or with glare get repeated failures | Support screenshot import as primary; show "Tips for better scans" before camera opens |
-| Local finder shows traders but no way to coordinate | Users see nearby traders but still have to use the normal post/proposal flow | Local finder should pre-filter posts to nearby users, not be a separate feature |
-| i18n switches language but dates/numbers stay English-formatted | Feels half-translated, reduces trust | Use `Intl.DateTimeFormat` and `Intl.NumberFormat` everywhere, not manual formatting |
-| Deck meta shows win rates without sample size | Users trust a "95% win rate" based on 20 games | Always show sample size: "95% win rate (20 games)" vs "52% win rate (5,000 games)" |
+| Changing navigation structure without user communication | Users cannot find features they used daily, feel lost | If tabs change, show a one-time "What's new" walkthrough highlighting where things moved |
+| Removing visual affordances for "cleaner" design | Users do not realize elements are tappable, miss interactive features | Maintain clear tap state feedback (opacity change, scale). Flat design still needs interaction cues |
+| Inconsistent transition speeds across screens | App feels jittery -- some transitions snap, others float | Define 2-3 standard durations (fast: 150ms, normal: 250ms, slow: 350ms) and use them globally |
+| Redesigning the home tab without preserving information density | Users previously saw matches + collection progress at a glance, now need extra taps | Audit current screen's information hierarchy. The overhaul should maintain or improve information density, not sacrifice it for aesthetics |
+| Changing the gold accent color even slightly | Users associate the gold with the brand. Subtle shifts (warmer, cooler) feel "off" without being identifiable | Keep `#f0c040` as the primary gold. Add new accent colors alongside it, do not replace it |
+| Modal-heavy flow becoming even more modal-heavy | Users feel trapped in modal stacks (card detail -> proposal -> confirmation -> rating) | Consider replacing some modals with full-screen pages for complex flows. Modals for quick actions only |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Post-based trading:** Often missing the "create post from existing collection" flow -- verify users can bulk-create Offering posts from their inventory, not just manual card picking
-- [ ] **Multi-language cards:** Often missing the card seed for non-English languages -- verify card counts match across all supported languages
-- [ ] **OAuth:** Often missing the account-linking flow for existing users -- verify a user with email/password can link Google/Apple and sign in both ways
-- [ ] **Card scanning:** Often missing the confirmation/correction step -- verify users ALWAYS see what was detected and can correct before it hits their collection
-- [ ] **AI suggestions:** Often missing the "dismiss" feedback loop -- verify dismissed suggestions do not reappear and feed back into the algorithm
-- [ ] **Local finder:** Often missing the privacy settings screen -- verify users can toggle location sharing on/off and see what data is being shared
-- [ ] **Web app:** Often missing the shared API client -- verify web and mobile use identical API calling code from the shared package
-- [ ] **i18n:** Often missing error messages and system alerts -- verify ALL user-facing strings are translated, including error toasts, empty states, and loading messages
-- [ ] **Deck meta:** Often missing the "data freshness" indicator -- verify users can see when the meta data was last updated
-- [ ] **Gift codes:** Often missing the redemption history -- verify users can see which codes they have redeemed and admins can see redemption analytics
+- [ ] **Design tokens:** Often missing web sync -- verify `globals.css` @theme variables match `theme.ts` values exactly
+- [ ] **Component migration:** Often missing inline hardcoded values -- verify grep for old hex colors returns zero hits in migrated files
+- [ ] **Navigation restructuring:** Often missing deep link testing -- verify every push notification type opens the correct screen
+- [ ] **Typography:** Often missing dynamic type / font scaling support -- verify app renders correctly with system font size set to largest
+- [ ] **Dark theme refinement:** Often missing state-specific colors -- verify error states, success states, disabled states, and loading states all use appropriate new tokens
+- [ ] **Animations:** Often missing Android testing -- verify all animations at 60fps on a mid-range Android device, not just iOS simulator
+- [ ] **Accessibility:** Often missing icon buttons -- verify every icon-only button (NotificationBell, share, filter) has an `accessibilityLabel`
+- [ ] **Web companion:** Often missing responsive breakpoints -- verify web pages at mobile (375px), tablet (768px), and desktop (1280px) widths
+- [ ] **Screen migration:** Often missing empty states and error states -- verify empty lists, network errors, and loading states use new design system
+- [ ] **i18n integration:** Often missing new strings -- verify all text added during overhaul has translation keys, not hardcoded English
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Duplicate accounts from OAuth | HIGH | Manual account merge tool for support team; SQL migration to merge collection/proposals/ratings by user confirmation |
-| Wrong cards from silent scan import | MEDIUM | Add "Recently Scanned" section in collection with undo; bulk-review screen for scan history |
-| Language mismatch in completed proposals | HIGH | Cannot undo in-game trade; add post-trade survey "Did the in-game trade succeed?" to detect mismatches |
-| Stale deck meta data | LOW | Manual refresh trigger for admins; "Report outdated" button for users |
-| i18n layout overflow in production | MEDIUM | Hot-fix with `numberOfLines` and `adjustsFontSizeToFit`; add pseudo-localization to CI pipeline |
-| Location data breach | HIGH | Incident response plan required; ability to purge all location data with single command; notify affected users |
-| AI suggestions destroyed trust | MEDIUM | Rebrand feature, add explanations, add "Why this suggestion?" deep link; reset user's suggestion history |
+| Big-bang refactor leaves app broken | HIGH | Revert to last working commit. Adopt incremental migration. Lose all in-progress work |
+| Token explosion slowing development | MEDIUM | Flatten token hierarchy. Delete unused tokens. Set a token count budget and enforce it |
+| Cross-platform divergence | MEDIUM | Audit both platforms side-by-side. Create a difference report. Batch-fix web to match mobile |
+| Navigation restructuring breaks deep links | LOW | Add redirect aliases. Update push notification payload handlers. One-time fix |
+| Animation jank on low-end devices | LOW | Add `isReduceMotionEnabled` check. Disable animations conditionally. Can be hotfixed |
+| Scope creep / never-shipping | HIGH | Hard deadline. Ship what is done. Create "polish backlog" for remaining items. Requires discipline, not code |
+| Accessibility regression | MEDIUM | Run automated contrast checker. Add `accessibilityLabel` audit script. Batch-fix missing labels |
+| Feature parity loss (web behind) | HIGH | Dedicated web catch-up sprint. The longer it is delayed, the more expensive it gets |
+| Hardcoded values missed in migration | LOW | Grep-based audit script. Batch-replace. Mechanical work, just tedious |
+| Store coupling breakage | MEDIUM | Restore old component mounting order if possible. Move side effects to centralized provider |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Post-based migration breaks proposals | Phase 1 (Post Model) | Existing proposals still load and display correctly after migration |
-| Card language mismatch | Phase 1-2 (Multi-Lang Cards) | Language badge visible on every card surface; cross-language proposal blocked |
-| OAuth duplicate accounts | Phase 2 (OAuth) | User with email account can link Google, sign out, sign in with Google, see same data |
-| Web/mobile code divergence | Pre-Web-App phase (Shared Package Refactor) | Shared package has zero react-native imports; web builds without native dependencies |
-| Card scanning frustration | Phase 4 (Scanning) | Scan always shows confirmation; top-3 candidates displayed; abandon rate below 30% |
-| AI suggestions cold start | Phase 5 (AI Suggestions) | Suggestions include explanation text; dismiss rate tracked; rule-based until 1000+ trades |
-| Location privacy exposure | Phase 4 (Local Finder) | API responses contain no raw coordinates; privacy toggle exists; 24h data expiry |
-| i18n layout breakage | Phase 3 (i18n) | Pseudo-localization passes with 40% text expansion; all strings in translation files |
-| TCGdex data gaps | Phase 2 (Multi-Lang Cards) | Fallback chain tested for each supported language; completeness report generated |
-| Deck meta staleness | Phase 5 (Deck Meta) | "Updated" timestamp visible; staleness warning after 7 days post-expansion |
+| Big-bang refactor | Phase 1 (Foundation) | App remains functional at every PR merge. CI passes, no screen regressions |
+| Token explosion | Phase 1 (Foundation) | Token file under 80 lines. New screen development does not require token lookup documentation |
+| Cross-platform divergence | Phase 1 (Foundation) | Mobile and web background/surface/accent colors identical (same hex values) |
+| Navigation restructuring breakage | Dedicated Navigation Phase | All push notification types tested. Back navigation correct on every screen. Socket.IO stays connected |
+| Animation performance | Final Animation Phase | 60fps on reference mid-range Android device for all transitions |
+| Scope creep | Every phase | Hard time-box per phase. Screen conversion tracked as done/not-done (binary, not percentage) |
+| Accessibility regression | Every phase (per-screen checklist) | All color pairings pass WCAG AA (4.5:1). All interactive elements have accessibility labels. Touch targets 44pt minimum |
+| Feature parity (web) | Every screen phase | Platform matrix shows both columns green for each completed screen |
+| Hardcoded value migration | Phase 1 audit + every screen phase | Grep for old hex values returns zero hits in migrated files |
+| Zustand store coupling | Pre-navigation audit | Badge counts, data loading, and premium status work correctly after restructuring |
 
 ## Sources
 
-- Codebase analysis: `apps/api/src/db/schema.ts`, `apps/api/src/services/match.service.ts`, `packages/shared/src/schemas/proposal.ts`
-- [How I Built a Pokemon Card Scanner App with AI - 50,000 Users](https://pokescope.app/blog/how-i-built-pokemon-card-scanner-ai-50000-users/)
-- [PokeHub - Trade PTCG Pocket Reviews (Google Play)](https://play.google.com/store/apps/details?id=com.mi.poketrade&hl=en)
-- [PokeHub - for TCG Pocket Reviews (App Store)](https://apps.apple.com/us/app/pokehub-for-tcg-pocket/id6740797484?see-all=reviews&platform=iphone)
-- [TCGdex API - Multi-Language Pokemon TCG Database](https://tcgdex.dev)
-- [TCGdex Status - Language Completion Tracking](https://tcgdex.dev/status)
-- [Limitless TCG - Pokemon TCG Pocket Competitive Data](https://play.limitlesstcg.com/decks?game=POCKET)
-- [Pokemon Meta - Win Rates Updated Daily](https://www.pokemonmeta.com/winrates)
-- [Common Mistakes When Implementing i18n in React Apps](https://infinitejs.com/posts/common-mistakes-i18n-react)
-- [20 i18n Mistakes Developers Make in React Apps](https://www.translatedright.com/blog/20-i18n-mistakes-developers-make-in-react-apps-and-how-to-fix-them/)
-- [Geolocation Data and the GDPR](https://22academy.com/blog/geolocation-data-and-the-gdpr)
-- [ICO Age Appropriate Design Code - Geolocation](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/10-geolocation/)
-- [The Cold Start Problem in Recommender Systems](https://www.synaptiq.ai/library/the-cold-start-problem)
-- [Database Migrations: Safe, Downtime-Free Strategies](https://vadimkravcenko.com/shorts/database-migrations/)
-- [Reflecting on Code Sharing Between React and React Native](https://matthewwolfe.github.io/blog/code-sharing-react-and-react-native)
+- Codebase analysis: `apps/mobile/src/constants/theme.ts` (27 tokens, flat structure), `apps/mobile/app/(tabs)/_layout.tsx` (store coupling in navigation), `apps/web/src/app/globals.css` (divergent color values), 50+ mobile components with `StyleSheet.create`, 31 web components with Tailwind
+- [Common Pitfalls in React Native Custom Component Development](https://moldstud.com/articles/p-common-pitfalls-in-react-native-custom-component-development-and-how-to-avoid-them)
+- [React Native UI Design Best Practices Guide 2025](https://reactnativeexample.com/react-native-ui-design-best-practices-guide-2025/)
+- [10 React Native Best Practices for Flawless Apps in 2026](https://www.applighter.com/blog/react-native-best-practices)
+- [Visual Regression Testing for React Native](https://rafizimraanarjunawijaya.medium.com/i-tired-of-fixing-ghost-ui-bugs-why-your-react-native-app-needs-visual-regression-testing-0c072ec0728b)
+- [Design Tokens & Cross-Platform Consistency in Mobile UI](https://ititans.com/blog/cross-platform-mobile-ui-with-design-tokens/)
+- [Creating a Cross-Platform Design System for React and React Native](https://bit.dev/blog/creating-a-cross-platform-design-system-for-react-and-react-native-with-bit-l7i3qgmw/)
+- [Extending Design Systems to Multiple Platforms - Skyscanner](https://medium.com/@SkyscannerEng/extending-our-design-system-to-multiple-platforms-1bc3735cf3a5)
+- [Stop Making These Mistakes in Your React Native App](https://dev.to/aneeqakhan/stop-making-these-mistakes-in-your-react-native-app-2gmf)
 
 ---
-*Pitfalls research for: Pokemon TCG Pocket Trading Platform v2.0 Feature Additions*
-*Researched: 2026-03-11*
+*Pitfalls research for: UI/UX Overhaul of Pokemon TCG Pocket Trading Platform v3.0*
+*Researched: 2026-03-20*

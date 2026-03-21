@@ -1,848 +1,771 @@
-# Architecture Research: v2.0 Feature Integration
+# Architecture Research: v3.0 UI/UX Overhaul Integration
 
-**Domain:** Pokemon TCG Pocket trading platform -- v2.0 feature integration with existing architecture
-**Researched:** 2026-03-11
-**Confidence:** MEDIUM-HIGH
+**Domain:** Pokemon TCG Pocket trading platform -- UI/UX overhaul integration with existing Expo + Next.js architecture
+**Researched:** 2026-03-20
+**Confidence:** HIGH
 
-## System Overview: v2.0 Expanded Architecture
+## System Overview: Design System Integration Layer
+
+The UI/UX overhaul introduces a **design system foundation layer** that sits between the existing Zustand stores and the current screen components. No backend changes are needed. This is entirely a client-side architecture change spanning both `apps/mobile` and `apps/web`.
 
 ```
-                          CLIENTS
- ┌──────────────────┐  ┌──────────────────┐
- │  apps/mobile      │  │  apps/web (NEW)  │
- │  Expo RN (iOS/    │  │  Next.js App     │
- │  Android)         │  │  Router          │
- └────────┬─────────┘  └────────┬─────────┘
-          │                     │
-          │  ┌──────────────────┘
-          │  │
-          v  v
- ┌────────────────────────────────────────────────────────────────┐
- │                     packages/shared                            │
- │  Zod schemas, types, constants, i18n translation keys         │
- ├────────────────────────────────────────────────────────────────┤
- │                     packages/ui  (NEW - optional)              │
- │  Shared presentational React components via react-native-web  │
- └────────────────────────┬───────────────────────────────────────┘
-                          │
-                          v
- ┌────────────────────────────────────────────────────────────────┐
- │                     apps/api (Fastify 5)                       │
- ├──────────┬──────────┬──────────┬──────────┬───────────────────┤
- │ Auth     │ Posts    │ Cards    │ Geo      │ AI/ML Gateway     │
- │ (JWT +   │ (NEW)   │ (multi-  │ (NEW -   │ (NEW - calls      │
- │  OAuth)  │         │  lang)   │  PostGIS)│  external LLM)    │
- ├──────────┴──────────┴──────────┴──────────┴───────────────────┤
- │                     Services Layer                             │
- │  post.service  scan.service  suggest.service  geo.service     │
- │  deck-meta.service  luck.service  tier.service                │
- ├────────────────────────────────────────────────────────────────┤
- │                     BullMQ Workers                             │
- │  match-worker  analytics-worker  card-alert-worker            │
- │  suggestion-worker (NEW)  meta-scrape-worker (NEW)            │
- ├──────────┬──────────┬──────────────────────────────────────────┤
- │ PostgreSQL          │ Redis              │ External APIs       │
- │ + PostGIS ext       │ (cache, queues,    │ TCGdex (multi-lang) │
- │ + Drizzle ORM       │  feature flags)    │ OpenAI / Anthropic  │
- │                     │                    │ Google Cloud Vision  │
- │                     │                    │ Limitless TCG        │
- └─────────────────────┴────────────────────┴─────────────────────┘
+                      CURRENT STATE
+ ┌───────────────────────────────────────────────────────┐
+ │  apps/mobile                  apps/web                │
+ │  ┌─────────────────┐         ┌─────────────────┐     │
+ │  │ Screen Components│         │ Page Components  │     │
+ │  │ (inline styles + │         │ (Tailwind v4     │     │
+ │  │  StyleSheet.create│        │  utility classes) │     │
+ │  │  + theme.ts)     │         │  + globals.css)  │     │
+ │  └────────┬────────┘         └────────┬────────┘     │
+ │           │                           │              │
+ │  ┌────────┴────────┐         ┌────────┴────────┐     │
+ │  │ constants/       │         │ globals.css      │     │
+ │  │ theme.ts         │         │ @theme { ... }   │     │
+ │  │ (colors, spacing,│         │ (CSS vars for    │     │
+ │  │  typography)     │         │  colors only)    │     │
+ │  └─────────────────┘         └─────────────────┘     │
+ └───────────────────────────────────────────────────────┘
+
+                      TARGET STATE
+ ┌───────────────────────────────────────────────────────┐
+ │  apps/mobile                  apps/web                │
+ │  ┌─────────────────┐         ┌─────────────────┐     │
+ │  │ Screen Components│         │ Page Components  │     │
+ │  │ (compose from    │         │ (compose from    │     │
+ │  │  design system   │         │  design system   │     │
+ │  │  primitives)     │         │  primitives)     │     │
+ │  └────────┬────────┘         └────────┬────────┘     │
+ │           │                           │              │
+ │  ┌────────┴────────┐         ┌────────┴────────┐     │
+ │  │ src/design-system│         │ src/design-system│     │
+ │  │ /components/     │         │ /components/     │     │
+ │  │ (Button, Card,   │         │ (Button, Card,   │     │
+ │  │  Input, Modal,   │         │  Input, Modal,   │     │
+ │  │  Badge, etc.)    │         │  Badge, etc.)    │     │
+ │  └────────┬────────┘         └────────┬────────┘     │
+ │           │                           │              │
+ │  ┌────────┴──────────────────────────┴────────┐     │
+ │  │         packages/shared/tokens/             │     │
+ │  │  colors.ts  spacing.ts  typography.ts       │     │
+ │  │  shadows.ts  radii.ts  motion.ts            │     │
+ │  │  (Platform-agnostic JS objects)             │     │
+ │  └─────────────────────────────────────────────┘     │
+ └───────────────────────────────────────────────────────┘
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | New vs Modified |
 |-----------|----------------|-----------------|
-| `apps/web` | Next.js web companion -- browse posts, manage collection, view deck meta (SSR) | **NEW** |
-| `packages/ui` | Optional shared presentational React components between mobile and web | **NEW** |
-| `packages/shared` | Zod schemas, i18n translation keys, shared types, constants | **MODIFIED** -- add post schemas, i18n keys |
-| Auth plugin (`plugins/auth.ts`) | JWT + OAuth (Google/Apple) login flows | **MODIFIED** -- add OAuth provider handling |
-| Post service | CRUD for Offering/Seeking trade posts, complementary post matching | **NEW** |
-| Scan service | Receives card image, runs hash comparison, Cloud Vision fallback | **NEW** |
-| Suggest service | AI-powered trade suggestions via external LLM API | **NEW** |
-| Geo service | PostGIS queries for nearby traders | **NEW** |
-| Deck meta service | Imports competitive deck data from Limitless TCG | **NEW** |
-| Match service (`services/match.service.ts`) | Existing automatic matching -- kept as "Smart Suggestions" | **UNCHANGED** -- secondary to posts |
-| Proposal service (`services/proposal.service.ts`) | Existing proposal workflow | **MODIFIED** -- accept `postId` alongside `matchId` |
+| `packages/shared/tokens/` | Platform-agnostic design tokens (colors, spacing, typography scales, shadows, border radii, motion durations) | **NEW** -- replaces both `theme.ts` and `globals.css` @theme as the single source of truth |
+| `apps/mobile/src/design-system/` | Mobile-native primitive components (Button, Card, Input, Modal, Badge, ProgressBar, etc.) built with React Native primitives + Reanimated | **NEW** -- extracted from inline styles scattered across 40+ components |
+| `apps/web/src/design-system/` | Web primitive components using Tailwind v4 utility classes, consuming same token values via CSS custom properties | **NEW** -- replaces ad-hoc `ui/` components (Button, Input, Modal, Skeleton) |
+| `apps/mobile/src/constants/theme.ts` | Currently the only token file (colors, typography, spacing, borderRadius) | **DEPRECATED** -- replaced by `packages/shared/tokens/` with re-export shim for migration |
+| `apps/web/src/app/globals.css` | Currently defines 8 CSS custom properties for colors only | **MODIFIED** -- generated from shared tokens, expanded to full token set |
+| `apps/mobile/app/_layout.tsx` | Root layout with toast config, hardcoded colors | **MODIFIED** -- wrap with ThemeProvider, use token references |
+| `apps/mobile/app/(tabs)/_layout.tsx` | Tab bar with theme colors | **MODIFIED** -- use design system tab bar config |
+| `apps/web/src/app/(app)/layout.tsx` | App shell with Sidebar | **MODIFIED** -- use design system layout primitives |
+| All 40+ mobile screen/component files | Currently use `StyleSheet.create` with direct `colors.X` references | **MODIFIED** -- migrate to design system components, bottom-up |
+| All 30+ web component files | Currently use inline Tailwind classes with `bg-surface`, `text-gold` etc. | **MODIFIED** -- migrate to design system components |
 
 ---
 
-## 1. Post-Based Trading Model (Replacing Automatic Matching)
+## 1. Design Token Architecture
 
-### Architecture Decision
+### The Problem
 
-The v1.0 architecture uses `match.service.ts` with `computeTwoWayMatches()` to find bidirectional inventory overlaps stored in `tradeMatches`. This works but is passive -- users wait for matches.
+The mobile app has `constants/theme.ts` with 15 color values, 5 typography presets, 4 spacing values, and 4 border radii. The web app has `globals.css` with 8 CSS custom properties (colors only). These are **completely disconnected** -- same color values duplicated across two files with slightly different names (`surface` vs `surfaceLight` on mobile, `surface-hover` on web has no mobile equivalent).
 
-The v2.0 model adds explicit Offering/Seeking posts where users declare trades they want to make. **Keep the existing matching engine** as a background "Smart Suggestions" premium feature. The post-based model becomes the primary trading flow.
+### The Solution: Shared Token Package
 
-### New Database Tables
-
-```typescript
-// In db/schema.ts -- NEW table
-export const postTypeEnum = pgEnum('post_type', ['offering', 'seeking']);
-
-export const tradePosts = pgTable('trade_posts', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => users.id),
-  type: postTypeEnum('type').notNull(),         // 'offering' | 'seeking'
-  cardId: text('card_id').notNull().references(() => cards.id),
-  cardLanguage: varchar('card_language', { length: 5 }).default('en'),
-  description: text('description'),              // optional note
-  isActive: boolean('is_active').default(true).notNull(),
-  expiresAt: timestamp('expires_at'),            // auto-expire
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => [
-  index('trade_posts_card_type_active_idx').on(table.cardId, table.type),
-  index('trade_posts_user_id_idx').on(table.userId),
-  index('trade_posts_type_created_idx').on(table.type, table.createdAt),
-  index('trade_posts_language_idx').on(table.cardLanguage),
-]);
-```
-
-### Changes to Existing Tables and Schemas
-
-The `tradeProposals` table already has `matchId` as nullable (`text('match_id')`). Add a `postId` column:
-
-```typescript
-// Modify tradeProposals in schema.ts:
-postId: text('post_id').references(() => tradePosts.id),
-// Proposals can now originate from a post (postId) OR a match (matchId) or neither
-```
-
-The shared `createProposalSchema` in `packages/shared/src/schemas/proposal.ts` currently requires `matchId: z.string()`. Change to:
-
-```typescript
-export const createProposalSchema = z.object({
-  matchId: z.string().optional(),    // was required
-  postId: z.string().optional(),     // NEW
-  receiverId: z.string(),
-  senderGives: z.array(proposalCardSchema).min(1),
-  senderGets: z.array(proposalCardSchema).min(1),
-  fairnessScore: z.number(),
-  parentId: z.string().optional(),
-}).refine(data => data.matchId || data.postId, {
-  message: 'Either matchId or postId is required',
-});
-```
-
-### Data Flow: Post-Based Trading
-
-```
-User creates Offering/Seeking post
-    |
-    v
-POST /api/posts  -->  post.service.createPost()
-    |                     |
-    |                     v
-    |                 Insert into trade_posts
-    |                     |
-    |                     v
-    |                 BullMQ: notify-matching-posts job
-    |                 (find complementary posts: offering <-> seeking same card)
-    |                     |
-    |                     v
-    |                 Push + Socket.IO notification to complementary post owners
-    |
-    v
-Other user browses matching posts or gets notified
-    |
-    v
-POST /api/proposals  -->  proposal.service.createProposal()
-    |                      (existing flow, now with postId instead of matchId)
-    v
-Existing accept/reject/counter/complete/rate workflow (UNCHANGED)
-```
-
-### Impact on Existing Code
-
-| File | Change | Scope |
-|------|--------|-------|
-| `db/schema.ts` | Add `tradePosts` table, add `postId` to `tradeProposals` | Medium |
-| `routes/proposals.ts` | Accept `postId` as alternative to `matchId` | Small |
-| `services/proposal.service.ts` | Allow proposal creation from post context | Small |
-| `services/match.service.ts` | **No changes** -- runs as "Smart Suggestions" | None |
-| `packages/shared/schemas/proposal.ts` | Make `matchId` optional, add `postId` | Small |
-| `packages/shared/schemas/post.ts` | **New file** -- post Zod schemas | New |
-| `routes/posts.ts` | **New file** -- CRUD + feed endpoints | New |
-| `services/post.service.ts` | **New file** -- post logic, complementary post finder | New |
-| `jobs/post-notify-worker.ts` | **New file** -- find + notify matching posts | New |
-
----
-
-## 2. Web App Companion
-
-### Architecture Decision
-
-Add `apps/web` as a **Next.js App Router** application in the existing Turborepo monorepo. This is the standard pattern for Turborepo + Expo + Next.js projects.
-
-**Do not use Expo for web.** The mobile app uses native-only features (expo-secure-store, expo-notifications push tokens, camera) that complicate Expo web builds. Next.js gives SSR for public pages (deck meta, tier lists -- good for SEO), a conventional web UX, and clean separation.
-
-### Monorepo Structure Changes
-
-```
-pocket-trade-hub/
-├── apps/
-│   ├── api/          # Fastify backend (UNCHANGED)
-│   ├── mobile/       # Expo React Native (UNCHANGED)
-│   └── web/          # NEW: Next.js 15+ App Router
-│       ├── app/
-│       │   ├── (auth)/           # Login, signup, OAuth callbacks
-│       │   ├── (dashboard)/      # Authenticated pages
-│       │   │   ├── posts/        # Browse + create trade posts
-│       │   │   ├── collection/   # Manage collection + wanted
-│       │   │   ├── proposals/    # View + respond to proposals
-│       │   │   └── profile/      # Profile management
-│       │   ├── meta/             # PUBLIC: Deck meta pages (SSR for SEO)
-│       │   ├── tier-lists/       # PUBLIC: Tier list pages (SSR)
-│       │   └── layout.tsx
-│       ├── src/
-│       │   ├── components/       # Web-specific layout + UI
-│       │   ├── hooks/            # API hooks (similar patterns to mobile)
-│       │   └── lib/              # Auth helpers, API client
-│       ├── next.config.ts
-│       ├── package.json
-│       └── tsconfig.json
-├── packages/
-│   ├── shared/       # Zod schemas, types (BOTH apps consume)
-│   └── ui/           # NEW (optional): shared presentational components
-```
-
-### What Gets Shared vs. What Does Not
-
-| Layer | Shared? | Mechanism |
-|-------|---------|-----------|
-| Zod schemas + TypeScript types | **Yes** | `packages/shared` -- already exists, both apps import |
-| API endpoint contracts | **Yes** | Same Fastify backend serves both clients |
-| i18n translation JSON files | **Yes** | `packages/shared/src/i18n/locales/` |
-| UI components | **Selectively** | Card display, rarity badge, fairness indicator via `packages/ui` with React Native primitives + react-native-web. Complex mobile-native UI stays in `apps/mobile` |
-| Zustand stores | **No** | Similar patterns but different storage backends (SecureStore vs cookies), different auth flows |
-| Routing | **No** | Expo Router vs Next.js App Router -- fundamentally different paradigms |
-| Auth flow | **No** | Mobile uses SecureStore + JWT; web uses httpOnly cookies or localStorage |
-
-### Web App Feature Scope
-
-The web app is a **companion**, not a replacement for mobile.
-
-**Include:**
-- Browse and create trade posts
-- Manage collection and wanted list
-- View and respond to trade proposals
-- Profile management
-- Deck meta and tier lists (public SSR pages)
-- Luck calculator
-
-**Exclude (mobile-only):**
-- Card scanning (camera access is mobile UX)
-- Push notifications (use email or web notifications later)
-- Local trade finder (GPS is mobile UX)
-- Premium purchase via RevenueCat (RevenueCat is mobile IAP only; web billing would need Stripe or similar -- defer to later)
-
-### Turborepo Configuration
-
-Add `apps/web` to `pnpm-workspace.yaml`. The existing `turbo.json` task definitions (`build`, `dev`, `test`) apply automatically. Next.js and Expo `dev` tasks can run in parallel.
-
----
-
-## 3. Card Scanning
-
-### Architecture Decision
-
-Use **server-side image processing** with a perceptual hash matching approach and Cloud Vision fallback.
-
-For Pokemon TCG Pocket, card scanning is **screenshot recognition** (users screenshot their in-game collection), not physical card scanning. Screenshots have consistent formatting (same resolution, same card frame positions), which makes server-side hash matching highly effective.
-
-### Approach: Perceptual Hash + Cloud Vision Fallback
-
-```
-User takes screenshot or picks image from gallery
-    |
-    v
-expo-image-picker --> POST /api/scan/card (multipart form data)
-    |
-    v
-scan.service.ts:
-    1. Receive image, validate size/format
-    2. Preprocess with sharp (crop card region, normalize size)
-    3. Compute perceptual hash (pHash) of card art region
-    4. Compare against pre-computed card image hashes in DB
-    5. If match confidence > 85% --> return cardId immediately
-    6. If low confidence --> send to Google Cloud Vision API
-       (text recognition: card name + set number)
-       --> Match extracted text against cards table
-    |
-    v
-Return: { cardId, cardName, confidence, imageUrl }
-    |
-    v
-User confirms --> Client calls existing POST /api/collection or POST /api/posts
-```
-
-### Why Server-Side, Not On-Device
-
-| Factor | Server-side | On-device |
-|--------|-------------|-----------|
-| App size | No impact | +50-200MB for TensorFlow.js/ONNX runtime |
-| Expo compatibility | No native modules needed | Requires Expo dev client (no Expo Go) |
-| Model updates | Deploy server, instant update | App Store review cycle |
-| Accuracy | Controlled environment | Device-dependent performance |
-| Batch scanning | Natural (queue multiple) | Memory constrained |
-| Offline | Does not work offline | Works offline |
-
-Offline scanning is unnecessary -- users need internet to trade anyway.
-
-### New Components
-
-| Component | Purpose |
-|-----------|---------|
-| `routes/scan.ts` | Upload endpoint with rate limiting (20/min per user) |
-| `services/scan.service.ts` | Image preprocessing (sharp), hash comparison, Cloud Vision fallback |
-| `db/schema.ts` -- `cardImageHashes` table | Pre-computed perceptual hashes for all card images |
-| `jobs/hash-import-worker.ts` | Pre-compute hashes when new card sets are imported via admin |
-
-### Schema for Image Hashes
-
-```typescript
-export const cardImageHashes = pgTable('card_image_hashes', {
-  id: text('id').primaryKey(),
-  cardId: text('card_id').notNull().references(() => cards.id),
-  hashType: varchar('hash_type', { length: 10 }).notNull(), // 'phash', 'dhash', 'ahash'
-  hashValue: varchar('hash_value', { length: 64 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
-  index('card_image_hashes_type_value_idx').on(table.hashType, table.hashValue),
-  uniqueIndex('card_image_hashes_card_type_idx').on(table.cardId, table.hashType),
-]);
-```
-
-### Cost Estimate
-
-Google Cloud Vision: ~$1.50 per 1000 images. With 90% hash-match success rate, only 10% hit Cloud Vision. At 10K active users, 20 scans/month each = 200K total scans, ~20K Vision API calls = ~$30/month.
-
----
-
-## 4. AI-Powered Trade Suggestions
-
-### Architecture Decision
-
-Use **external LLM API calls** (OpenAI GPT-4o-mini or Anthropic Claude Haiku) with structured data prompting. Do not train custom models -- the project lacks sufficient trade history data, and LLM prompting with structured output provides better reasoning quality and faster iteration.
-
-### How It Works
-
-```
-User opens app / taps "Get Suggestions" (premium feature)
-    |
-    v
-GET /api/suggestions --> suggest.service.ts:
-    1. Check Redis cache (key: suggest:{userId}, TTL: 1 hour)
-    2. If cached, return immediately
-    3. If not cached:
-       a. Fetch user's collection, wanted list, active posts
-       b. Fetch recent completed trades for market value signals
-       c. Fetch card analytics (most wanted, least available)
-       d. Build structured prompt with context:
-          "Given user has [cards], wants [cards], current market:
-           [trending cards], [most wanted cards].
-           Suggest 3-5 optimal trades with reasoning."
-       e. Call LLM API with JSON mode / structured output
-       f. Parse + validate response against real card IDs + active posts
-       g. Cache in Redis, return results
-    |
-    v
-Return: [{ trade: { give: Card[], get: Card[] }, reasoning: string, confidence: number }]
-```
-
-### Why External LLM, Not Custom ML
-
-- **No training data**: v1.0 has minimal trade history to train on
-- **Reasoning quality**: LLMs produce explanations users can read ("Crown rarity Mewtwo is trending up -- good time to trade for it")
-- **Iteration speed**: Change the prompt, not retrain a model
-- **Cost at scale**: Premium-only feature. ~$0.01/suggestion with GPT-4o-mini. 1000 premium users x 5 suggestions/day = ~$50/month
-
-### New Components
-
-| Component | Purpose |
-|-----------|---------|
-| `services/suggest.service.ts` | Prompt construction, LLM API call, response validation |
-| `routes/suggestions.ts` | GET endpoint with premium gate |
-| `jobs/suggestion-worker.ts` | Pre-compute suggestions on app open (BullMQ job) |
-| Redis cache key `suggest:{userId}` | Cache suggestions per user, TTL 1 hour |
-
----
-
-## 5. Local Trade Finder (Nearby Traders)
-
-### Architecture Decision
-
-Use **PostGIS** extension on the existing PostgreSQL database. Drizzle ORM has documented support for PostGIS `geometry` columns with `point` type, GiST indexes, and spatial queries. This is the most natural approach -- no additional infrastructure needed.
-
-### Schema Changes
-
-```typescript
-// In db/schema.ts -- modify users table:
-import { geometry } from 'drizzle-orm/pg-core';
-
-// Add to users table definition:
-location: geometry('location', { type: 'point', mode: 'xy', srid: 4326 }),
-locationUpdatedAt: timestamp('location_updated_at'),
-
-// Add GiST spatial index:
-index('users_location_idx').using('gist', table.location)
-```
-
-### Migration
-
-```sql
--- Custom migration (drizzle-kit generate --custom)
-CREATE EXTENSION IF NOT EXISTS postgis;
-ALTER TABLE users ADD COLUMN location GEOMETRY(Point, 4326);
-ALTER TABLE users ADD COLUMN location_updated_at TIMESTAMP;
-CREATE INDEX users_location_idx ON users USING GIST(location);
-```
-
-### Query Pattern
-
-```typescript
-// geo.service.ts
-export async function findNearbyTraders(
-  db: Db,
-  userId: string,
-  lat: number,
-  lng: number,
-  radiusKm: number = 25
-) {
-  const point = sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)`;
-
-  return db
-    .select({
-      id: users.id,
-      displayName: users.displayName,
-      avatarId: users.avatarId,
-      friendCode: users.friendCode,
-      // Distance in km (cast to geography for meter-based distance)
-      distance: sql<number>`ST_Distance(
-        ${users.location}::geography,
-        ${point}::geography
-      ) / 1000`,
-    })
-    .from(users)
-    .where(
-      and(
-        sql`ST_DWithin(
-          ${users.location}::geography,
-          ${point}::geography,
-          ${radiusKm * 1000}
-        )`,
-        sql`${users.id} != ${userId}`,
-        sql`${users.location} IS NOT NULL`
-      )
-    )
-    .orderBy(sql`${users.location} <-> ${point}`)
-    .limit(50);
-}
-```
-
-PostGIS KNN queries with GiST indexes are extremely fast -- benchmarks show sub-millisecond response times even against billions of rows. This is not a scaling concern.
-
-### Privacy Design
-
-- **Approximate only**: Round coordinates to ~1km precision before storage (`Math.round(lat * 100) / 100`)
-- **Opt-in**: Location column is nullable. Users must explicitly enable location sharing
-- **Display relative**: Show "~5 km away", never show exact coordinates to other users
-- **Clear on demand**: `DELETE /api/users/me/location` sets column to NULL
-- **Rate limit updates**: Accept location updates max once per hour per user
-
-### New Components
-
-| Component | Purpose |
-|-----------|---------|
-| `services/geo.service.ts` | `findNearbyTraders()`, `updateUserLocation()` |
-| `routes/geo.ts` | `PUT /api/users/me/location`, `GET /api/traders/nearby` |
-| Mobile: `useLocation` hook | Uses `expo-location`, sends to API on app open |
-| PostGIS migration | Enable extension, add column + index |
-
----
-
-## 6. Multi-Language Card Database
-
-### Architecture Decision
-
-TCGdex already provides card data in **9 languages** for TCG Pocket via language-prefixed API endpoints (`/v2/en/...`, `/v2/ja/...`, `/v2/fr/...`, etc.). The question is how to store this locally.
-
-Use a **`cardTranslations` table** to hold per-language names and image URLs. The base `cards` table retains language-agnostic data (rarity, HP, type, attacks, etc. -- these don't change per language). This avoids duplicating the entire cards table 9 times.
-
-### Schema Changes
-
-```typescript
-// NEW table in db/schema.ts
-export const cardTranslations = pgTable('card_translations', {
-  id: text('id').primaryKey(),
-  cardId: text('card_id').notNull().references(() => cards.id),
-  language: varchar('language', { length: 5 }).notNull(),
-  name: varchar('name', { length: 100 }).notNull(),
-  imageUrl: text('image_url').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
-  uniqueIndex('card_translations_card_lang_idx').on(table.cardId, table.language),
-  index('card_translations_name_lower_idx').on(sql`lower(${table.name})`),
-]);
-
-// MODIFY user_collection_items: add language per collected card
-// (users may have the same card in different languages)
-export const userCollectionItems = pgTable('user_collection_items', {
-  // ... existing fields ...
-  cardLanguage: varchar('card_language', { length: 5 }).default('en'),
-  // Update unique index to include language:
-}, (table) => [
-  uniqueIndex('user_collection_items_user_card_lang_idx')
-    .on(table.userId, table.cardId, table.cardLanguage),
-  // ... existing indexes ...
-]);
-```
-
-### Supported Languages (TCGdex for TCG Pocket)
-
-en, ja, fr, de, es, it, pt, ko, zh-tw -- 9 total.
-
-### Card Import Changes
-
-The existing `seed-cards.ts` and `importCardSet()` in `card.service.ts` fetch from TCGdex English. Modify to:
-
-1. Import base card data (English default, language-agnostic fields) -- existing flow
-2. For each supported language, fetch `https://api.tcgdex.net/v2/{lang}/sets/{setId}` and populate `cardTranslations`
-3. Add `language` query parameter to card search/browse endpoints
-4. Card display components join with `cardTranslations` based on user's preferred language
-
-### Impact on Existing Code
-
-| File | Change |
-|------|--------|
-| `db/schema.ts` | Add `cardTranslations` table, add `cardLanguage` to `userCollectionItems` |
-| `services/card.service.ts` | Join with translations on search, accept `language` param |
-| `db/seeds/seed-cards.ts` | Fetch translations for all 9 languages |
-| `routes/cards.ts` | Accept `?language=` query param |
-| `packages/shared/schemas/card.ts` | Add `language` field |
-| `services/collection.service.ts` | Handle `cardLanguage` on add/update |
-| Mobile: card display components | Show card name/image in user's language preference |
-
----
-
-## 7. Multi-Language UI (i18n)
-
-### Architecture Decision
-
-Use **react-i18next** with **expo-localization** for device language detection. react-i18next is the most mature and widely-used i18n library in the React ecosystem. It works on both React Native (mobile app) and React (web app), supports namespace-based lazy loading, and has excellent TypeScript support.
-
-### Implementation Structure
+Create `packages/shared/tokens/` as a set of plain TypeScript objects. Both platforms consume these tokens but apply them differently -- React Native uses the JS objects directly in `StyleSheet.create`, the web app generates CSS custom properties from them.
 
 ```
 packages/shared/
   src/
-    i18n/
-      locales/
-        en/
-          common.json       # Shared strings: "Save", "Cancel", "Loading..."
-          trades.json       # "Create Post", "Offering", "Seeking", ...
-          collection.json   # "Add to Collection", "Remove", ...
-          meta.json         # "Win Rate", "Matchups", "Tier", ...
-          auth.json         # "Login", "Sign Up", "Forgot Password", ...
-        ja/
-          common.json
-          trades.json
-          ...
-        fr/
-          ...
-      index.ts              # i18n configuration, namespace definitions
-
-apps/mobile/
-  src/
-    i18n/
-      init.ts               # imports shared config + adds expo-localization detector
-
-apps/web/
-  src/
-    i18n/
-      init.ts               # imports shared config + adds browser language detector
+    tokens/
+      index.ts          # barrel export
+      colors.ts         # full color palette
+      typography.ts     # font sizes, weights, line heights (no fontFamily -- platform-specific)
+      spacing.ts        # spacing scale (4px base)
+      radii.ts          # border radius scale
+      shadows.ts        # elevation / shadow definitions
+      motion.ts         # duration + easing tokens for animations
 ```
 
-### Key Design Decisions
-
-- **Shared translation files in `packages/shared`** -- single source of truth for both mobile and web
-- **Namespace per feature**: `common`, `trades`, `collection`, `meta`, `auth` -- enables lazy loading and smaller bundles
-- **Type-safe keys**: Generate TypeScript types from the English JSON files
-- **Fallback chain**: User preference --> device language --> English
-- **No RTL needed**: All 9 TCG Pocket languages (en, ja, fr, de, es, it, pt, ko, zh) are LTR
-
-### User Language Preference
-
-Add to users table:
-```typescript
-preferredLanguage: varchar('preferred_language', { length: 5 }).default('en'),
-```
-
-This controls both UI language and default card language display.
-
----
-
-## 8. Deck Meta System
-
-### Architecture Decision
-
-Import competitive deck data from public sources via BullMQ scheduled workers. Store in PostgreSQL. Serve via REST endpoints with Redis caching.
-
-### Data Sources
-
-| Source | Data Available | Access Method | Reliability |
-|--------|---------------|---------------|-------------|
-| [Limitless TCG](https://play.limitlesstcg.com/decks?game=POCKET) | Tournament results, decklists, win rates, matchups | Web scraping (no public API) | MEDIUM -- HTML structure may change |
-| [PokemonMeta](https://www.pokemonmeta.com/top-decks) | Daily top decks, tier rankings | Web scraping | MEDIUM |
-| Manual entry via admin panel | Curated decks, corrections | Admin routes (existing `routes/admin.ts`) | HIGH -- fallback |
-
-### New Schema
+### Token Structure
 
 ```typescript
-export const decks = pgTable('decks', {
-  id: text('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull(),
-  archetype: varchar('archetype', { length: 50 }),
-  tier: integer('tier'),                    // 1, 2, 3
-  winRate: integer('win_rate'),             // stored as basis points: 6750 = 67.50%
-  usageRate: integer('usage_rate'),         // basis points
-  sampleSize: integer('sample_size'),
-  cardIds: jsonb('card_ids').notNull(),     // ["A1-001", "A1-042", ...]
-  source: varchar('source', { length: 30 }).notNull(),
-  sourceUrl: text('source_url'),
-  lastUpdated: timestamp('last_updated').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [
-  index('decks_tier_idx').on(table.tier),
-]);
-
-export const deckMatchups = pgTable('deck_matchups', {
-  id: text('id').primaryKey(),
-  deckId: text('deck_id').notNull().references(() => decks.id),
-  opponentDeckId: text('opponent_deck_id').notNull().references(() => decks.id),
-  winRate: integer('win_rate').notNull(),   // basis points
-  sampleSize: integer('sample_size').notNull(),
-  lastUpdated: timestamp('last_updated').notNull(),
-}, (table) => [
-  index('deck_matchups_deck_id_idx').on(table.deckId),
-  uniqueIndex('deck_matchups_pair_idx').on(table.deckId, table.opponentDeckId),
-]);
-```
-
-### BullMQ Worker
-
-```typescript
-// jobs/meta-scrape-worker.ts
-// Runs daily at 3:00 UTC via cron schedule
-// 1. Fetch Limitless TCG Pocket decks page
-// 2. Parse deck lists, win rates, matchup data (cheerio HTML parsing)
-// 3. Upsert into decks + deck_matchups tables
-// 4. Invalidate Redis cache for meta endpoints
-// 5. Log scrape results for monitoring
-```
-
-### Risk Mitigation
-
-Web scraping is fragile. Mitigations:
-- Admin manual entry as primary fallback (via existing admin routes)
-- Monitor scrape success rate -- alert if 3 consecutive failures
-- Cache aggressively (meta data is daily-update at most)
-- Build the feature so it degrades gracefully -- app works fine with empty meta data
-
----
-
-## Architectural Patterns
-
-### Pattern 1: Feature Flag Gating
-
-**What:** Gate all v2.0 features behind Redis-backed feature flags for incremental rollout.
-**When to use:** Every new feature (posts, scanning, geo, AI suggestions, deck meta).
-
-```typescript
-// Simple implementation -- no external service needed
-const FEATURES = {
-  POSTS: 'feature:posts',
-  SCAN: 'feature:scan',
-  GEO: 'feature:geo',
-  AI_SUGGEST: 'feature:ai_suggest',
-  DECK_META: 'feature:deck_meta',
+// packages/shared/src/tokens/colors.ts
+export const colors = {
+  // Backgrounds
+  bg: { DEFAULT: '#0a0a14', raised: '#12121f', elevated: '#1a1a2e', overlay: '#252540' },
+  // Brand
+  gold: { DEFAULT: '#f0c040', dim: '#c49a20', glow: '#f0c04030' },
+  // Text
+  text: { DEFAULT: '#ffffff', secondary: '#a0a0b8', muted: '#6c6c80', inverse: '#0a0a14' },
+  // Semantic
+  error: { DEFAULT: '#e74c3c', dim: '#e74c3c20' },
+  success: { DEFAULT: '#2ecc71', dim: '#2ecc7120' },
+  warning: { DEFAULT: '#f39c12', dim: '#f39c1220' },
+  info: { DEFAULT: '#3498db', dim: '#3498db20' },
+  // Borders
+  border: { DEFAULT: '#2a2a45', light: '#3f3f56', strong: '#4a4a65' },
 } as const;
 
-// Route-level check:
-async function requireFeature(flag: string) {
-  return async (request: FastifyRequest, reply: FastifyReply) => {
-    const enabled = await request.server.redis.get(flag);
-    if (enabled !== '1') reply.code(404).send({ error: 'Not found' });
-  };
+// packages/shared/src/tokens/spacing.ts
+export const spacing = {
+  0: 0, 0.5: 2, 1: 4, 1.5: 6, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64,
+} as const;
+
+// packages/shared/src/tokens/typography.ts
+export const fontSize = {
+  xs: 11, sm: 13, base: 15, md: 16, lg: 18, xl: 20, '2xl': 24, '3xl': 28, '4xl': 34,
+} as const;
+
+export const fontWeight = {
+  normal: '400', medium: '500', semibold: '600', bold: '700', extrabold: '800',
+} as const;
+
+export const lineHeight = {
+  tight: 1.2, normal: 1.4, relaxed: 1.6,
+} as const;
+
+// packages/shared/src/tokens/motion.ts
+export const duration = {
+  instant: 100, fast: 150, normal: 250, slow: 400, glacial: 600,
+} as const;
+
+export const easing = {
+  ease: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+  easeIn: 'cubic-bezier(0.42, 0, 1, 1)',
+  easeOut: 'cubic-bezier(0, 0, 0.58, 1)',
+  spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+} as const;
+```
+
+### How Each Platform Consumes Tokens
+
+**Mobile (React Native):** Import tokens directly. Used in `StyleSheet.create` and Reanimated shared values.
+
+```typescript
+import { colors, spacing, fontSize } from '@pocket-trade-hub/shared/tokens';
+// Used directly: backgroundColor: colors.bg.raised, padding: spacing[4]
+```
+
+**Web (Next.js + Tailwind v4):** A build script or small utility generates `globals.css` @theme block from the token objects. Tailwind classes like `bg-bg-raised` and `p-4` map to the same values.
+
+```typescript
+// scripts/generate-css-tokens.ts -- runs at build time
+import { colors, spacing } from '@pocket-trade-hub/shared/tokens';
+
+function flattenTokens(obj: Record<string, any>, prefix = ''): Record<string, string> {
+  return Object.entries(obj).reduce((acc, [key, val]) => {
+    const name = prefix ? `${prefix}-${key}` : key;
+    if (typeof val === 'object' && !Array.isArray(val)) {
+      return { ...acc, ...flattenTokens(val, name) };
+    }
+    return { ...acc, [name]: String(val) };
+  }, {} as Record<string, string>);
+}
+// Output: @theme { --color-bg-DEFAULT: #0a0a14; --color-bg-raised: #12121f; ... }
+```
+
+### Why Not NativeWind
+
+NativeWind (Tailwind for React Native) is the most obvious "share styling" choice. Do not adopt it for this project because:
+
+1. **Migration cost is enormous.** 40K+ LOC using `StyleSheet.create` patterns. NativeWind requires rewriting every component's styling approach. The overhaul already changes every component -- adding a styling framework migration on top doubles the scope.
+2. **Existing web Tailwind v4 works well.** The web app already uses Tailwind v4 CSS-first config correctly. NativeWind v5 (pre-release) aligns with Tailwind v4 but is not stable.
+3. **Shared tokens solve the actual problem.** The real issue is color/spacing/typography drift between platforms, not the styling API. A shared token package gives consistency without a framework migration.
+4. **StyleSheet.create is performant.** React Native's `StyleSheet.create` produces optimized native style objects. NativeWind adds a runtime CSS-to-native translation layer.
+
+Revisit NativeWind only if starting a new project or if NativeWind v5 reaches stable release and the team wants utility-class DX on mobile.
+
+---
+
+## 2. Component Refactoring Strategy: Bottom-Up
+
+### Why Bottom-Up, Not Top-Down
+
+Top-down (screens first) breaks everything at once. You cannot test a screen redesign if the buttons, cards, inputs, and modals it composes are still the old versions. Bottom-up means:
+
+1. Build primitive components with new design
+2. Compose feature components from primitives
+3. Swap screen implementations one at a time
+
+Each step produces immediately testable results. Old screens continue working until explicitly migrated.
+
+### Component Inventory and Migration Plan
+
+**Layer 1 -- Primitives (no dependencies, build first):**
+
+| Component | Mobile Status | Web Status | Effort |
+|-----------|--------------|------------|--------|
+| Button | Extract from inline `TouchableOpacity` + styles in 15+ files | Replace `ui/Button.tsx` | Low |
+| Text variants (Heading, Body, Caption, Label) | Extract from repeated typography spread patterns | Replace inline `className` patterns | Low |
+| Input / TextInput | Extract from 8+ inline patterns | Replace `ui/Input.tsx` | Low |
+| Badge (rarity, status, count) | Extract from 6+ inline implementations | New | Low |
+| Icon wrapper | Standardize Ionicons usage (mobile) / Lucide usage (web) | Already partially exists | Low |
+| Divider / Separator | Repeated `View` with `borderBottom` | New | Trivial |
+| Skeleton / Placeholder | New for mobile | Replace `ui/Skeleton.tsx` | Low |
+
+**Layer 2 -- Composites (depend on primitives):**
+
+| Component | Mobile Status | Web Status | Effort |
+|-----------|--------------|------------|--------|
+| Card container (surface) | `View` with `backgroundColor: colors.surface` repeated 30+ times | `div` with `bg-surface rounded-lg` | Low |
+| Modal / BottomSheet | 6 different modal patterns (DeckDetailModal, PostBrowseModal, etc.) | `ui/Modal.tsx` | Medium |
+| List item | 5+ inline list row implementations | Varies by feature | Medium |
+| Progress bar | 3 inline implementations (collection, set progress) | 0 (not on web yet) | Low |
+| Tab bar / Segment control | None (uses Expo Router tabs only) | None | Medium |
+| Empty state | Repeated empty-state patterns across 5+ screens | None | Low |
+| Toast / Notification banner | Custom toast in `_layout.tsx` | `NotificationToast.tsx` | Low |
+| Stat card (number + label) | Repeated in CollectionSummary, analytics | New | Low |
+| Filter bar / Chip group | 4+ inline implementations (card filters, post filters) | `CardFilters.tsx`, `PostFilters.tsx` | Medium |
+
+**Layer 3 -- Feature components (depend on composites):**
+
+| Component | Mobile Status | Web Status | Effort |
+|-----------|--------------|------------|--------|
+| CardThumbnail | `cards/CardThumbnail.tsx` | `cards/CardThumbnail.tsx` | Medium |
+| PostCard | `market/PostCard.tsx` | `trading/PostCard.tsx` | Medium |
+| ProposalCard | `trades/ProposalCard.tsx` | `trading/ProposalCard.tsx` | Medium |
+| DeckCard | `meta/DeckCard.tsx` | `meta/DeckRankings.tsx` | Medium |
+| TierListCard | `meta/TierListCard.tsx` | `meta/TierListBrowser.tsx` | Medium |
+| CollectionSummary | `cards/CollectionSummary.tsx` | None | Medium |
+| SetupChecklist | `SetupChecklist.tsx` | None | Low |
+| PaywallCard | `premium/PaywallCard.tsx` | None | Low |
+
+### Migration Path (Coexistence Period)
+
+During migration, old and new components coexist. The pattern:
+
+```typescript
+// Step 1: Create new design system component
+// apps/mobile/src/design-system/components/Button.tsx
+
+// Step 2: Add backward-compatible re-export shim for theme.ts
+// apps/mobile/src/constants/theme.ts
+export { colors, spacing } from '@pocket-trade-hub/shared/tokens';
+// ...plus computed values that map old names to new structure
+
+// Step 3: Migrate screens one at a time
+// Each PR replaces one screen's inline styles with design system components
+// Old screens remain functional until their turn
+```
+
+---
+
+## 3. Theme Provider Pattern
+
+### Mobile: Lightweight Context Provider
+
+React Native does not need a full CSS variable system. The design tokens are static JS imports. However, a ThemeProvider is useful for:
+
+- Future dark/light mode toggle (currently hardcoded dark)
+- Providing computed theme values (e.g., `colors.gold.glow` which is derived)
+- Centralizing Reanimated shared values for animated theme transitions
+
+```typescript
+// apps/mobile/src/design-system/ThemeProvider.tsx
+import { createContext, useContext, useMemo } from 'react';
+import { colors, spacing, fontSize, radii } from '@pocket-trade-hub/shared/tokens';
+
+interface Theme {
+  colors: typeof colors;
+  spacing: typeof spacing;
+  fontSize: typeof fontSize;
+  radii: typeof radii;
+}
+
+const ThemeContext = createContext<Theme | null>(null);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = useMemo(() => ({ colors, spacing, fontSize, radii }), []);
+  return (
+    <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
 }
 ```
 
-### Pattern 2: Service-per-Feature, Shared Database
+In practice, most components will import tokens directly for static styles (`StyleSheet.create`) and use `useTheme()` only for dynamic/conditional styling. This avoids unnecessary re-renders -- `StyleSheet.create` is evaluated once at module load time and does not re-render when context changes.
 
-**What:** Each new feature gets its own service file and route file, sharing the same PostgreSQL + Drizzle instance.
-**When to use:** All new features. Do NOT create microservices.
-**Trade-offs:** Simple deployment, shared transactions. The monolith stays a monolith -- at sub-100K users, this is correct.
+### Web: CSS Custom Properties (Already Works)
 
-### Pattern 3: BullMQ for External API Calls
+The web app already uses Tailwind v4 `@theme` directive with CSS custom properties. Expand the current 8 variables to the full token set. No React context needed -- CSS variables cascade naturally through the DOM.
 
-**What:** All calls to external APIs (Cloud Vision, LLM, web scraping) go through BullMQ jobs with retry logic.
-**When to use:** Any operation that calls a third-party service.
-**Why:** Retries on transient failures, rate limiting, observability via BullMQ dashboard. The codebase already has 4 workers (`match-worker`, `analytics-worker`, `card-alert-worker`, `notification-worker`) -- new workers follow the exact same pattern.
+```css
+/* Generated from packages/shared/tokens/ */
+@import "tailwindcss";
 
----
-
-## Data Flow Changes
-
-### v1.0 Primary Trading Flow (Still Works, Secondary)
-
-```
-Collection/Wanted change --> BullMQ match-worker --> tradeMatches --> notification
-    --> User reviews match --> creates proposal --> accept/reject/counter
-```
-
-### v2.0 Primary Trading Flow (NEW)
-
-```
-User creates post --> POST /api/posts --> trade_posts table
-    --> BullMQ: find complementary posts --> notify matching post owners
-    --> Browsing user finds post --> creates proposal (with postId)
-    --> Same accept/reject/counter/complete/rate workflow
-```
-
-### Card Scan Flow (NEW)
-
-```
-User captures screenshot --> expo-image-picker
-    --> POST /api/scan/card (multipart)
-    --> scan.service: sharp preprocessing --> pHash match
-    --> If low confidence: Google Cloud Vision fallback
-    --> Return cardId + confidence
-    --> User confirms --> POST /api/collection or POST /api/posts
-```
-
-### AI Suggestion Flow (NEW)
-
-```
-User opens app --> BullMQ: compute-suggestions (debounced, 1/hour)
-    --> suggest.service: fetch context data --> LLM API call --> cache in Redis
-GET /api/suggestions --> return cached suggestions
+@theme {
+  /* Backgrounds */
+  --color-bg: #0a0a14;
+  --color-bg-raised: #12121f;
+  --color-bg-elevated: #1a1a2e;
+  --color-bg-overlay: #252540;
+  /* Brand */
+  --color-gold: #f0c040;
+  --color-gold-dim: #c49a20;
+  --color-gold-glow: #f0c04030;
+  /* Text */
+  --color-text: #ffffff;
+  --color-text-secondary: #a0a0b8;
+  --color-text-muted: #6c6c80;
+  /* Semantic */
+  --color-error: #e74c3c;
+  --color-success: #2ecc71;
+  --color-warning: #f39c12;
+  --color-info: #3498db;
+  /* Borders */
+  --color-border: #2a2a45;
+  --color-border-light: #3f3f56;
+  /* Spacing is handled by Tailwind's default scale -- matches our tokens */
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
 ```
 
 ---
 
-## Scaling Considerations
+## 4. Navigation Restructuring Without Breaking Existing Flows
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0-10K users | Current monolith is fine. PostGIS queries trivial. Single Fastify process. Redis handles all caching + queues. |
-| 10K-100K users | Add Redis caching for post feed (paginated, 60s TTL). Move BullMQ workers to separate process. Add pgBouncer for connection pooling. Rate limit scan + AI endpoints aggressively. |
-| 100K+ users | Read replicas for post feed queries. Card scan to dedicated queue with concurrency limit. CDN for card images. Consider separating web scraping worker to own process. |
+### Current Navigation Structure
 
-### First Bottleneck: Post Feed Queries
+**Mobile (Expo Router):**
+```
+app/
+  _layout.tsx              # Root: Stack with auth guards
+  (auth)/                  # Login, signup, forgot-password
+  (tabs)/                  # Bottom tab navigator
+    _layout.tsx            # 6 tabs: Home, Cards, Market, Trades, Meta, Profile
+    index.tsx              # Home
+    cards.tsx              # Card browser + collection
+    market.tsx             # Marketplace (posts)
+    trades.tsx             # Proposals
+    meta.tsx               # Deck meta + tier lists
+    profile.tsx            # User profile + settings + premium
+  onboarding.tsx           # Modal
+  edit-profile.tsx         # Stack screen
+  notifications.tsx        # Stack screen
+  analytics.tsx            # Stack screen
+  card/[id].tsx            # Card detail
+  user/[id].tsx            # User profile
+  create-tier-list.tsx     # Stack screen
+```
 
-The query `WHERE card_id = X AND type = 'offering' AND is_active = true ORDER BY created_at DESC` becomes the hottest path. Mitigated by the composite index on `(card_id, type)` plus Redis cache (60s TTL) for popular card feeds.
+**Web (Next.js App Router):**
+```
+app/
+  (auth)/                  # Login, signup
+  (app)/                   # Sidebar layout
+    cards/page.tsx
+    collection/page.tsx
+    market/page.tsx
+    proposals/page.tsx
+    meta/page.tsx
+    tierlists/page.tsx
+```
 
-### Second Bottleneck: Card Scan Processing
+### Navigation Changes for the Overhaul
 
-Image upload + hash computation is CPU-intensive. Mitigated by BullMQ queue with concurrency: 4, and per-user rate limiting (20 scans/minute).
+The 6-tab mobile layout is already solid. Do **not** restructure the tab order or add/remove tabs during the overhaul -- that is a feature change, not a UI/UX change. The overhaul focuses on:
+
+1. **Tab bar visual redesign:** Custom tab bar component replacing the default Expo Router tab bar. Animated indicator, custom icons, haptic feedback.
+
+2. **Screen transition animations:** Add `react-native-reanimated` shared element transitions between list views and detail views (card grid -> card detail, deck list -> deck detail). This is purely additive -- no routing changes.
+
+3. **Header redesign:** Replace default Expo Router header with custom header component. Consistent across all stack screens. Supports animated collapse on scroll.
+
+4. **Modal presentation:** Standardize all modals to use a shared `BottomSheet` component (for mobile) instead of the current mix of `presentation: 'modal'` and inline modal components. This does NOT change the Expo Router modal routes -- only the visual presentation within existing routes.
+
+5. **Web sidebar enhancement:** Add collapsible state, user avatar, active section indicator animation. No structural route changes.
+
+### What NOT to Change
+
+- Tab count (6 tabs -- do not add or remove)
+- Route file names and paths (keep Expo Router file-based routing intact)
+- Auth guard pattern (`Stack.Protected` in `_layout.tsx` -- works, keep it)
+- Deep link URLs (any external links or push notification targets must continue working)
+- Web route structure (`(auth)/` and `(app)/` groups -- working correctly)
+
+### Safe Migration Pattern for Navigation
+
+```typescript
+// Step 1: Create CustomTabBar component
+// apps/mobile/src/design-system/navigation/CustomTabBar.tsx
+// Reads tab config from Expo Router, renders custom UI
+
+// Step 2: Swap in (tabs)/_layout.tsx without changing tab definitions
+// Only change: tabBar prop on <Tabs> component
+<Tabs
+  tabBar={(props) => <CustomTabBar {...props} />}
+  screenOptions={{ /* keep existing options */ }}
+>
+  {/* All Tabs.Screen definitions stay identical */}
+</Tabs>
+
+// Step 3: Create CustomHeader component
+// apps/mobile/src/design-system/navigation/CustomHeader.tsx
+
+// Step 4: Swap in _layout.tsx Stack screenOptions
+// Only change: header prop
+<Stack
+  screenOptions={{
+    header: (props) => <CustomHeader {...props} />,
+    headerShown: true,
+  }}
+>
+  {/* All Stack.Screen definitions stay identical */}
+</Stack>
+```
+
+---
+
+## 5. Cross-Platform Consistency Strategy
+
+### What to Share vs. What to Keep Platform-Specific
+
+| Concern | Shared | Platform-Specific |
+|---------|--------|-------------------|
+| Color values | YES -- single token source | NO |
+| Spacing scale | YES -- same numeric values | NO |
+| Typography scale | YES -- font sizes + weights | Font families (system fonts differ) |
+| Border radii | YES -- same values | NO |
+| Shadow/elevation | Token values shared | Implementation differs (RN shadow props vs CSS box-shadow) |
+| Animation durations | YES -- same duration values | Easing implementation (Reanimated vs CSS transitions) |
+| Component API surface | Similar prop names | Different rendering (RN Views vs HTML divs) |
+| Layout patterns | Design specs shared | Implementation differs (Flexbox defaults differ between RN and CSS) |
+| Icons | Shared icon names | Ionicons (mobile) vs Lucide (web) -- map by name |
+
+### The "Design Spec" Approach
+
+Rather than sharing React component code across platforms (which produces lowest-common-denominator UI), share **design specs** through tokens and let each platform implement idiomatically.
+
+A mobile `Button` uses `TouchableOpacity` + `Reanimated` press animation + haptic feedback.
+A web `Button` uses `<button>` + CSS transitions + `:hover` states.
+
+Both use `colors.gold.DEFAULT` as background color, `spacing[4]` as horizontal padding, and `fontSize.sm` as text size. The visual result is consistent. The interaction model is platform-native.
+
+### Icon Mapping
+
+Create a shared icon name registry to ensure both platforms use semantically identical icons:
+
+```typescript
+// packages/shared/src/tokens/icons.ts
+export const iconNames = {
+  home: { mobile: 'home', web: 'LayoutGrid' },
+  cards: { mobile: 'albums', web: 'Library' },
+  market: { mobile: 'storefront', web: 'Store' },
+  trades: { mobile: 'swap-horizontal', web: 'ArrowLeftRight' },
+  meta: { mobile: 'trophy', web: 'BarChart3' },
+  profile: { mobile: 'person', web: 'User' },
+  notification: { mobile: 'notifications', web: 'Bell' },
+  search: { mobile: 'search', web: 'Search' },
+  filter: { mobile: 'filter', web: 'Filter' },
+  close: { mobile: 'close', web: 'X' },
+  chevronRight: { mobile: 'chevron-forward', web: 'ChevronRight' },
+} as const;
+```
+
+---
+
+## 6. Motion and Micro-Interaction Architecture
+
+### Library Choice: react-native-reanimated
+
+Use `react-native-reanimated` (already compatible with Expo SDK) for all mobile animations. Do NOT use React Native's built-in `Animated` API -- Reanimated runs animations on the UI thread, avoiding JS thread bottlenecks.
+
+For web, use CSS transitions and `framer-motion` only if complex orchestrated animations are needed. Most web animations will be CSS-only (transition on hover, opacity fade on mount).
+
+### Animation Token Integration
+
+Shared motion tokens ensure consistent timing:
+
+```typescript
+// Used in Reanimated (mobile)
+withTiming(1, { duration: duration.fast, easing: Easing.bezier(0.25, 0.1, 0.25, 1) })
+
+// Used in CSS (web)
+// transition: opacity 150ms cubic-bezier(0.25, 0.1, 0.25, 1);
+// Tailwind: transition-all duration-150 ease-out
+```
+
+### Recommended Animation Patterns
+
+| Interaction | Mobile Implementation | Web Implementation |
+|------------|----------------------|-------------------|
+| Button press | `useAnimatedStyle` scale to 0.97 + opacity 0.8, spring back | `active:scale-[0.97]` CSS transform |
+| Screen mount | `FadeInDown` entering animation (Reanimated layout animation) | CSS `@keyframes fadeIn` or `animate-in` |
+| List item appear | Staggered `FadeInUp` with 50ms delay per item | CSS `animation-delay` with stagger |
+| Tab switch | Shared element transition for content, indicator slide | CSS `transform: translateX()` for indicator |
+| Modal open | `SlideInUp` + backdrop opacity | `animate-in slide-in-from-bottom` |
+| Pull to refresh | Custom Reanimated gesture handler | N/A (web uses standard scroll) |
+| Card flip/expand | `withSpring` rotation + scale | CSS `perspective` + `rotateY` transition |
+| Skeleton shimmer | Reanimated `LinearGradient` translation | CSS gradient animation (already standard) |
+
+### What NOT to Animate
+
+- Data-heavy list scrolling (FlatList/VirtualizedList must remain lightweight)
+- Form validation feedback (use color changes, not motion)
+- Navigation between unrelated screens (simple crossfade, no elaborate transitions)
+- Anything that blocks user progress (keep animations under 300ms for interactive elements)
+
+---
+
+## Recommended Project Structure (Post-Overhaul)
+
+### Shared Token Package
+
+```
+packages/shared/
+  src/
+    tokens/
+      index.ts              # barrel: export * from './colors' etc.
+      colors.ts             # full color palette
+      typography.ts         # fontSize, fontWeight, lineHeight scales
+      spacing.ts            # 4px-base spacing scale
+      radii.ts              # border radius scale
+      shadows.ts            # shadow/elevation definitions
+      motion.ts             # duration + easing curves
+      icons.ts              # cross-platform icon name mapping
+    schemas/                # (existing -- unchanged)
+    index.ts                # (existing -- add tokens export)
+```
+
+### Mobile Design System
+
+```
+apps/mobile/src/
+  design-system/
+    index.ts                  # barrel export
+    ThemeProvider.tsx          # React context wrapping token values
+    components/
+      Button.tsx              # Touchable + Reanimated press
+      Text.tsx                # Heading, Body, Caption, Label variants
+      Input.tsx               # TextInput with label, error, icon slots
+      Badge.tsx               # Rarity, status, count badges
+      Card.tsx                # Surface container with elevation variants
+      Modal.tsx               # Standardized bottom sheet / centered modal
+      ProgressBar.tsx         # Animated progress with Reanimated
+      Skeleton.tsx            # Shimmer placeholder
+      Divider.tsx             # Horizontal / vertical separator
+      EmptyState.tsx          # Icon + title + description + optional CTA
+      StatCard.tsx            # Number + label stat display
+      FilterChip.tsx          # Selectable chip for filter bars
+      Avatar.tsx              # User avatar with fallback
+      IconButton.tsx          # Icon-only touchable
+      Toast.tsx               # Notification toast (replaces inline in _layout)
+    navigation/
+      CustomTabBar.tsx        # Animated bottom tab bar
+      CustomHeader.tsx        # Collapsible header with search slot
+      TabBarIcon.tsx          # Animated tab icon with badge support
+    hooks/
+      useAnimatedPress.ts     # Shared press animation for any touchable
+      useStaggeredList.ts     # Staggered entrance animation for FlatList items
+      useScrollHeader.ts      # Header collapse on scroll
+  constants/
+    theme.ts                  # SHIM: re-exports from @pocket-trade-hub/shared/tokens
+                              # with backward-compatible property names during migration
+  components/                 # (existing feature components -- migrate over time)
+    cards/
+    collection/
+    trade/
+    meta/
+    ...
+```
+
+### Web Design System
+
+```
+apps/web/src/
+  design-system/
+    index.ts                  # barrel export
+    components/
+      Button.tsx              # HTML button with Tailwind variants
+      Input.tsx               # HTML input with label, error
+      Badge.tsx               # Span with variant classes
+      Card.tsx                # Div with surface styling
+      Modal.tsx               # Dialog element with backdrop
+      Skeleton.tsx            # Animated shimmer div
+      EmptyState.tsx          # Centered empty state
+      FilterChip.tsx          # Selectable filter chip
+      Avatar.tsx              # Image with fallback
+    generate-tokens.ts        # Script: token objects -> globals.css @theme block
+  components/                 # (existing feature components -- migrate over time)
+    cards/
+    collection/
+    trading/
+    meta/
+    layout/
+```
+
+### Structure Rationale
+
+- **`design-system/` separate from `components/`:** Design system primitives are domain-agnostic (a Button does not know about Pokemon cards). Feature components in `components/` compose design system primitives with domain logic. This separation makes the design system testable and reusable independently.
+- **No `packages/ui` shared component package:** Mobile uses React Native primitives, web uses HTML elements. Sharing component JSX between them produces abstractions that serve neither platform well (this was identified as an anti-pattern in v2.0 research). Share tokens and types, not rendered components.
+- **`constants/theme.ts` kept as shim:** During migration, existing components that import from `@/src/constants/theme` continue working. The shim re-exports token values with backward-compatible property names. Remove the shim only after all components are migrated.
+
+---
+
+## Data Flow: Theme and Styling
+
+### Current Flow (Fragile)
+
+```
+Component file
+    ↓
+import { colors, typography, spacing } from '@/src/constants/theme'
+    ↓
+StyleSheet.create({ container: { backgroundColor: colors.surface, padding: spacing.md } })
+    ↓
+<View style={styles.container}>
+```
+
+Problems: No type enforcement on which token to use. Developers mix token references with hardcoded values (e.g., `'#f0c04020'` appears 4+ times in the codebase as an inline alpha variant). No motion tokens. No shadow tokens.
+
+### Target Flow (Structured)
+
+```
+Design system component (e.g., <Card variant="elevated">)
+    ↓
+Internally uses: import { colors, spacing, shadows, radii } from '@pocket-trade-hub/shared/tokens'
+    ↓
+Applies correct token combination for the variant
+    ↓
+Screen component composes: <Card variant="elevated"><StatCard value={42} label="Cards" /></Card>
+```
+
+Benefits: Screen components declare intent ("elevated card containing a stat"), not implementation ("backgroundColor #1a1a2e, borderRadius 16, padding 24, shadowOffset..."). Token changes propagate automatically. Consistency enforced by component API.
+
+### State Management: No Changes
+
+Zustand stores are unaffected. The overhaul does not change data fetching, state shape, or store boundaries. The only new state is:
+
+- **Optional:** Theme preference in a small `useThemeStore` if dark/light mode toggle is added (currently not planned, but the ThemeProvider supports it)
+- **Animation state** lives in Reanimated shared values (outside React state tree), not in Zustand
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Forcing Full Component Sharing Between Mobile and Web
+### Anti-Pattern 1: Big Bang Screen Rewrite
 
-**What people do:** Try to share every React component between Expo and Next.js via react-native-web, creating a `packages/ui` that handles all UI.
-**Why it's wrong:** Mobile and web have different UX paradigms (bottom tabs vs sidebar nav, touch vs click, pull-to-refresh vs scroll, push notifications vs web notifications). Forced sharing produces abstraction layers that satisfy neither platform.
-**Do this instead:** Share the data layer (`packages/shared` -- schemas, types, API contracts). Selectively share simple presentational components (card image, rarity badge, fairness indicator). Keep layouts, navigation, and interaction patterns platform-specific.
+**What people do:** Rewrite all screens simultaneously to use the new design system.
+**Why it's wrong:** Introduces bugs across every screen at once. Cannot ship incrementally. Testing surface is the entire app.
+**Do this instead:** Migrate one screen per PR. Home screen first (highest visibility, simplest layout). Each PR is shippable and testable. Keep the `theme.ts` shim so un-migrated screens continue working.
 
-### Anti-Pattern 2: On-Device ML for Card Scanning
+### Anti-Pattern 2: Shared React Component Package Between Mobile and Web
 
-**What people do:** Bundle TensorFlow.js or ONNX Runtime in the React Native app.
-**Why it's wrong:** 50-200MB app size increase. Requires Expo dev client (no Expo Go for development). Inconsistent performance across devices. Model updates require App Store review.
-**Do this instead:** Server-side image processing. Upload image, get result. Fast to iterate, consistent, small app size.
+**What people do:** Create `packages/ui` with React components that render on both React Native and web via react-native-web.
+**Why it's wrong:** React Native and web have fundamentally different component primitives (View/Text/TouchableOpacity vs div/span/button), different event models (press vs click/hover), different animation APIs (Reanimated vs CSS), and different layout defaults (RN flexbox column-first vs CSS flexbox row-first). Abstraction layers that paper over these differences produce components that feel wrong on both platforms.
+**Do this instead:** Share tokens (plain JS objects). Build platform-idiomatic components in each app's `design-system/` directory. Shared type interfaces for prop APIs are fine (e.g., `ButtonProps` type in shared), but not the component implementations.
 
-### Anti-Pattern 3: Continuous Location Tracking
+### Anti-Pattern 3: Over-Abstracting Tokens into a "Theme Object"
 
-**What people do:** Track GPS coordinates in real-time for the "nearby traders" feature.
-**Why it's wrong:** Battery drain, privacy concerns, regulatory burden (GDPR continuous tracking), unnecessary complexity.
-**Do this instead:** Capture location once on app open (max 1/hour). Store approximate coordinates (~1km precision). Users opt in explicitly and can clear anytime.
+**What people do:** Create a deeply nested theme object: `theme.components.button.variants.primary.background`.
+**Why it's wrong:** Adds indirection without value. Developers cannot remember the path. IDE autocomplete becomes useless with 5 levels of nesting. Token changes require updating both the token AND the theme mapping.
+**Do this instead:** Flat token objects organized by concern (colors, spacing, typography). Component variants are defined IN the component, consuming flat tokens. Two levels of nesting maximum: `colors.gold.DEFAULT`.
 
-### Anti-Pattern 4: Splitting Into Microservices
+### Anti-Pattern 4: Animating Everything
 
-**What people do:** Create separate services for scanning, AI, geo because they "feel different."
-**Why it's wrong:** Operational complexity explosion (separate deployments, networking, monitoring, logging) for a single-product team.
-**Do this instead:** Feature-per-service-file in the same Fastify monolith. All new features are just new route files + service files + BullMQ workers. Extract only if a specific feature has fundamentally different scaling needs (unlikely before 100K users).
+**What people do:** Add entrance animations to every component, spring physics to every state change, parallax to every scroll.
+**Why it's wrong:** Distracts from content. Causes jank on lower-end Android devices. Makes the app feel sluggish because users wait for animations to complete. Increases bundle size with animation dependencies.
+**Do this instead:** Animate transitions between states (pressed, hovered, loading, empty, populated). Use instant feedback for direct manipulation (< 100ms). Reserve 200-400ms animations for significant state changes (screen transitions, modal open/close). No animation should ever block user input.
 
----
+### Anti-Pattern 5: Migrating Web to Use React Native Primitives
 
-## Integration Points
-
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| TCGdex API | REST fetch during card import (BullMQ job). Language via URL prefix: `/v2/{lang}/sets/{setId}` | HIGH confidence. 9 languages for TCG Pocket. |
-| Google Cloud Vision | REST API from `scan.service.ts`. Fallback only when hash matching fails. | ~$1.50/1000 images. Budget ~$30/month at 10K users. |
-| OpenAI / Anthropic API | REST API from `suggest.service.ts`. JSON mode for structured output. | GPT-4o-mini or Claude Haiku. ~$0.01/suggestion. Premium only. |
-| Limitless TCG | Web scraping via cheerio in BullMQ worker. Daily schedule. | MEDIUM reliability -- HTML may change. Admin fallback. |
-| Google OAuth | `@react-native-google-signin/google-signin` (mobile), web callback flow. Backend validates ID token. | Standard pattern, well-documented. |
-| Apple Sign In | `expo-apple-authentication` (mobile), web callback. Backend validates identity token. | Required for iOS apps with third-party login. |
-| expo-location | Mobile SDK. Sends coords to `PUT /api/users/me/location`. | Foreground only, opt-in, max 1 update/hour. |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Posts <-> Proposals | Post provides `postId` to proposal creation endpoint | Extends existing proposal flow minimally |
-| Card scan <-> Collection/Posts | Scan returns `cardId`, client calls existing collection add or post create | No direct service-to-service coupling |
-| AI suggestions <-> Posts | Suggestions reference active posts; client navigates to post detail | Read-only dependency on posts + collection data |
-| Deck meta <-> Cards | Decks reference card IDs from cards table | FK relationship via `cardIds` JSONB |
-| Geo <-> Users | Location stored as column on users table | Same table, new nullable column |
-| i18n <-> Card translations | Card display uses `cardTranslations` join based on user `preferredLanguage` | Query-time join, cached |
+**What people do:** Install react-native-web to make the Next.js app use `<View>` and `<Text>` so components can be "shared."
+**Why it's wrong:** The web app is 14 days old with clean Tailwind v4 styling. react-native-web adds 50KB+ to the bundle, requires Webpack/Metro config changes, and produces `<div role="none">` semantically incorrect HTML. Tailwind utility classes are more expressive and performant on web than react-native-web style objects.
+**Do this instead:** Keep the web app as a standard Next.js + Tailwind app. Share tokens via CSS custom properties generated from the same source as mobile tokens.
 
 ---
 
 ## Suggested Build Order (Dependency-Driven)
 
-| Order | Feature | Rationale |
-|-------|---------|-----------|
-| 1 | OAuth (Google/Apple) | Foundation for user growth. Small scope: modify auth plugin + add provider columns to users. Unblocks web app auth. |
-| 2 | Post-based trading model | Core architecture change. The primary v2.0 feature. Everything else (web app, suggestions, scan) builds on posts. |
-| 3 | Multi-language cards + card translations table | Schema change that affects card display everywhere. Must be done before web app to avoid rework. |
-| 4 | Multi-language UI (i18n) | Integrates naturally with language cards. Setting up `packages/shared/i18n/` before web app means both apps get i18n from day one. |
-| 5 | Web app companion | Now has posts, multi-lang, i18n, OAuth foundations ready. Can build incrementally (start with posts + collection, add meta pages later). |
-| 6 | Card scanning | Independent feature. Adds value to collection management and post creation. Server-side, no mobile native module complexity. |
-| 7 | Local trade finder (PostGIS) | Independent feature. Enhances post discovery with "nearby" filter. PostGIS migration is low-risk. |
-| 8 | AI trade suggestions | Benefits from existing post history and card analytics data. More meaningful with more users and trades. |
-| 9 | Deck meta system | Independent. Web scraping needs monitoring. Public SSR pages on web app can drive organic traffic. |
-| 10 | Luck calculator, tier lists, image export, promo codes | Smaller features with lower dependencies. Can be parallelized. |
+| Phase | What | Depends On | Produces | Effort |
+|-------|------|-----------|----------|--------|
+| 1 | Design tokens in `packages/shared/tokens/` + `theme.ts` shim + web CSS generation script | Nothing | Token foundation both platforms consume | Small |
+| 2 | Mobile primitive components (Button, Text, Input, Badge, Card, Divider, Skeleton, EmptyState) | Phase 1 tokens | Composable building blocks | Medium |
+| 3 | Web primitive components (Button, Input, Badge, Card, Modal, Skeleton, EmptyState, FilterChip) | Phase 1 tokens | Web design system | Medium |
+| 4 | Mobile navigation components (CustomTabBar, CustomHeader) + ThemeProvider integration in `_layout.tsx` | Phase 2 primitives | App shell redesign without breaking routes | Medium |
+| 5 | Mobile animation hooks (useAnimatedPress, useStaggeredList, useScrollHeader) + Reanimated setup | Phase 2 primitives | Motion layer ready for screen migration | Small-Medium |
+| 6 | Screen-by-screen mobile migration: Home -> Cards -> Collection -> Market -> Trades -> Meta -> Profile | Phases 2, 4, 5 | Incrementally refreshed screens | Large (bulk of work) |
+| 7 | Screen-by-screen web migration: Cards -> Collection -> Market -> Proposals -> Meta -> TierLists | Phase 3 | Incrementally refreshed pages | Medium-Large |
+| 8 | Cross-platform polish: shared transitions, skeleton loading states, error states, haptic feedback | Phases 6, 7 | Production-quality finish | Medium |
 
-**Key dependency chain:** OAuth --> Posts --> Multi-lang cards --> i18n --> Web app
+**Phase ordering rationale:**
+- Tokens first because every component depends on them.
+- Primitives before screens because screens compose primitives.
+- Mobile nav before screen migration because the tab bar and header frame every screen.
+- Animation hooks before screen migration so screens can use them from the start.
+- Mobile before web because mobile is the primary platform and has 3x more components.
+- Polish last because it requires both platforms to be migrated.
 
-**Parallelizable:** Card scanning, geo finder, deck meta can all be built in parallel with each other (after posts are done).
+**Parallelizable:** Phases 2 and 3 (mobile and web primitives) can run in parallel. Phases 6 and 7 (mobile and web screen migration) can partially overlap.
+
+---
+
+## Integration Points
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `packages/shared/tokens/` -> `apps/mobile` | Direct TS import via monorepo workspace | Turborepo handles dependency resolution. Token changes trigger mobile rebuild. |
+| `packages/shared/tokens/` -> `apps/web` | Build script generates CSS, then Tailwind v4 consumes `@theme` | Token changes require running `generate-tokens` (add to Turborepo pipeline). |
+| `design-system/` -> feature `components/` | Feature components import from `@/src/design-system` | Clear dependency direction: features depend on design system, never reverse. |
+| `constants/theme.ts` shim -> existing components | Re-export with backward-compatible names | Remove shim only after full migration. Lint rule can warn on direct `theme.ts` imports once migration starts. |
+| Zustand stores -> UI components | No change. Stores provide data, components render with new design system. | Design system components are stateless/presentational. Store access stays in screen/page components. |
+| Expo Router -> CustomTabBar/CustomHeader | Expo Router passes navigation state to custom components via `tabBar` and `header` render props | Standard Expo Router API. No custom navigation state management needed. |
+
+### External Dependencies (New)
+
+| Dependency | Purpose | Version Constraint |
+|------------|---------|-------------------|
+| `react-native-reanimated` | UI thread animations for mobile | v3.x (compatible with Expo SDK 53+) |
+| `react-native-gesture-handler` | Gesture-driven interactions (bottom sheet swipe, pull-to-refresh) | v2.x (likely already installed via Expo) |
+| `expo-haptics` | Haptic feedback on button press, tab switch | Any Expo SDK-compatible version |
+| No new web dependencies | CSS transitions + Tailwind v4 handle all web animations | -- |
+
+### What Stays Unchanged
+
+- All Zustand stores (auth, cards, collection, trades, notifications, premium, meta, posts, suggestions, tierlists, language, promo)
+- All API hooks (useApi, useCards, useCollection, usePosts, useProposals, usePremium, etc.)
+- All Expo Router routes and file structure
+- All Next.js App Router routes and file structure
+- All `packages/shared/schemas/` (Zod schemas)
+- Backend (`apps/api/`) -- zero changes
+- i18n setup and translation files
 
 ---
 
 ## Sources
 
-- [Drizzle ORM PostGIS Geometry Point Guide](https://orm.drizzle.team/docs/guides/postgis-geometry-point) -- Official Drizzle docs for PostGIS columns, indexes, and queries (HIGH confidence)
-- [Drizzle ORM PostgreSQL Extensions](https://orm.drizzle.team/docs/extensions/pg) -- PostGIS extension setup
-- [PostGIS Nearest-Neighbour Searching](https://postgis.net/workshops/postgis-intro/knn.html) -- KNN queries with GiST indexes
-- [TCGdex API](https://tcgdex.dev) -- Multi-language Pokemon TCG API, 9 languages for TCG Pocket (HIGH confidence)
-- [TCGdex TCG Pocket Integration](https://tcgdex.dev/tcg-pocket) -- TCG Pocket-specific language support
-- [Expo Monorepo Guide](https://docs.expo.dev/guides/monorepos/) -- Official Expo monorepo documentation
-- [Expo Authentication Guide](https://docs.expo.dev/develop/authentication/) -- Official OAuth integration docs
-- [Expo Google Authentication](https://docs.expo.dev/guides/google-authentication/) -- Google sign-in with @react-native-google-signin
-- [Expo Localization Guide](https://docs.expo.dev/guides/localization/) -- i18n with expo-localization + react-i18next
-- [Limitless TCG - TCG Pocket Decks](https://play.limitlesstcg.com/decks?game=POCKET) -- Tournament data source for deck meta
-- [PokemonMeta Top Decks](https://www.pokemonmeta.com/top-decks) -- Daily meta rankings source
-- [Turborepo + Next.js + Expo Monorepo (2025)](https://medium.com/@beenakumawat002/turborepo-monorepo-in-2025-next-js-react-native-shared-ui-type-safe-api-%EF%B8%8F-6194c83adff9) -- Monorepo setup patterns
-- [drizzle-postgis Plugin](https://github.com/Schmavery/drizzle-postgis) -- Community Drizzle PostGIS extension (alternative approach)
-- [Pokemon-TCGP-Card-Scanner](https://github.com/1vcian/Pokemon-TCGP-Card-Scanner) -- Open-source TCG Pocket card scanner using image hashing (MEDIUM confidence)
+- [React Native UI Design Best Practices 2025](https://reactnativeexample.com/react-native-ui-design-best-practices-guide-2025/) -- Component organization and theming patterns
+- [Cross-Platform Design System with Bit](https://bit.dev/blog/creating-a-cross-platform-design-system-for-react-and-react-native-with-bit-l7i3qgmw/) -- Token sharing pattern between React and React Native (design-token base + platform extensions)
+- [NativeWind v5 Theme Documentation](https://www.nativewind.dev/v5/customization/theme) -- NativeWind's approach to Tailwind v4 integration (evaluated, not recommended for this project)
+- [NativeWind Themes Guide](https://www.nativewind.dev/docs/guides/themes) -- CSS variable-based theming in NativeWind
+- [Design Tokens That Scale in 2026 with Tailwind v4](https://www.maviklabs.com/blog/design-tokens-tailwind-v4-2026) -- CSS-first token architecture with @theme directive
+- [Tailwind CSS 4 @theme Guide](https://medium.com/@sureshdotariya/tailwind-css-4-theme-the-future-of-design-tokens-at-2025-guide-48305a26af06) -- @theme directive as design token source
+- [React Native Reanimated 3 Guide](https://dev.to/erenelagz/react-native-reanimated-3-the-ultimate-guide-to-high-performance-animations-in-2025-4ae4) -- UI thread animation patterns
+- [React Native Reanimated Official Docs](https://docs.swmansion.com/react-native-reanimated/) -- API reference for shared values, withTiming, withSpring
+- [Expo New Architecture Guide](https://docs.expo.dev/guides/new-architecture/) -- Compatibility requirements for Reanimated and Gesture Handler
+- [State of React Native 2025 - Component Libraries](https://results.stateofreactnative.com/en-US/component-libraries/) -- Ecosystem survey on component library adoption
+- [Obytes Expo Starter - UI and Theme](https://starter.obytes.com/ui-and-theme/components/) -- Production starter template showing design system organization pattern
+- [NativeWind with Design Tokens and Dark Mode](https://willcodefor.beer/posts/rntw) -- Design token + dark mode integration approach
 
 ---
-*Architecture research for: Pocket Trade Hub v2.0 Feature Integration*
-*Researched: 2026-03-11*
+*Architecture research for: Pocket Trade Hub v3.0 UI/UX Overhaul*
+*Researched: 2026-03-20*

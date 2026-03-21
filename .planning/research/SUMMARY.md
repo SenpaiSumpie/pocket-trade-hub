@@ -1,218 +1,199 @@
 # Project Research Summary
 
-**Project:** Pocket Trade Hub v2.0
-**Domain:** Pokemon TCG Pocket trading platform -- new features and platform expansion
-**Researched:** 2026-03-11
-**Confidence:** MEDIUM-HIGH
+**Project:** Pocket Trade Hub v3.0 UI/UX Overhaul
+**Domain:** Mobile-first design system and visual refresh for existing React Native + Next.js trading app
+**Researched:** 2026-03-20
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Pocket Trade Hub v2.0 transforms the app from an automatic-matching-only trading tool into a full-featured trading platform that competes directly with PokeHub (the dominant competitor with 35k ratings). The single most important architectural change is adding an Offering/Seeking post-based trading model alongside the existing automatic matching engine. This post model is what every competitor uses and what users expect -- it becomes the foundation that nearly every other v2 feature depends on. Equally critical is multi-language card support: Pokemon TCG Pocket operates in 9 languages, cards are language-locked, and language mismatches in trades are PokeHub's most-reported user complaint. Solving language-aware trading is the strongest competitive differentiator.
+Pocket Trade Hub v3.0 is a pure frontend visual overhaul of an existing 40K+ LOC Pokemon TCG Pocket trading app. The app already works -- 6-tab navigation, 50+ mobile components, 30+ web components, full trading/collection/meta features. The goal is to elevate from "functional" to "premium-feeling" without touching backend, state management, or navigation structure. Experts build this type of overhaul bottom-up: design tokens first, then shared primitive components, then screen-by-screen migration with old and new coexisting at every step.
 
-The recommended approach builds on the existing validated stack (Expo 54, Fastify 5, PostgreSQL, Redis, BullMQ, Drizzle ORM) with targeted additions rather than architectural rewrites. New dependencies are minimal and well-chosen: native OAuth modules for Google/Apple sign-in, PostGIS for geolocation queries, Google Cloud Vision for server-side card scanning, OpenAI GPT-4o-mini for trade suggestions, i18next for internationalization, and Expo Router web support for a companion web app. The monolith stays a monolith -- at sub-100K users, microservices would be premature complexity. Every new feature follows the established pattern of service file + route file + BullMQ worker.
+The recommended approach avoids any new styling framework (NativeWind, Tamagui, Gluestack are all rejected for compatibility or migration cost reasons). Instead, extend the existing `StyleSheet.create` pattern with an expanded design token system in a shared monorepo package (`packages/shared/tokens/`), build platform-specific primitive components (`Button`, `Card`, `Text`, `Badge`, etc.) in each app's `design-system/` directory, and migrate screens incrementally. Five new dependencies are needed for mobile: `react-native-gesture-handler`, `expo-linear-gradient`, `phosphor-react-native`, `@expo-google-fonts/inter`, and `@gorhom/bottom-sheet`. The web app needs zero new dependencies -- Tailwind v4 + CSS custom properties generated from shared tokens handles everything.
 
-The key risks are: (1) breaking the existing proposal chain during the post-model migration (use expand-contract pattern, keep both paths), (2) OAuth creating duplicate accounts without proper account-linking flows, (3) card scanning frustration from low accuracy killing user trust (always require confirmation, show top-3 candidates), and (4) AI suggestions feeling random without enough trade history data (start rule-based, label "Smart Suggestions" not "AI"). All critical pitfalls have concrete prevention strategies documented in detail.
+The top risks are: (1) big-bang refactor breaking the working app -- mitigated by strict incremental migration with every PR leaving the app shippable; (2) scope creep turning a 3-week effort into 6+ weeks -- mitigated by hard time-boxes and binary done/not-done tracking per screen; (3) cross-platform token divergence -- mitigated by a single source of truth in `packages/shared/tokens/`; and (4) animation performance on low-end Android -- mitigated by using Reanimated 4 (UI thread) exclusively and profiling on a reference mid-range device.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The existing stack requires no changes. All new capabilities are additive. The key additions are native OAuth modules (`expo-apple-authentication`, `@react-native-google-signin/google-signin`), server-side image processing (Google Cloud Vision REST API via plain `fetch()`), LLM integration (`openai` npm package for GPT-4o-mini), geospatial queries (PostGIS extension + `expo-location`), internationalization (`i18next` + `react-i18next` + `expo-localization`), and image export (`react-native-view-shot` + `expo-sharing`). See STACK.md for full details.
+No styling framework migration. Extend the existing `StyleSheet.create` + `theme.ts` approach with a proper design token system. All new styling capabilities come from lightweight, well-tested libraries already compatible with Expo 54 / RN 0.81 / Reanimated 4.
 
-**Core technology additions:**
-- `expo-apple-authentication` + `@react-native-google-signin/google-signin`: Native OAuth -- required for growth, Apple Sign-In mandatory when any social login is offered
-- PostGIS (PostgreSQL extension): Spatial queries for nearby traders -- no new database needed, sub-millisecond at scale
-- Google Cloud Vision API: Server-side OCR for card scanning -- proven accuracy, cost-effective at ~$30/month for 10K users
-- `openai` (GPT-4o-mini): AI trade suggestions with natural language reasoning -- ~$100/month at 10K DAU
-- `i18next` + `react-i18next`: Industry-standard i18n -- officially recommended in Expo docs
-- Expo Router web support: Web companion using existing codebase -- no Next.js needed, maximum code sharing
+**Core technologies (new additions only):**
+- **Enhanced design tokens** (`packages/shared/tokens/`): Platform-agnostic TS objects for colors, typography, spacing, shadows, motion -- replaces disconnected `theme.ts` and `globals.css`
+- **react-native-gesture-handler** (~2.24.0): Swipe-to-dismiss, bottom sheet gestures, pull-to-refresh -- required by @gorhom/bottom-sheet
+- **@gorhom/bottom-sheet** (^5.2.6): Replace modal-based detail views with native-feeling gesture-driven sheets -- MEDIUM confidence, has documented Expo 54 edge cases
+- **expo-linear-gradient** (~14.0.x): Gradient backgrounds for premium cards, headers, CTAs -- first-party Expo module
+- **phosphor-react-native** (^3.0.3): Replace inconsistent Ionicons with cohesive 9,000+ icon set supporting duotone weight for gold accents
+- **@expo-google-fonts/inter**: Custom typography via variable font -- 300KB for all weights, build-time embedded via expo-font config plugin
+- **Reanimated 4.1.6** (already installed): All animations -- entering/exiting presets, spring physics, layout transitions. No wrapper library needed (Moti is incompatible with Reanimated 4)
 
-**Critical "do not add" decisions:**
-- No Next.js (Expo Router handles web), no on-device ML (server-side is simpler and better), no Clerk/Auth0 (existing JWT infrastructure is sufficient), no `react-native-maps` (list-based nearby traders is better UX), no TensorFlow.js/ONNX (50-200MB app bloat for worse accuracy)
+**Rejected alternatives:** NativeWind v5 (still preview, 51-file migration cost), NativeWind v4 (Reanimated 4 issues), Tamagui (replaces all primitives), Gluestack UI v3 (crashes with Expo 54), Moti (incompatible with Reanimated 4), Lottie for micro-interactions (heavy, Reanimated covers it), react-native-skia (overkill for gradients).
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Offering/Seeking trade posts -- the standard PTCGP trading UX every competitor uses
-- Multi-language card database -- 9 languages, cards are language-locked in-game
-- Card language selection in collection -- required for accurate trade matching
-- OAuth login (Google/Apple) -- standard mobile app expectation, reduces signup friction
-- Image export / shareable collection images -- low effort, high social virality
-- Luck calculator -- expected utility feature, pure frontend computation
+- Expanded design token system (colors, typography, spacing, elevation, animation curves)
+- Consistent component library (shared `Button`, `Card`, `Badge`, `Input`, `Text` primitives)
+- Skeleton loading states (shimmer placeholders matching content layout)
+- Empty states with illustrations and CTAs for all list/grid screens
+- Proper typography scale (8-10 levels with Inter font)
+- Touch feedback (animated Pressable with scale-down + haptic)
+- Pull-to-refresh with branded gold tint
+- Toast/snackbar system overhaul (unified success/error/info/warning variants)
 
-**Should have (differentiators -- where we beat PokeHub):**
-- Language-aware matching -- PokeHub's biggest user complaint, our biggest opportunity
-- AI-powered trade suggestions -- no competitor does this
-- Local trade finder -- no competitor offers nearby trader discovery
-- Deck meta system -- competitive context on traded cards
-- Tier list system -- social engagement driver
-- Web app companion -- PokeHub is mobile-only
+**Should have (differentiators):**
+- Micro-interaction system (card flip, spring physics, animated counters)
+- Card visual effects (rarity-based holographic shimmer, crown glow)
+- Bottom sheet navigation (replace 8 modal components with gesture-driven sheets)
+- Animated tab bar (icon morphing, indicator slide, haptic on switch)
+- Gesture interactions (swipe-to-dismiss, long-press context menus, pinch-to-zoom)
+- Gradient and glassmorphism accents (premium sections, sheet backdrops)
+- Parallax card headers on detail screens
 
-**Defer to v3+:**
-- Full ML model for trade suggestions (rule-based is sufficient)
-- Tournament bracket system (show external data only)
-- Full deck builder (existing tools like ptcgpocket.gg cover this)
-- Chat/messaging system (moderation liability; keep structured proposals)
-- Background location tracking (battery drain, privacy nightmare)
+**Defer (v4+):**
+- Light mode / theme engine (dark+gold IS the brand identity)
+- Storybook documentation (overkill for team size)
+- 3D/AR card effects (massive scope, marginal value)
+- Navigation restructuring (current 6-tab IA works well)
+- Shared React component package between mobile and web (anti-pattern -- share tokens, not components)
 
 ### Architecture Approach
 
-The v2.0 architecture extends the existing Fastify monolith with new service files, route files, and BullMQ workers per feature. The post-based trading model adds a `trade_posts` table and extends the proposal system to accept `postId` alongside `matchId`. The existing automatic matching engine is preserved as a secondary "Smart Suggestions" premium feature. All external API calls (Cloud Vision, OpenAI, web scraping) go through BullMQ jobs with retry logic. Redis-backed feature flags gate every new feature for incremental rollout. See ARCHITECTURE.md for full details.
+The overhaul introduces a design system foundation layer between existing Zustand stores and screen components. A new `packages/shared/tokens/` package becomes the single source of truth for all visual constants. Mobile consumes tokens as direct TS imports in `StyleSheet.create`. Web generates CSS custom properties from the same tokens for Tailwind v4's `@theme` directive. Each platform builds its own primitive components in `src/design-system/` -- no shared component JSX between platforms. A backward-compatible `theme.ts` shim re-exports new tokens with old property names so un-migrated components continue working during the transition.
 
 **Major components:**
-1. **Post service** (NEW) -- CRUD for Offering/Seeking trade posts, complementary post matching, feed with filters
-2. **Scan service** (NEW) -- Server-side image processing: perceptual hash matching with Cloud Vision OCR fallback
-3. **Suggest service** (NEW) -- LLM-powered trade suggestions with Redis caching (1-hour TTL)
-4. **Geo service** (NEW) -- PostGIS spatial queries for nearby traders, privacy-preserving approximate location
-5. **Deck meta service** (NEW) -- Imports competitive deck data from Limitless TCG via BullMQ cron
-6. **Auth plugin** (MODIFIED) -- Add OAuth provider handling alongside existing JWT
-7. **Proposal service** (MODIFIED) -- Accept `postId` as alternative to `matchId`
-8. **Card translations table** (NEW) -- Per-language card names/images, fallback chain to English
+1. **`packages/shared/tokens/`** -- Platform-agnostic design tokens (colors, spacing, typography, shadows, radii, motion). Single source of truth for both platforms.
+2. **`apps/mobile/src/design-system/`** -- Mobile primitive components (Button, Card, Input, Badge, Text, Modal, Skeleton, EmptyState) + navigation components (CustomTabBar, CustomHeader) + animation hooks (useAnimatedPress, useStaggeredList, useScrollHeader).
+3. **`apps/web/src/design-system/`** -- Web primitive components using Tailwind v4 classes consuming tokens via CSS custom properties. Plus a `generate-tokens.ts` script for the build pipeline.
+4. **`apps/mobile/src/constants/theme.ts`** (shim) -- Backward-compatible re-export from shared tokens. Allows incremental migration. Removed after full migration.
 
 ### Critical Pitfalls
 
-1. **Post-model migration breaks existing proposals** -- The `createProposalSchema` requires `matchId` as non-optional. Use expand-contract: add `postId` alongside `matchId`, make both optional with a refinement requiring at least one. Keep automatic matching running in parallel during transition.
-
-2. **Card language mismatches make trades fail** -- PokeHub's top complaint. Language must be a first-class concern on EVERY card surface: collection, posts, proposals, search. Validate at proposal creation that both sides share the same card language. Ship multi-language cards BEFORE or WITH the post model.
-
-3. **OAuth creates duplicate accounts** -- Add an `authProviders` junction table. On OAuth sign-in with matching email, prompt account linking (not silent merge). For Apple's hidden email, use Apple user ID as linking key. Never auto-merge.
-
-4. **Card scanning low accuracy kills trust** -- Always show confirmation with top-3 candidates. Support screenshot import as primary flow (more reliable than camera). Gate as "Beta" at launch. Never auto-add to collection.
-
-5. **AI suggestions feel random without data** -- Cold start problem. Start rule-based using existing card demand analytics. Label "Smart Suggestions" not "AI". Add dismiss/feedback mechanism. Graduate to ML only after 1000+ completed trades.
+1. **Big-bang refactor breaks working features** -- Use strangler fig pattern: new design system coexists with old `theme.ts`. Migrate screen-by-screen, leaf components first. Every PR must leave the app shippable. Max 20 files per PR.
+2. **Scope creep / "just one more polish" infinite loop** -- Define binary done/not-done criteria per screen BEFORE starting. Hard time-box the entire milestone. Tier screens by traffic: Tier 1 (home, cards, trades) gets full treatment, Tier 2/3 gets token migration only. No separate open-ended "polish" phase.
+3. **Cross-platform token divergence** -- Mobile uses `#0f0f1a` background, web uses `#0a0a0a`. Must resolve in Phase 1. Single token package eliminates drift. Update both platforms in lockstep, screen by screen.
+4. **Animation performance on low-end Android** -- Use Reanimated 4 (UI thread) exclusively, never built-in `Animated`. Stick to `transform` and `opacity`. No entrance animations on FlatList items. Profile on a real mid-range Android device.
+5. **Hardcoded values scattered across 71 files** -- ~1001 color/theme references found, many inline hex values. Run a comprehensive grep audit in Phase 1. Add ESLint rule to flag raw hex colors. Migrate hardcoded values to tokens per-screen BEFORE visual redesign.
 
 ## Implications for Roadmap
 
-Based on combined research, here is the suggested phase structure. The critical dependency chain is: Multi-language cards --> Post model --> everything else.
+Based on research, suggested phase structure:
 
-### Phase 1: Foundation -- Multi-Language Cards + OAuth
-**Rationale:** Multi-language card support is the foundation for all trading features. Cards in Pokemon TCG Pocket are language-locked, making this a prerequisite for accurate trade matching. OAuth reduces signup friction for all subsequent user growth. These are independent of each other and can be built in parallel.
-**Delivers:** `card_translations` table populated for 9 languages, card language field on collection items, language badges on all card surfaces, Google + Apple OAuth with account linking, `authProviders` junction table.
-**Features addressed:** Multi-language card DB, card language in collection, OAuth login (Google/Apple)
-**Pitfalls avoided:** Card language mismatch (Pitfall 2), OAuth duplicate accounts (Pitfall 3), TCGdex data gaps (Pitfall 9)
+### Phase 1: Design System Foundation
+**Rationale:** Every other phase depends on tokens and primitives. Architecture research is unanimous: tokens first, then primitives, then screens. This phase has zero risk of breaking the working app because it creates new files only.
+**Delivers:** Shared token package, mobile design system primitives (Button, Card, Text, Badge, Input, Divider, Skeleton, EmptyState), theme.ts backward-compatible shim, expanded web CSS tokens, toast system overhaul.
+**Addresses:** Design tokens, typography scale, touch feedback, toast system (table stakes from FEATURES.md)
+**Avoids:** Token explosion pitfall (cap at 40-60 tokens, 2-layer hierarchy max), cross-platform divergence (single source of truth from day one)
+**Effort:** ~3-4 days
 
-### Phase 2: Core Trading Overhaul -- Post-Based Model
-**Rationale:** The Offering/Seeking post model is the single most important v2 feature and the primary architecture change. Every competitor uses this model. It must be built before AI suggestions, web app, and local finder because those features build on post data.
-**Delivers:** `trade_posts` table, post CRUD API, post feed with language/rarity/set filters, complementary post notifications, proposal system extended to accept `postId`, existing matching preserved as "Smart Suggestions."
-**Features addressed:** Offering/Seeking trade posts, language-aware matching, post-based proposals
-**Pitfalls avoided:** Post migration breaks proposals (Pitfall 1), removing automatic matching without migration path (UX pitfall)
+### Phase 2: Navigation Shell and App Chrome
+**Rationale:** Tab bar and header frame every screen. Upgrading them before screen migration means every migrated screen automatically looks better. Install gesture-handler and bottom-sheet here because they require root layout changes.
+**Delivers:** Custom animated tab bar, custom collapsible header, GestureHandlerRootView wrapper, bottom sheet provider, Inter font loading, Phosphor icon setup.
+**Uses:** react-native-gesture-handler, @gorhom/bottom-sheet, @expo-google-fonts/inter, phosphor-react-native, expo-linear-gradient (from STACK.md)
+**Implements:** Navigation components from ARCHITECTURE.md (CustomTabBar, CustomHeader, TabBarIcon)
+**Avoids:** Navigation restructuring pitfall (keep all routes, tabs, and deep links identical -- only change visual presentation)
+**Effort:** ~2-3 days
 
-### Phase 3: Quick Wins -- Engagement Features
-**Rationale:** Low-complexity, high-impact features that drive engagement and virality. All are independent of each other and have minimal dependencies on the post model. Ship these to keep momentum while planning heavier phases.
-**Delivers:** Luck calculator (pure frontend), image export (ViewShot + share sheet), gift/promo code system (backend CRUD + RevenueCat offer codes).
-**Features addressed:** Luck calculator, image export, gift/promo codes
-**Pitfalls avoided:** None critical -- these are straightforward implementations.
+### Phase 3: Animation Utilities and Motion System
+**Rationale:** Build reusable animation hooks BEFORE screen migration so every screen can use them from the start. This avoids the "add animations later" anti-pattern that causes performance problems.
+**Delivers:** useAnimatedPress, useStaggeredList, useScrollHeader, AnimatedCounter component, shimmer animation for skeletons.
+**Addresses:** Micro-interactions, animated number transitions, skeleton shimmer (differentiators from FEATURES.md)
+**Avoids:** Animation performance pitfall (each hook is profiled individually before being used in screens)
+**Effort:** ~1-2 days
 
-### Phase 4: Internationalization
-**Rationale:** Must happen BEFORE the web app so the web app is built i18n-first. Retrofitting i18n into two apps is harder than retrofitting into one. Translation files go in `packages/shared` so both apps consume them.
-**Delivers:** i18next + react-i18next integration, `packages/shared/i18n/locales/` with 9 languages, user language preference, pseudo-localization testing, all existing UI strings extracted.
-**Features addressed:** Multi-language UI
-**Pitfalls avoided:** i18n retrofit breaks layouts (Pitfall 8)
+### Phase 4: Screen-by-Screen Mobile Migration (Tier 1)
+**Rationale:** High-traffic screens first for maximum user impact. Home, Cards, and Trades tabs are the most-used flows. Each screen gets: token adoption pass (replace hardcoded values), primitive component swap, skeleton loading states, empty states, and motion integration.
+**Delivers:** Fully overhauled Home tab, Cards tab (including CardGrid, CardThumbnail with rarity effects, CardDetailModal as bottom sheet), Trades tab (ProposalCard, MatchCard with animations).
+**Addresses:** Component library overhaul, skeleton loading, empty states, card visual effects, bottom sheet pattern, gesture interactions (from FEATURES.md)
+**Avoids:** Big-bang refactor pitfall (one screen per PR, app always shippable), hardcoded value pitfall (grep audit per screen before redesign)
+**Effort:** ~4-5 days
 
-### Phase 5: Card Scanning
-**Rationale:** Independent feature with high complexity. Server-side perceptual hash matching with Cloud Vision fallback. Benefits from having language-aware collection already in place (scanned cards must be assigned a language).
-**Delivers:** Screenshot import (primary) and camera capture, server-side image processing pipeline, confirmation UX with top-3 candidates, "Beta" label.
-**Features addressed:** Card scanning, collection bulk import
-**Pitfalls avoided:** Scanning frustration loop (Pitfall 5)
+### Phase 5: Screen-by-Screen Mobile Migration (Tier 2)
+**Rationale:** Medium-traffic screens. Market, Meta, and Profile tabs. These screens benefit from the primitives and patterns established in Phase 4.
+**Delivers:** Overhauled Market tab (PostCard, PostBrowseModal as bottom sheet), Meta tab (DeckCard, TierListCard, DeckDetailModal), Profile tab (analytics, settings, premium features with gradient accents).
+**Addresses:** Remaining component migration, gradient/glassmorphism accents on premium features (from FEATURES.md)
+**Effort:** ~3-4 days
 
-### Phase 6: Local Trade Finder
-**Rationale:** Independent feature needing careful privacy design. PostGIS migration is low-risk but the privacy UX (opt-in, approximate location, distance ranges) must be designed thoroughly. Enhances post browsing with "nearby" filter.
-**Delivers:** PostGIS extension + spatial indexes, `expo-location` integration, opt-in location sharing, nearby traders API, distance-based post filtering.
-**Features addressed:** Local trade finder
-**Pitfalls avoided:** Location privacy exposure (Pitfall 7)
+### Phase 6: Web Companion Sync
+**Rationale:** Web must not fall behind mobile. By this point, shared tokens are stable and mobile patterns are proven. Web migration consumes the same tokens via CSS custom properties.
+**Delivers:** Web design system primitives (Button, Input, Badge, Card, Modal, Skeleton, FilterChip), screen-by-screen web page refresh matching mobile visual language.
+**Addresses:** Feature parity pitfall (web updated in dedicated phase, not "later")
+**Avoids:** Cross-platform divergence (same token values, verified side-by-side)
+**Effort:** ~3-4 days
 
-### Phase 7: AI Trade Suggestions
-**Rationale:** Benefits from existing post history and trade completion data. More meaningful with more users. Premium-only feature gated behind RevenueCat entitlement.
-**Delivers:** GPT-4o-mini integration with structured prompts, Redis-cached suggestions (1-hour TTL), natural language reasoning for each suggestion, dismiss/feedback mechanism.
-**Features addressed:** AI-powered trade suggestions
-**Pitfalls avoided:** AI suggestions cold start (Pitfall 6)
-
-### Phase 8: Deck Meta + Tier Lists
-**Rationale:** Content feature requiring ongoing maintenance. Public pages on web app drive organic SEO traffic. Web scraping of Limitless TCG needs monitoring and admin fallback.
-**Delivers:** `decks` + `deck_matchups` tables, BullMQ daily scraping worker, tier rankings, "in S-tier deck" card badges, user-created tier lists with sharing/voting.
-**Features addressed:** Deck meta system, tier list system
-**Pitfalls avoided:** Deck meta staleness (Pitfall 10)
-
-### Phase 9: Web App Companion
-**Rationale:** Placed later because it benefits from all previous features being stable (posts, i18n, multi-lang cards, deck meta for SEO pages). Uses Expo Router web support for maximum code sharing. Shared package must be refactored first to extract API client and business logic.
-**Delivers:** Web app via Expo Router web export, collection management, post browsing, proposal handling, public deck meta/tier list pages.
-**Features addressed:** Web app companion
-**Pitfalls avoided:** Web/mobile code divergence (Pitfall 4)
+### Phase 7: Premium Touches and Polish
+**Rationale:** Last phase. Everything structural is stable. This phase adds delight without risking core functionality. Hard time-box: when time runs out, ship what is done. Remaining items go to backlog.
+**Delivers:** Branded splash animation, card grid layout modes (grid/compact/list), parallax headers on detail screens, contextual haptic patterns, pull-to-refresh branded animation, reduced-motion support.
+**Addresses:** Branded splash, card grid modes, parallax headers, contextual haptics (differentiators from FEATURES.md)
+**Avoids:** Scope creep pitfall (hard time-box, binary completion tracking)
+**Effort:** ~2-3 days
 
 ### Phase Ordering Rationale
 
-- **Multi-language cards first** because the post model needs language-aware cards to avoid PokeHub's biggest failure
-- **Post model second** because it is the core architecture change that AI suggestions, web app, and local finder all depend on
-- **Quick wins third** to maintain shipping momentum and user engagement during heavier development
-- **i18n before web app** so the web app is built i18n-first rather than retrofitted
-- **Card scanning and local finder are parallelizable** after the post model is stable
-- **AI suggestions late** because they need trade history data to be useful
-- **Deck meta late** because it is a content feature with ongoing maintenance burden
-- **Web app last** because it benefits from all other features being stable
+- **Tokens before everything** because every component, screen, and animation depends on them. Changing tokens after components are built causes cascading rework.
+- **Primitives before screens** because screens compose primitives. Without shared Button/Card/Text, each screen reinvents the wheel.
+- **Navigation shell before screen migration** because the tab bar and header frame every screen. Upgrading the shell first means every screen refresh inherits the new chrome automatically.
+- **Animation hooks before screen migration** so screens use motion from the start instead of bolting it on later (which causes the performance pitfall).
+- **Mobile Tier 1 before Tier 2** because high-traffic screens deliver the most user value per day of effort.
+- **Web after mobile** because mobile is the primary platform with 3x more components. But web is a dedicated phase, not an afterthought.
+- **Polish last** because it requires stable foundations and has the highest scope-creep risk.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 2 (Post Model):** Complex architecture migration -- needs careful expand-contract schema design and testing of backward compatibility with existing proposals
-- **Phase 5 (Card Scanning):** Perceptual hash accuracy for Pokemon TCG Pocket cards specifically needs validation. The fuzzy matching logic against OCR output will need tuning. Flag for spike/prototype.
-- **Phase 8 (Deck Meta):** Limitless TCG coverage of Pokemon TCG Pocket competitive data needs validation. Their API may not cover Pocket tournaments adequately. Scraping reliability is uncertain.
-- **Phase 9 (Web App):** ARCHITECTURE.md recommends Next.js while STACK.md recommends Expo Router web -- this disagreement must be resolved during phase planning. Recommendation: start with Expo Router web for maximum code sharing, evaluate if SSR needs justify Next.js.
+- **Phase 2 (Navigation Shell):** @gorhom/bottom-sheet v5 has documented Expo 54 / Reanimated 4 edge cases (crash on close, backdrop tap issues). Must validate during implementation. Have fallback plan: custom bottom sheets with Reanimated primitives.
+- **Phase 4 (Tier 1 Migration):** Card visual effects (holographic shimmer) need performance validation on Android. No established pattern -- will require prototyping with Reanimated + LinearGradient.
+- **Phase 6 (Web Sync):** CSS token generation from shared TS objects needs a build script integrated into Turborepo pipeline. Pattern is straightforward but requires wiring.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (OAuth + Multi-Lang Cards):** Well-documented patterns. Expo has official OAuth guides. TCGdex multi-language is a core API feature.
-- **Phase 3 (Quick Wins):** Luck calculator is pure math. Image export uses documented ViewShot + sharing pattern. Promo codes are standard CRUD.
-- **Phase 4 (i18n):** expo-localization + i18next is the officially recommended Expo approach.
-- **Phase 6 (Local Finder):** PostGIS is 20+ years mature. Drizzle has official PostGIS guide. Privacy patterns are well-established.
-- **Phase 7 (AI Suggestions):** OpenAI SDK is mature. GPT-4o-mini JSON mode is well-documented.
+- **Phase 1 (Foundation):** Design token systems are well-documented. Extending `theme.ts` with semantic tokens is mechanical work.
+- **Phase 3 (Animation Utilities):** Reanimated 4 layout animations and spring physics are well-documented with official examples.
+- **Phase 5 (Tier 2 Migration):** Same patterns as Phase 4, just applied to different screens.
+- **Phase 7 (Polish):** All techniques (parallax, haptics, splash animation) have established RN patterns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Most libraries verified via official docs and npm. Expo first-party modules dominate. Only card scanning accuracy is uncertain. |
-| Features | HIGH | Extensive competitor analysis (PokeHub, PokeTrade, ptcgpocket.gg). Clear table stakes vs. differentiators. Feature dependencies well-mapped. |
-| Architecture | MEDIUM-HIGH | Post model migration path is well-designed. Web app approach has a disagreement between research files (Next.js vs Expo Router). Deck meta scraping reliability is uncertain. |
-| Pitfalls | HIGH | Pitfalls grounded in codebase analysis and real competitor failures. Prevention strategies are concrete. Recovery plans included. |
+| Stack | HIGH | All recommended libraries verified against Expo 54 / RN 0.81 compatibility. Only @gorhom/bottom-sheet v5 has known edge cases (MEDIUM for that specific lib). |
+| Features | HIGH | Feature list grounded in codebase analysis of 50+ existing components. Table stakes vs differentiators well-defined. Effort estimates provided per feature. |
+| Architecture | HIGH | Architecture builds on existing monorepo structure (Turborepo, packages/shared). Token sharing pattern is proven. Bottom-up migration strategy has clear dependency ordering. |
+| Pitfalls | HIGH | Pitfalls derived from actual codebase analysis (grep of 71 files, store coupling audit, hardcoded value count). Not hypothetical -- these are real risks in this specific codebase. |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Web app framework decision:** STACK.md recommends Expo Router web; ARCHITECTURE.md recommends Next.js. Resolve during Phase 9 planning. Lean toward Expo Router web for simplicity unless SSR requirements (deck meta SEO pages) prove compelling enough for Next.js.
-- **Card scanning accuracy:** Perceptual hash matching against Pokemon TCG Pocket card images has not been validated. Need a spike/prototype early to confirm the approach before committing to Phase 5.
-- **Limitless TCG Pocket coverage:** The Limitless TCG API may not have sufficient Pokemon TCG Pocket tournament data. Validate during Phase 8 planning; prepare admin manual entry as fallback.
-- **TCGdex language completeness:** While TCGdex supports 9 languages for Pocket, completion rates vary. Run a data completeness audit during Phase 1 card import to identify gaps.
-- **PostGIS on hosting provider:** Verify the production PostgreSQL host supports PostGIS extension before Phase 6 planning.
-- **drizzle-postgis `box2d` bug:** Known quoting bug in drizzle-kit with PostGIS `box2d` type. Points work fine but verify during implementation.
+- **@gorhom/bottom-sheet v5 stability with Reanimated 4:** Test early in Phase 2. If unstable, fall back to custom bottom sheets using Reanimated primitives (the API is sufficient). Budget 0.5 days for this validation.
+- **Inter variable font on Android:** Variable font rendering can differ between Android versions. Test on Android 10+ early. Fallback: use static weight files instead of variable font (~1.5MB increase).
+- **Hardcoded value audit scope:** Research found ~1001 color/theme references across 71 files. The exact count of inline hex values (vs proper token references) needs a systematic grep before Phase 1 work begins.
+- **Web token generation pipeline:** The `generate-tokens.ts` script that converts shared TS tokens to CSS custom properties needs to be integrated into Turborepo's build pipeline. Pattern is clear but not yet implemented.
+- **Phosphor icon coverage:** Verify that Phosphor has equivalents for all currently-used Ionicons before starting the migration. Create a mapping table in Phase 2.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Expo Authentication Docs](https://docs.expo.dev/develop/authentication/)
-- [Expo Apple Authentication](https://docs.expo.dev/versions/latest/sdk/apple-authentication/)
-- [Expo Google Authentication Guide](https://docs.expo.dev/guides/google-authentication/)
-- [Expo Localization Guide](https://docs.expo.dev/guides/localization/)
-- [Expo Camera Docs](https://docs.expo.dev/versions/latest/sdk/camera/)
-- [Expo Location Docs](https://docs.expo.dev/versions/latest/sdk/location/)
-- [Expo Web Development](https://docs.expo.dev/workflow/web/)
-- [Drizzle ORM PostGIS Guide](https://orm.drizzle.team/docs/guides/postgis-geometry-point)
-- [TCGdex API](https://tcgdex.dev) -- Multi-language Pokemon TCG data
-- [OpenAI Node.js SDK](https://platform.openai.com/docs/libraries/node-js-library)
-- [PostGIS Documentation](https://postgis.net/workshops/postgis-intro/knn.html)
+- [Expo SDK 54 Beta Changelog](https://expo.dev/changelog/sdk-54-beta) -- Reanimated 4.1 bundled, gesture-handler compatibility
+- [Reanimated 4 Migration Guide](https://docs.swmansion.com/react-native-reanimated/docs/guides/migration-from-3.x/) -- API changes, entering/exiting animations, layout transitions
+- [Expo Font Documentation](https://docs.expo.dev/develop/user-interface/fonts/) -- config plugin approach for build-time font embedding
+- [Expo Linear Gradient](https://docs.expo.dev/versions/latest/sdk/linear-gradient/) -- API reference
+- [React Native Gesture Handler (Expo)](https://docs.expo.dev/versions/latest/sdk/gesture-handler/) -- Expo-compatible version
+- [Phosphor React Native](https://www.npmjs.com/package/phosphor-react-native) -- v3.0.3, published Feb 2026
 
 ### Secondary (MEDIUM confidence)
-- [PokeHub App Store listing](https://apps.apple.com/us/app/pokehub-for-tcg-pocket/id6740797484) -- Competitor analysis, user reviews
-- [PokeHub Google Play listing](https://play.google.com/store/apps/details?id=com.mi.poketrade&hl=en) -- User complaints about language mismatches
-- [Limitless TCG Pocket Decks](https://play.limitlesstcg.com/decks?game=POCKET) -- Deck meta data source
-- [PokemonMeta Top Decks](https://www.pokemonmeta.com/top-decks) -- Meta rankings
-- [PokeScope Card Scanner](https://pokescope.app/blog/how-i-built-pokemon-card-scanner-ai-50000-users/) -- Card scanning approach comparison
-- [@react-native-google-signin Expo Setup](https://react-native-google-signin.github.io/docs/setting-up/expo)
+- [NativeWind v5 Installation](https://www.nativewind.dev/v5/getting-started/installation) -- confirmed pre-release status (5.0.0-preview.3)
+- [@gorhom/bottom-sheet GitHub Issues](https://github.com/gorhom/react-native-bottom-sheet/issues/2528) -- Expo 54 / Reanimated 4 compatibility reports
+- [Moti GitHub Issue #391](https://github.com/nandorojo/moti/issues/391) -- confirmed Reanimated 4 incompatibility
+- [Gluestack UI GitHub Issue #3200](https://github.com/gluestack/gluestack-ui/issues/3200) -- confirmed Expo 54 crashes
+- [Design Tokens That Scale with Tailwind v4](https://www.maviklabs.com/blog/design-tokens-tailwind-v4-2026) -- CSS-first token architecture
+- [Cross-Platform Design System (Bit.dev)](https://bit.dev/blog/creating-a-cross-platform-design-system-for-react-and-react-native-with-bit-l7i3qgmw/) -- Token sharing patterns
+- [Extending Design Systems (Skyscanner)](https://medium.com/@SkyscannerEng/extending-our-design-system-to-multiple-platforms-1bc3735cf3a5)
 
 ### Tertiary (LOW confidence)
-- [drizzle-postgis GitHub](https://github.com/Schmavery/drizzle-postgis) -- Community plugin, known `box2d` bug
-- [Pokemon-TCGP-Card-Scanner](https://github.com/1vcian/Pokemon-TCGP-Card-Scanner) -- Open-source card scanner using image hashing
-- [Turborepo + Next.js + Expo Monorepo pattern](https://medium.com/@beenakumawat002/turborepo-monorepo-in-2025-next-js-react-native-shared-ui-type-safe-api-%EF%B8%8F-6194c83adff9) -- Monorepo setup reference
+- Effort estimates (15-22 days total from FEATURES.md) -- based on single-developer assumption, actual velocity will vary
+- Card holographic effect implementation -- no production reference found, will need prototyping
 
 ---
-*Research completed: 2026-03-11*
+*Research completed: 2026-03-20*
 *Ready for roadmap: yes*
