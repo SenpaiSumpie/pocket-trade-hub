@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
 import { ArrowsLeftRight } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore } from '@/src/stores/auth';
 import { useNotificationSetup } from '@/src/hooks/useNotifications';
 
@@ -114,7 +115,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!isLoggedIn}>
@@ -165,6 +166,6 @@ export default function RootLayout() {
         </Stack.Protected>
       </Stack>
       <Toast config={toastConfig} />
-    </>
+    </GestureHandlerRootView>
   );
 }
