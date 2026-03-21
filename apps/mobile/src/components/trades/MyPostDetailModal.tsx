@@ -3,15 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
-  ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { X, Info, XCircle, Trash } from 'phosphor-react-native';
+import { Info, XCircle, Trash } from 'phosphor-react-native';
+import { DetailSheet } from '@/src/components/animation/DetailSheet';
 import { usePosts } from '@/src/hooks/usePosts';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradePost } from '@pocket-trade-hub/shared';
@@ -98,133 +96,92 @@ export function MyPostDetailModal({ visible, onClose, post }: MyPostDetailModalP
   if (!post) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-          <View style={styles.modalContainer}>
-            {/* Close button */}
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={24} color={colors.text} weight="regular" />
-            </TouchableOpacity>
+    <DetailSheet visible={visible} onDismiss={onClose}>
+      {/* Card image */}
+      {card && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: card.imageUrl }}
+            style={styles.cardImage}
+            contentFit="contain"
+            transition={200}
+          />
+        </View>
+      )}
 
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {/* Card image */}
-              {card && (
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{ uri: card.imageUrl }}
-                    style={styles.cardImage}
-                    contentFit="contain"
-                    transition={200}
-                  />
-                </View>
-              )}
-
-              {/* Type and status badges */}
-              <View style={styles.badgeRow}>
-                <View style={[styles.badge, { backgroundColor: typeConfig.color }]}>
-                  <Text style={styles.badgeText}>{typeConfig.label}</Text>
-                </View>
-                <View style={[styles.badge, { backgroundColor: statusConfig.color }]}>
-                  <Text style={styles.badgeText}>{statusConfig.label}</Text>
-                </View>
-              </View>
-
-              {/* Card name */}
-              <Text style={styles.cardName}>{card?.name ?? 'Unknown Card'}</Text>
-
-              {/* Card details */}
-              <View style={styles.detailsContainer}>
-                {card?.language && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Language</Text>
-                    <Text style={styles.detailValue}>{card.language.toUpperCase()}</Text>
-                  </View>
-                )}
-                {card?.rarity && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Rarity</Text>
-                    <Text style={styles.detailValue}>{card.rarity}</Text>
-                  </View>
-                )}
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Created</Text>
-                  <Text style={styles.detailValue}>{formatDate(post.createdAt)}</Text>
-                </View>
-              </View>
-
-              {/* Status explanation for non-active posts */}
-              {!isActive && (
-                <View style={styles.statusNotice}>
-                  <Info size={18} color={statusConfig.color} weight="regular" />
-                  <Text style={styles.statusNoticeText}>{statusConfig.description}</Text>
-                </View>
-              )}
-
-              {/* Actions */}
-              <View style={styles.actionsContainer}>
-                {isActive && (
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.closePostButton]}
-                    onPress={handleClose}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <>
-                        <XCircle size={18} color="#fff" weight="regular" />
-                        <Text style={styles.actionButtonText}>Close Post</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.deleteButton]}
-                  onPress={handleDelete}
-                  disabled={actionLoading}
-                >
-                  <Trash size={18} color="#fff" weight="regular" />
-                  <Text style={styles.actionButtonText}>Delete Post</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </SafeAreaView>
+      {/* Type and status badges */}
+      <View style={styles.badgeRow}>
+        <View style={[styles.badge, { backgroundColor: typeConfig.color }]}>
+          <Text style={styles.badgeText}>{typeConfig.label}</Text>
+        </View>
+        <View style={[styles.badge, { backgroundColor: statusConfig.color }]}>
+          <Text style={styles.badgeText}>{statusConfig.label}</Text>
+        </View>
       </View>
-    </Modal>
+
+      {/* Card name */}
+      <Text style={styles.cardName}>{card?.name ?? 'Unknown Card'}</Text>
+
+      {/* Card details */}
+      <View style={styles.detailsContainer}>
+        {card?.language && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Language</Text>
+            <Text style={styles.detailValue}>{card.language.toUpperCase()}</Text>
+          </View>
+        )}
+        {card?.rarity && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Rarity</Text>
+            <Text style={styles.detailValue}>{card.rarity}</Text>
+          </View>
+        )}
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Created</Text>
+          <Text style={styles.detailValue}>{formatDate(post.createdAt)}</Text>
+        </View>
+      </View>
+
+      {/* Status explanation for non-active posts */}
+      {!isActive && (
+        <View style={styles.statusNotice}>
+          <Info size={18} color={statusConfig.color} weight="regular" />
+          <Text style={styles.statusNoticeText}>{statusConfig.description}</Text>
+        </View>
+      )}
+
+      {/* Actions */}
+      <View style={styles.actionsContainer}>
+        {isActive && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.closePostButton]}
+            onPress={handleClose}
+            disabled={actionLoading}
+          >
+            {actionLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <XCircle size={18} color="#fff" weight="regular" />
+                <Text style={styles.actionButtonText}>Close Post</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={handleDelete}
+          disabled={actionLoading}
+        >
+          <Trash size={18} color="#fff" weight="regular" />
+          <Text style={styles.actionButtonText}>Delete Post</Text>
+        </TouchableOpacity>
+      </View>
+    </DetailSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  safeArea: {
-    maxHeight: '92%',
-  },
-  modalContainer: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    paddingTop: spacing.lg,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    zIndex: 10,
-    padding: spacing.xs,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
   imageContainer: {
     alignItems: 'center',
     marginBottom: spacing.md,

@@ -3,16 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
-  ScrollView,
   Pressable,
   Platform,
   ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
-import { X, Copy, Star, StarHalf, ArrowsLeftRight, Check, ArrowUTurnLeft, Trophy, Newspaper } from 'phosphor-react-native';
+import { Copy, Star, StarHalf, ArrowsLeftRight, Check, X, ArrowUTurnLeft, Trophy, Newspaper } from 'phosphor-react-native';
+import { DetailSheet } from '@/src/components/animation/DetailSheet';
 import Toast from 'react-native-toast-message';
 import { ProposalCreationModal } from './ProposalCreationModal';
 import { FairnessMeter } from './FairnessMeter';
@@ -247,149 +246,59 @@ export function ProposalDetailModal({
   const avatar = partner ? getAvatarById(partner.avatarId) : null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color={colors.text} weight="regular" />
-          </TouchableOpacity>
-
-          {loading ? (
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
+    <DetailSheet visible={visible} onDismiss={onClose}>
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <>
+          {/* Partner reputation header */}
+          {partner && (
+            <View style={styles.partnerHeader}>
+              <View
+                style={[
+                  styles.avatarLarge,
+                  { backgroundColor: avatar?.color ?? colors.surfaceLight },
+                ]}
+              >
+                <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
+              </View>
+              <Text style={styles.partnerName}>{partner.displayName}</Text>
+              {partner.tradeCount > 0 ? (
+                <View style={styles.reputationRow}>
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const filled = partner.avgRating >= i + 1;
+                    const half = !filled && partner.avgRating >= i + 0.5;
+                    if (filled) {
+                      return <Star key={i} size={16} color={colors.primary} weight="fill" />;
+                    }
+                    if (half) {
+                      return <StarHalf key={i} size={16} color={colors.primary} weight="fill" />;
+                    }
+                    return <Star key={i} size={16} color={colors.primary} weight="regular" />;
+                  })}
+                  <Text style={styles.reputationText}>
+                    {partner.avgRating.toFixed(1)} - {partner.tradeCount} completed trade
+                    {partner.tradeCount !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.newTraderText}>New trader - no ratings yet</Text>
+              )}
             </View>
-          ) : (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {/* Partner reputation header */}
-              {partner && (
-                <View style={styles.partnerHeader}>
-                  <View
-                    style={[
-                      styles.avatarLarge,
-                      { backgroundColor: avatar?.color ?? colors.surfaceLight },
-                    ]}
-                  >
-                    <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
-                  </View>
-                  <Text style={styles.partnerName}>{partner.displayName}</Text>
-                  {partner.tradeCount > 0 ? (
-                    <View style={styles.reputationRow}>
-                      {Array.from({ length: 5 }, (_, i) => {
-                        const filled = partner.avgRating >= i + 1;
-                        const half = !filled && partner.avgRating >= i + 0.5;
-                        if (filled) {
-                          return <Star key={i} size={16} color={colors.primary} weight="fill" />;
-                        }
-                        if (half) {
-                          return <StarHalf key={i} size={16} color={colors.primary} weight="fill" />;
-                        }
-                        return <Star key={i} size={16} color={colors.primary} weight="regular" />;
-                      })}
-                      <Text style={styles.reputationText}>
-                        {partner.avgRating.toFixed(1)} - {partner.tradeCount} completed trade
-                        {partner.tradeCount !== 1 ? 's' : ''}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.newTraderText}>New trader - no ratings yet</Text>
-                  )}
-                </View>
-              )}
+          )}
 
-              {/* Friend code (shown when accepted) */}
-              {activeProposal?.status === 'accepted' && partner?.friendCode && (
-                <Pressable onPress={handleCopyFriendCode} style={styles.friendCodeBox}>
-                  <Text style={styles.friendCodeLabel}>Partner Friend Code</Text>
-                  <View style={styles.friendCodeRow}>
-                    <Text style={styles.friendCodeText}>{partner.friendCode}</Text>
-                    <Copy size={18} color={colors.primary} weight="regular" />
-                  </View>
-                  <Text style={styles.friendCodeHint}>Tap to copy</Text>
-                </Pressable>
-              )}
-
-              {/* Thread history */}
-              <Text style={styles.sectionTitle}>Proposal History</Text>
-              {thread.map((p, i) => (
-                <ThreadEntry
-                  key={p.id}
-                  proposal={p}
-                  currentUserId={currentUserId}
-                  isActive={p.id === activeProposal?.id}
-                />
-              ))}
-
-              {/* Action buttons */}
-              {activeProposal && (
-                <View style={styles.actionsContainer}>
-                  {activeProposal.status === 'pending' && isReceiver && (
-                    <>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.acceptButton]}
-                        onPress={handleAccept}
-                        disabled={actionLoading}
-                      >
-                        {actionLoading ? (
-                          <ActivityIndicator color="#fff" size="small" />
-                        ) : (
-                          <>
-                            <Check size={18} color="#fff" weight="bold" />
-                            <Text style={styles.actionButtonText}>Accept</Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.rejectButton]}
-                        onPress={handleReject}
-                        disabled={actionLoading}
-                      >
-                        <X size={18} color="#fff" weight="bold" />
-                        <Text style={styles.actionButtonText}>Reject</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.counterButton]}
-                        onPress={() => setShowCounterModal(true)}
-                        disabled={actionLoading}
-                      >
-                        <ArrowUTurnLeft size={18} color="#fff" weight="bold" />
-                        <Text style={styles.actionButtonText}>Counter</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-
-                  {activeProposal.status === 'accepted' && (
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.completeButton]}
-                      onPress={handleComplete}
-                      disabled={actionLoading}
-                    >
-                      {actionLoading ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <>
-                          <Trophy size={18} color="#fff" weight="fill" />
-                          <Text style={styles.actionButtonText}>Mark as Completed</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  )}
-
-                  {activeProposal.status === 'completed' && onRatePartner && partnerId && (
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.rateButton]}
-                      onPress={() => onRatePartner(activeProposal.id, partnerId)}
-                    >
-                      <Star size={18} color="#fff" weight="fill" />
-                      <Text style={styles.actionButtonText}>Rate Partner</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </ScrollView>
+          {/* Friend code (shown when accepted) */}
+          {activeProposal?.status === 'accepted' && partner?.friendCode && (
+            <Pressable onPress={handleCopyFriendCode} style={styles.friendCodeBox}>
+              <Text style={styles.friendCodeLabel}>Partner Friend Code</Text>
+              <View style={styles.friendCodeRow}>
+                <Text style={styles.friendCodeText}>{partner.friendCode}</Text>
+                <Copy size={18} color={colors.primary} weight="regular" />
+              </View>
+              <Text style={styles.friendCodeHint}>Tap to copy</Text>
+            </Pressable>
           )}
 
           {/* Post context notice */}
@@ -407,6 +316,84 @@ export function ProposalDetailModal({
                   )}
                 </Text>
               </View>
+            </View>
+          )}
+
+          {/* Thread history */}
+          <Text style={styles.sectionTitle}>Proposal History</Text>
+          {thread.map((p, i) => (
+            <ThreadEntry
+              key={p.id}
+              proposal={p}
+              currentUserId={currentUserId}
+              isActive={p.id === activeProposal?.id}
+            />
+          ))}
+
+          {/* Action buttons */}
+          {activeProposal && (
+            <View style={styles.actionsContainer}>
+              {activeProposal.status === 'pending' && isReceiver && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.acceptButton]}
+                    onPress={handleAccept}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <>
+                        <Check size={18} color="#fff" weight="bold" />
+                        <Text style={styles.actionButtonText}>Accept</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.rejectButton]}
+                    onPress={handleReject}
+                    disabled={actionLoading}
+                  >
+                    <X size={18} color="#fff" weight="bold" />
+                    <Text style={styles.actionButtonText}>Reject</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.counterButton]}
+                    onPress={() => setShowCounterModal(true)}
+                    disabled={actionLoading}
+                  >
+                    <ArrowUTurnLeft size={18} color="#fff" weight="bold" />
+                    <Text style={styles.actionButtonText}>Counter</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {activeProposal.status === 'accepted' && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.completeButton]}
+                  onPress={handleComplete}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <Trophy size={18} color="#fff" weight="fill" />
+                      <Text style={styles.actionButtonText}>Mark as Completed</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {activeProposal.status === 'completed' && onRatePartner && partnerId && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.rateButton]}
+                  onPress={() => onRatePartner(activeProposal.id, partnerId)}
+                >
+                  <Star size={18} color="#fff" weight="fill" />
+                  <Text style={styles.actionButtonText}>Rate Partner</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -434,39 +421,16 @@ export function ProposalDetailModal({
               existingProposal={activeProposal}
             />
           )}
-        </View>
-      </View>
-    </Modal>
+        </>
+      )}
+    </DetailSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    maxHeight: '92%',
-    paddingTop: spacing.lg,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    zIndex: 10,
-    padding: spacing.xs,
-  },
   loaderContainer: {
     padding: spacing.xxl,
     alignItems: 'center',
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
   },
   // Partner header
   partnerHeader: {
@@ -610,7 +574,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
   },
   postNoticeContent: {

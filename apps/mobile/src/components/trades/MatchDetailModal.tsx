@@ -3,15 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   TouchableOpacity,
-  ScrollView,
   Pressable,
   Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
-import { X, Copy, Star, ArrowsLeftRight } from 'phosphor-react-native';
+import { Copy, Star, ArrowsLeftRight } from 'phosphor-react-native';
+import { DetailSheet } from '@/src/components/animation/DetailSheet';
 import Toast from 'react-native-toast-message';
 import { ProposalCreationModal } from './ProposalCreationModal';
 import { getAvatarById } from '@/src/constants/avatars';
@@ -62,119 +61,85 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color={colors.text} weight="regular" />
-          </TouchableOpacity>
+    <DetailSheet visible={visible} onDismiss={onClose}>
+      {/* Partner profile header */}
+      <View style={styles.partnerHeader}>
+        <View style={[styles.avatarLarge, { backgroundColor: avatar?.color ?? colors.surfaceLight }]}>
+          <Text style={styles.avatarEmojiLarge}>{avatar?.emoji ?? '?'}</Text>
+        </View>
+        <Text style={styles.partnerDisplayName}>
+          {match.partnerDisplayName ?? 'Trainer'}
+        </Text>
+        {match.partnerFriendCode && (
+          <Pressable onPress={handleCopyFriendCode} style={styles.friendCodeRow}>
+            <Text style={styles.friendCode}>{match.partnerFriendCode}</Text>
+            <Copy size={14} color={colors.textSecondary} weight="regular" />
+          </Pressable>
+        )}
+        <Text style={styles.tradeCount}>
+          {match.partnerTradeCount} trade{match.partnerTradeCount !== 1 ? 's' : ''} completed
+        </Text>
+      </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            {/* Partner profile header */}
-            <View style={styles.partnerHeader}>
-              <View style={[styles.avatarLarge, { backgroundColor: avatar?.color ?? colors.surfaceLight }]}>
-                <Text style={styles.avatarEmojiLarge}>{avatar?.emoji ?? '?'}</Text>
-              </View>
-              <Text style={styles.partnerDisplayName}>
-                {match.partnerDisplayName ?? 'Trainer'}
-              </Text>
-              {match.partnerFriendCode && (
-                <Pressable onPress={handleCopyFriendCode} style={styles.friendCodeRow}>
-                  <Text style={styles.friendCode}>{match.partnerFriendCode}</Text>
-                  <Copy size={14} color={colors.textSecondary} weight="regular" />
-                </Pressable>
-              )}
-              <Text style={styles.tradeCount}>
-                {match.partnerTradeCount} trade{match.partnerTradeCount !== 1 ? 's' : ''} completed
-              </Text>
-            </View>
-
-            {/* Star rating */}
-            <View style={styles.ratingRow}>
-              {Array.from({ length: 3 }, (_, i) => (
-                <Star
-                  key={i}
-                  size={20}
-                  color={i < match.starRating ? '#f0c040' : colors.surfaceLight}
-                  weight="fill"
-                />
-              ))}
-              <Text style={styles.ratingLabel}>
-                {match.starRating === 3 ? 'Great match' : match.starRating === 2 ? 'Good match' : 'Fair match'}
-              </Text>
-            </View>
-
-            {/* Card pairs */}
-            <View style={styles.columnsContainer}>
-              {/* You Give */}
-              <View style={styles.column}>
-                <Text style={styles.columnHeader}>You Give</Text>
-                {match.userGives.map((pair) => (
-                  <CardPairItem key={pair.cardId} pair={pair} />
-                ))}
-              </View>
-
-              {/* Arrow */}
-              <View style={styles.arrowColumn}>
-                <ArrowsLeftRight size={24} color={colors.primary} weight="regular" />
-              </View>
-
-              {/* You Get */}
-              <View style={styles.column}>
-                <Text style={styles.columnHeader}>You Get</Text>
-                {match.userGets.map((pair) => (
-                  <CardPairItem key={pair.cardId} pair={pair} showPriority />
-                ))}
-              </View>
-            </View>
-
-            {/* Propose Trade button */}
-            <TouchableOpacity
-              style={styles.proposeButton}
-              onPress={() => setShowProposalModal(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.proposeButtonText}>Propose Trade</Text>
-            </TouchableOpacity>
-          </ScrollView>
-
-          {/* Proposal creation modal */}
-          <ProposalCreationModal
-            visible={showProposalModal}
-            onClose={() => setShowProposalModal(false)}
-            match={match}
+      {/* Star rating */}
+      <View style={styles.ratingRow}>
+        {Array.from({ length: 3 }, (_, i) => (
+          <Star
+            key={i}
+            size={20}
+            color={i < match.starRating ? '#f0c040' : colors.surfaceLight}
+            weight="fill"
           />
+        ))}
+        <Text style={styles.ratingLabel}>
+          {match.starRating === 3 ? 'Great match' : match.starRating === 2 ? 'Good match' : 'Fair match'}
+        </Text>
+      </View>
+
+      {/* Card pairs */}
+      <View style={styles.columnsContainer}>
+        {/* You Give */}
+        <View style={styles.column}>
+          <Text style={styles.columnHeader}>You Give</Text>
+          {match.userGives.map((pair) => (
+            <CardPairItem key={pair.cardId} pair={pair} />
+          ))}
+        </View>
+
+        {/* Arrow */}
+        <View style={styles.arrowColumn}>
+          <ArrowsLeftRight size={24} color={colors.primary} weight="regular" />
+        </View>
+
+        {/* You Get */}
+        <View style={styles.column}>
+          <Text style={styles.columnHeader}>You Get</Text>
+          {match.userGets.map((pair) => (
+            <CardPairItem key={pair.cardId} pair={pair} showPriority />
+          ))}
         </View>
       </View>
-    </Modal>
+
+      {/* Propose Trade button */}
+      <TouchableOpacity
+        style={styles.proposeButton}
+        onPress={() => setShowProposalModal(true)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.proposeButtonText}>Propose Trade</Text>
+      </TouchableOpacity>
+
+      {/* Proposal creation modal */}
+      <ProposalCreationModal
+        visible={showProposalModal}
+        onClose={() => setShowProposalModal(false)}
+        match={match}
+      />
+    </DetailSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    maxHeight: '90%',
-    paddingTop: spacing.lg,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    zIndex: 10,
-    padding: spacing.xs,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
   partnerHeader: {
     alignItems: 'center',
     marginBottom: spacing.lg,
