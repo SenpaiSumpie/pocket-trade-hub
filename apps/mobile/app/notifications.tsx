@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Ionicons } from '@expo/vector-icons';
+import { BellSlash } from 'phosphor-react-native';
 import { useNotificationStore } from '@/src/stores/notifications';
 import {
   fetchNotifications,
@@ -51,7 +51,7 @@ export default function NotificationsScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
+      <BellSlash size={64} color={colors.textMuted} weight="regular" />
       <Text style={styles.emptyText}>No notifications yet</Text>
       <Text style={styles.emptySubtext}>
         You will see trade proposals, matches, and ratings here

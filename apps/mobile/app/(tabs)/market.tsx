@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Ionicons } from '@expo/vector-icons';
+import { Storefront, PlusCircle, Plus } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
 import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
@@ -71,11 +71,11 @@ export default function MarketScreen() {
     }
     return (
       <View style={styles.empty}>
-        <Ionicons name="storefront-outline" size={48} color={colors.textMuted} />
+        <Storefront size={48} color={colors.textMuted} weight="regular" />
         <Text style={styles.emptyTitle}>{t('market.noPostsFound')}</Text>
         <Text style={styles.emptySubtitle}>{t('market.noPostsSubtitle')}</Text>
         <Pressable style={styles.emptyButton} onPress={() => setShowCreate(true)}>
-          <Ionicons name="add-circle-outline" size={20} color={colors.background} />
+          <PlusCircle size={20} color={colors.background} weight="regular" />
           <Text style={styles.emptyButtonText}>{t('market.createPost')}</Text>
         </Pressable>
       </View>
@@ -121,7 +121,7 @@ export default function MarketScreen() {
         style={styles.fab}
         onPress={() => setShowCreate(true)}
       >
-        <Ionicons name="add" size={28} color={colors.background} />
+        <Plus size={28} color={colors.background} weight="bold" />
       </Pressable>
 
       {/* Post Detail Modal */}

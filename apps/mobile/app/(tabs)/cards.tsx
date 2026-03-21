@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass } from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { SearchBar } from '@/src/components/cards/SearchBar';
 import { SetPicker } from '@/src/components/cards/SetPicker';
@@ -33,10 +34,10 @@ const LANGUAGE_OPTIONS = [
 
 type Mode = 'browse' | 'collection' | 'wanted';
 
-const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { key: 'browse', labelKey: 'cards.browse', icon: 'grid-outline' },
-  { key: 'collection', labelKey: 'cards.myCollection', icon: 'albums-outline' },
-  { key: 'wanted', labelKey: 'cards.wanted', icon: 'heart-outline' },
+const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; Icon: PhosphorIcon }> = [
+  { key: 'browse', labelKey: 'cards.browse', Icon: GridFour },
+  { key: 'collection', labelKey: 'cards.myCollection', Icon: StackIcon },
+  { key: 'wanted', labelKey: 'cards.wanted', Icon: Heart },
 ];
 
 export default function CardsScreen() {
@@ -289,10 +290,10 @@ export default function CardsScreen() {
                   style={[styles.tabItem, active && styles.tabItemActive]}
                   onPress={() => handleModeSwitch(seg.key)}
                 >
-                  <Ionicons
-                    name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                  <seg.Icon
                     size={18}
                     color={active ? colors.primary : colors.textMuted}
+                    weight={active ? 'fill' : 'regular'}
                   />
                   <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
                     {t(seg.labelKey)}
@@ -316,15 +317,15 @@ export default function CardsScreen() {
             style={styles.setDropdownBtn}
             onPress={() => setShowSetDropdown(!showSetDropdown)}
           >
-            <Ionicons name="layers-outline" size={16} color={colors.textSecondary} />
+            <StackIcon size={16} color={colors.textSecondary} weight="regular" />
             <Text style={styles.setDropdownLabel} numberOfLines={1}>
               {selectedSetLabel}
             </Text>
-            <Ionicons
-              name={showSetDropdown ? 'chevron-up' : 'chevron-down'}
-              size={14}
-              color={colors.textMuted}
-            />
+            {showSetDropdown ? (
+              <CaretUp size={14} color={colors.textMuted} weight="regular" />
+            ) : (
+              <CaretDown size={14} color={colors.textMuted} weight="regular" />
+            )}
           </Pressable>
 
           {/* Language filter chip */}
@@ -335,10 +336,10 @@ export default function CardsScreen() {
             ]}
             onPress={() => setShowLanguagePicker(true)}
           >
-            <Ionicons
-              name="language-outline"
+            <Globe
               size={16}
               color={selectedLanguage ? colors.primary : colors.textSecondary}
+              weight="regular"
             />
             <Text
               style={[
@@ -356,10 +357,10 @@ export default function CardsScreen() {
                 onPress={() => setSelectedLanguage(undefined)}
                 hitSlop={8}
               >
-                <Ionicons name="close" size={14} color={colors.primary} />
+                <X size={14} color={colors.primary} weight="regular" />
               </Pressable>
             ) : (
-              <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+              <CaretDown size={14} color={colors.textMuted} weight="regular" />
             )}
           </Pressable>
 
@@ -476,7 +477,7 @@ export default function CardsScreen() {
                   style={styles.floatingBtn}
                   onPress={handleMultiSelectAddToCollection}
                 >
-                  <Ionicons name="add-circle" size={20} color={colors.primary} />
+                  <PlusCircle size={20} color={colors.primary} weight="fill" />
                   <Text style={styles.floatingBtnText}>{t('cards.collect')}</Text>
                 </Pressable>
               )}
@@ -485,7 +486,7 @@ export default function CardsScreen() {
                   style={styles.floatingBtn}
                   onPress={handleMultiSelectAddToWanted}
                 >
-                  <Ionicons name="heart" size={20} color={colors.primary} />
+                  <Heart size={20} color={colors.primary} weight="fill" />
                   <Text style={styles.floatingBtnText}>{t('cards.want')}</Text>
                 </Pressable>
               )}
@@ -494,12 +495,12 @@ export default function CardsScreen() {
                   style={[styles.floatingBtn, styles.floatingBtnDanger]}
                   onPress={handleMultiSelectRemove}
                 >
-                  <Ionicons name="trash" size={20} color={colors.error} />
+                  <Trash size={20} color={colors.error} weight="regular" />
                   <Text style={[styles.floatingBtnText, { color: colors.error }]}>{t('cards.remove')}</Text>
                 </Pressable>
               )}
               <Pressable style={styles.floatingBtnCancel} onPress={exitMultiSelect}>
-                <Ionicons name="close" size={20} color={colors.textSecondary} />
+                <X size={20} color={colors.textSecondary} weight="regular" />
               </Pressable>
             </View>
           </View>
@@ -546,7 +547,7 @@ export default function CardsScreen() {
                 >
                   <Text style={styles.langOptionText}>{item.label}</Text>
                   {(selectedLanguage === item.code || (!selectedLanguage && !item.code)) && (
-                    <Ionicons name="checkmark" size={18} color={colors.primary} />
+                    <Check size={18} color={colors.primary} weight="regular" />
                   )}
                 </Pressable>
               )}

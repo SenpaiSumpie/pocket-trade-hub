@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { WarningCircle } from 'phosphor-react-native';
 import { CardDetailModal } from '@/src/components/cards/CardDetailModal';
 import { apiFetch } from '@/src/hooks/useApi';
 import { colors, spacing } from '@/src/constants/theme';
@@ -38,7 +38,7 @@ export default function CardDetailScreen() {
   if (error || !card) {
     return (
       <SafeAreaView style={styles.center}>
-        <Ionicons name="alert-circle-outline" size={48} color={colors.textMuted} />
+        <WarningCircle size={48} color={colors.textMuted} weight="regular" />
         <Text style={styles.errorText}>{error || 'Card not found'}</Text>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>Go Back</Text>

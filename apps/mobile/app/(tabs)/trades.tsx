@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Newspaper, FileText, ArrowLeft, CaretDown, CaretUp, Check, Clock } from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { usePosts } from '@/src/hooks/usePosts';
 import { useProposals } from '@/src/hooks/useProposals';
 import { useTradesStore } from '@/src/stores/trades';
@@ -27,9 +28,9 @@ type ProposalView = 'active' | 'history';
 const ACTIVE_STATUSES = ['pending', 'accepted', 'countered'];
 const HISTORY_STATUSES = ['completed', 'rejected', 'cancelled'];
 
-const SEGMENT_KEYS: Array<{ key: ActiveSegment; labelKey: string; icon: keyof typeof Ionicons.glyphMap }> = [
-  { key: 'posts', labelKey: 'trades.myPosts', icon: 'newspaper-outline' },
-  { key: 'proposals', labelKey: 'trades.proposals', icon: 'document-text-outline' },
+const SEGMENT_KEYS: Array<{ key: ActiveSegment; labelKey: string; Icon: PhosphorIcon }> = [
+  { key: 'posts', labelKey: 'trades.myPosts', Icon: Newspaper },
+  { key: 'proposals', labelKey: 'trades.proposals', Icon: FileText },
 ];
 
 const DIRECTION_KEYS: { value: ProposalDirection; labelKey: string }[] = [
@@ -172,10 +173,10 @@ export default function TradesScreen() {
                   onPress={() => handleSegmentSwitch(seg.key)}
                 >
                   <View style={styles.tabIconContainer}>
-                    <Ionicons
-                      name={active ? (seg.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : seg.icon}
+                    <seg.Icon
                       size={18}
                       color={active ? colors.primary : colors.textMuted}
+                      weight={active ? 'fill' : 'regular'}
                     />
                     {badgeCount > 0 && (
                       <View style={styles.tabBadge}>
@@ -222,13 +223,13 @@ export default function TradesScreen() {
             style={styles.filterDropdownBtn}
             onPress={() => setShowDirectionDropdown(!showDirectionDropdown)}
           >
-            <Ionicons name="arrow-back-outline" size={14} color={colors.textSecondary} />
+            <ArrowLeft size={14} color={colors.textSecondary} weight="regular" />
             <Text style={styles.filterDropdownLabel}>{t(directionLabel)}</Text>
-            <Ionicons
-              name={showDirectionDropdown ? 'chevron-up' : 'chevron-down'}
-              size={12}
-              color={colors.textMuted}
-            />
+            {showDirectionDropdown ? (
+              <CaretUp size={12} color={colors.textMuted} weight="regular" />
+            ) : (
+              <CaretDown size={12} color={colors.textMuted} weight="regular" />
+            )}
           </Pressable>
         </View>
       )}
@@ -250,7 +251,7 @@ export default function TradesScreen() {
                 <Text style={[styles.dropdownItemText, isActive && styles.dropdownItemTextActive]}>
                   {t(opt.labelKey)}
                 </Text>
-                {isActive && <Ionicons name="checkmark" size={16} color={colors.primary} />}
+                {isActive && <Check size={16} color={colors.primary} weight="regular" />}
               </Pressable>
             );
           })}
@@ -270,7 +271,7 @@ export default function TradesScreen() {
         <View style={[styles.centerContainer, { paddingTop: HEADER_MAX }]}>
           {activeSegment === 'posts' ? (
             <>
-              <Ionicons name="newspaper-outline" size={64} color={colors.textMuted} />
+              <Newspaper size={64} color={colors.textMuted} weight="regular" />
               <Text style={styles.emptyTitle}>{t('trades.noPosts')}</Text>
               <Text style={styles.emptySubtitle}>
                 {t('trades.noPostsHint')}
@@ -279,7 +280,7 @@ export default function TradesScreen() {
             </>
           ) : proposalView === 'active' ? (
             <>
-              <Ionicons name="document-text-outline" size={64} color={colors.textMuted} />
+              <FileText size={64} color={colors.textMuted} weight="regular" />
               <Text style={styles.emptyTitle}>{t('trades.noActiveProposals')}</Text>
               <Text style={styles.emptySubtitle}>
                 {t('trades.noActiveProposalsHint')}
@@ -290,7 +291,7 @@ export default function TradesScreen() {
             </>
           ) : (
             <>
-              <Ionicons name="time-outline" size={64} color={colors.textMuted} />
+              <Clock size={64} color={colors.textMuted} weight="regular" />
               <Text style={styles.emptyTitle}>{t('trades.noTradeHistory')}</Text>
               <Text style={styles.emptySubtitle}>
                 {t('trades.noTradeHistoryHint')}

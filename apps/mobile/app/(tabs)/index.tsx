@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Stack, GitBranch, PaperPlaneTilt, ChartBar, CaretRight } from 'phosphor-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
@@ -12,8 +12,10 @@ import { usePremiumStore } from '@/src/stores/premium';
 import { useSuggestionsStore } from '@/src/stores/suggestions';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
+
 interface PreviewCard {
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: PhosphorIcon;
   titleKey: string;
   descKey: string;
   color: string;
@@ -21,19 +23,19 @@ interface PreviewCard {
 
 const PREVIEWS: PreviewCard[] = [
   {
-    icon: 'albums',
+    Icon: Stack,
     titleKey: 'home.cardsDatabase',
     descKey: 'home.cardsDatabaseDesc',
     color: '#3498db',
   },
   {
-    icon: 'git-compare',
+    Icon: GitBranch,
     titleKey: 'home.tradeMatching',
     descKey: 'home.tradeMatchingDesc',
     color: '#2ecc71',
   },
   {
-    icon: 'paper-plane',
+    Icon: PaperPlaneTilt,
     titleKey: 'home.tradeProposals',
     descKey: 'home.tradeProposalsDesc',
     color: '#e74c3c',
@@ -93,7 +95,7 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.previewIcon, { backgroundColor: '#f0c04020' }]}>
-                <Ionicons name="analytics" size={28} color={colors.primary} />
+                <ChartBar size={28} color={colors.primary} weight="regular" />
               </View>
               <View style={styles.previewContent}>
                 <Text style={styles.previewTitle}>{t('premium.analyticsTitle')}</Text>
@@ -101,7 +103,7 @@ export default function HomeScreen() {
                   {t('premium.analyticsDescription')}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              <CaretRight size={18} color={colors.textMuted} weight="regular" />
             </TouchableOpacity>
           ) : (
             <LockedFeatureCard
@@ -119,7 +121,7 @@ export default function HomeScreen() {
       {PREVIEWS.map((preview, index) => (
         <View key={index} style={styles.previewCard}>
           <View style={[styles.previewIcon, { backgroundColor: preview.color + '20' }]}>
-            <Ionicons name={preview.icon} size={28} color={preview.color} />
+            <preview.Icon size={28} color={preview.color} weight="regular" />
           </View>
           <View style={styles.previewContent}>
             <Text style={styles.previewTitle}>{t(preview.titleKey)}</Text>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Star, StarHalf, User, GoogleLogo, AppleLogo, CaretRight, PencilSimple, SignOut } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 import { UI_LANGUAGES } from '@pocket-trade-hub/shared';
@@ -37,11 +37,11 @@ function ReputationStars({ avgRating, tradeCount, t }: UserReputation & { t: (ke
     <View style={styles.reputationRow}>
       <View style={styles.starsRow}>
         {Array.from({ length: fullStars }, (_, i) => (
-          <Ionicons key={`f${i}`} name="star" size={18} color="#f0c040" />
+          <Star key={`f${i}`} size={18} color="#f0c040" weight="fill" />
         ))}
-        {hasHalf && <Ionicons name="star-half" size={18} color="#f0c040" />}
+        {hasHalf && <StarHalf size={18} color="#f0c040" weight="fill" />}
         {Array.from({ length: emptyStars }, (_, i) => (
-          <Ionicons key={`e${i}`} name="star-outline" size={18} color={colors.textMuted} />
+          <Star key={`e${i}`} size={18} color={colors.textMuted} weight="regular" />
         ))}
       </View>
       <Text style={styles.ratingText}>
@@ -230,7 +230,7 @@ export default function ProfileScreen() {
           {avatar ? (
             <Text style={styles.avatarEmoji}>{avatar.emoji}</Text>
           ) : (
-            <Ionicons name="person" size={48} color={colors.textMuted} />
+            <User size={48} color={colors.textMuted} weight="regular" />
           )}
         </View>
         <View style={styles.nameRow}>
@@ -266,7 +266,7 @@ export default function ProfileScreen() {
         {/* Google */}
         <View style={styles.providerRow}>
           <View style={styles.providerInfo}>
-            <Ionicons name="logo-google" size={20} color={colors.text} />
+            <GoogleLogo size={20} color={colors.text} weight="regular" />
             <Text style={styles.providerLabel}>Google</Text>
           </View>
           {linkedProviders.includes('google') ? (
@@ -294,7 +294,7 @@ export default function ProfileScreen() {
             <View style={styles.divider} />
             <View style={styles.providerRow}>
               <View style={styles.providerInfo}>
-                <Ionicons name="logo-apple" size={20} color={colors.text} />
+                <AppleLogo size={20} color={colors.text} weight="regular" />
                 <Text style={styles.providerLabel}>Apple</Text>
               </View>
               {linkedProviders.includes('apple') ? (
@@ -347,7 +347,7 @@ export default function ProfileScreen() {
           <Text style={styles.infoLabel}>{t('profile.currentLanguage')}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
             <Text style={styles.infoValue}>{currentLanguageName}</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            <CaretRight size={16} color={colors.textMuted} weight="regular" />
           </View>
         </TouchableOpacity>
       </View>
@@ -357,12 +357,12 @@ export default function ProfileScreen() {
         style={styles.editButton}
         onPress={() => router.push('/edit-profile')}
       >
-        <Ionicons name="create-outline" size={20} color={colors.background} />
+        <PencilSimple size={20} color={colors.background} weight="regular" />
         <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color={colors.error} />
+        <SignOut size={20} color={colors.error} weight="regular" />
         <Text style={styles.logoutButtonText}>{t('profile.logOut')}</Text>
       </TouchableOpacity>
 

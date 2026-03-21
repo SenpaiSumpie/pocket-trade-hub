@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowsLeftRight } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/src/stores/auth';
 import { useNotificationSetup } from '@/src/hooks/useNotifications';
@@ -26,7 +26,7 @@ const toastConfig = {
       activeOpacity={0.8}
     >
       <View style={toastStyles.accent} />
-      <Ionicons name="swap-horizontal" size={20} color="#f0c040" style={toastStyles.icon} />
+      <ArrowsLeftRight size={20} color="#f0c040" weight="regular" style={toastStyles.icon} />
       <View style={toastStyles.textContainer}>
         {text1 ? <Text style={toastStyles.title}>{text1}</Text> : null}
         {text2 ? <Text style={toastStyles.body}>{text2}</Text> : null}

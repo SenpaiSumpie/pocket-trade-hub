@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { UserMinus, User, Calendar, ArrowsLeftRight } from 'phosphor-react-native';
 import FriendCodeBadge from '@/src/components/FriendCodeBadge';
 import { getAvatarById } from '@/src/constants/avatars';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -54,7 +54,7 @@ export default function UserProfileScreen() {
   if (error || !user) {
     return (
       <View style={styles.centered}>
-        <Ionicons name="person-remove-outline" size={64} color={colors.textMuted} />
+        <UserMinus size={64} color={colors.textMuted} weight="regular" />
         <Text style={styles.errorTitle}>User Not Found</Text>
         <Text style={styles.errorText}>
           {error || 'This user does not exist.'}
@@ -83,7 +83,7 @@ export default function UserProfileScreen() {
           {avatar ? (
             <Text style={styles.avatarEmoji}>{avatar.emoji}</Text>
           ) : (
-            <Ionicons name="person" size={48} color={colors.textMuted} />
+            <User size={48} color={colors.textMuted} weight="regular" />
           )}
         </View>
       </View>
@@ -104,12 +104,12 @@ export default function UserProfileScreen() {
       {/* Info */}
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+          <Calendar size={18} color={colors.textSecondary} weight="regular" />
           <Text style={styles.infoText}>Member since {joinDate}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.infoRow}>
-          <Ionicons name="swap-horizontal-outline" size={18} color={colors.textSecondary} />
+          <ArrowsLeftRight size={18} color={colors.textSecondary} weight="regular" />
           <Text style={styles.infoText}>0 trades</Text>
         </View>
       </View>
