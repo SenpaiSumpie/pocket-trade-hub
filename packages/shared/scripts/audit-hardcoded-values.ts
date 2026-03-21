@@ -98,7 +98,12 @@ export function formatMarkdownTable(entries: AuditEntry[]): string {
 
 // --- CLI entry point ---
 
-const SCAN_DIRS = ['apps/mobile/src', 'apps/web/src'];
+// Resolve monorepo root (two levels up from packages/shared/)
+const MONOREPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const SCAN_DIRS = [
+  path.join(MONOREPO_ROOT, 'apps/mobile/src'),
+  path.join(MONOREPO_ROOT, 'apps/web/src'),
+];
 const EXTENSIONS = ['.ts', '.tsx'];
 const EXCLUDE_PATTERNS = [
   'constants/theme.ts',
@@ -142,13 +147,14 @@ function runAudit(): AuditEntry[] {
   for (const dir of SCAN_DIRS) {
     const files = collectFiles(dir);
     for (const filePath of files) {
+      const relativePath = path.relative(MONOREPO_ROOT, filePath);
       const content = fs.readFileSync(filePath, 'utf-8');
       const lines = content.split('\n');
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         // Skip import lines that reference tokens
         if (isTokenImportLine(line)) continue;
-        const entries = scanLine(line, i + 1, filePath);
+        const entries = scanLine(line, i + 1, relativePath);
         allEntries.push(...entries);
       }
     }
