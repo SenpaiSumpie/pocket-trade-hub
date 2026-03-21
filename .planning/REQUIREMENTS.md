@@ -9,9 +9,9 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Design System
 
-- [ ] **DS-01**: Shared design token package with colors, typography, spacing, elevation, motion curves
-- [ ] **DS-02**: Semantic color aliases (surface, onSurface, accent, error, success, warning)
-- [ ] **DS-03**: Backward-compatible theme.ts shim re-exporting tokens with old property names
+- [x] **DS-01**: Shared design token package with colors, typography, spacing, elevation, motion curves
+- [x] **DS-02**: Semantic color aliases (surface, onSurface, accent, error, success, warning)
+- [x] **DS-03**: Backward-compatible theme.ts shim re-exporting tokens with old property names
 - [ ] **DS-04**: Cross-platform token sync (mobile TS imports + web CSS custom properties)
 - [ ] **DS-05**: Hardcoded value audit and migration across all 71 theme-referencing files
 
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DS-01 | Phase 13 | Pending |
-| DS-02 | Phase 13 | Pending |
-| DS-03 | Phase 13 | Pending |
+| DS-01 | Phase 13 | Complete |
+| DS-02 | Phase 13 | Complete |
+| DS-03 | Phase 13 | Complete |
 | DS-04 | Phase 13 | Pending |
 | DS-05 | Phase 13 | Pending |
 | CL-01 | Phase 16 | Pending |
