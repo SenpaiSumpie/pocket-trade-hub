@@ -1,4 +1,10 @@
 export const typography = {
+  fontFamily: {
+    regular: 'Inter-Regular',
+    medium: 'Inter-Medium',
+    semiBold: 'Inter-SemiBold',
+    bold: 'Inter-Bold',
+  },
   heading: {
     fontSize: 28,
     fontWeight: '700' as const,

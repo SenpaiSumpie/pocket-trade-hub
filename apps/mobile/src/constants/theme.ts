@@ -1,6 +1,7 @@
 // Backward-compatible shim -- maps old property names to new shared tokens.
 // Consuming files (44+) import from this file unchanged.
 // New code should import from @pocket-trade-hub/shared tokens directly.
+import { Platform } from 'react-native';
 import {
   colors as tokenColors,
   tokenTypography,
@@ -67,4 +68,18 @@ export const borderRadius = {
   lg: tokenBorderRadius.lg,
   xl: tokenBorderRadius.xl,
   full: tokenBorderRadius.full,
+};
+
+export const fontFamily = {
+  regular: Platform.select({ ios: 'Inter-Regular', default: 'Inter' }),
+  medium: Platform.select({ ios: 'Inter-Medium', default: 'Inter' }),
+  semiBold: Platform.select({ ios: 'Inter-SemiBold', default: 'Inter' }),
+  bold: Platform.select({ ios: 'Inter-Bold', default: 'Inter' }),
+};
+
+export const fontWeight = {
+  regular: '400' as const,
+  medium: '500' as const,
+  semiBold: '600' as const,
+  bold: '700' as const,
 };
