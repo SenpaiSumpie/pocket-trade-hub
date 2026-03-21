@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: UI/UX Overhaul
 status: unknown
-stopped_at: Completed 15-04-PLAN.md
-last_updated: "2026-03-21T23:02:23.114Z"
+stopped_at: Completed 15-05-PLAN.md
+last_updated: "2026-03-21T23:10:21.436Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -52,6 +52,7 @@ Plan: 5 of 5
 | Phase 15 P03 | 5 | 2 tasks | 5 files |
 | Phase 15 P02 | 5 | 2 tasks | 3 files |
 | Phase 15 P04 | 6 | 2 tasks | 3 files |
+| Phase 15 P05 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Plan: 5 of 5
 - [Phase 15]: GestureHandlerRootView added at app root (single instance) — nesting would break gesture coordination
 - [Phase 15]: DetailSheet uses visible/onDismiss prop API matching existing Modal pattern for zero-friction migration in Plan 05
 - [Phase 15]: BottomSheetScrollView chosen over custom ScrollView — gesture-aware, resolves RESEARCH open question #3
+- [Phase Phase 15]: Internal LuckCalculator and ProposalCreationModal modals preserved as Modal in migrated sheets — creation/utility modals exempt per D-02
+- [Phase Phase 15]: postNotice section moved inside DetailSheet content area in ProposalDetailModal — adapts to BottomSheetScrollView wrapping all children
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T23:02:23.112Z
-Stopped at: Completed 15-04-PLAN.md
+Last session: 2026-03-21T23:10:21.434Z
+Stopped at: Completed 15-05-PLAN.md
 Resume file: None

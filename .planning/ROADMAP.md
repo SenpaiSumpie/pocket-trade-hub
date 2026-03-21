@@ -42,7 +42,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 
 - [x] **Phase 13: Design System Foundation** - Shared token package, semantic colors, backward-compatible shim, cross-platform sync, hardcoded value audit (completed 2026-03-21)
 - [x] **Phase 14: Navigation Shell and App Chrome** - Custom tab bar, collapsible header, Inter font, Phosphor icons, haptic tab switching (completed 2026-03-21)
-- [ ] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system
+- [x] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system (completed 2026-03-21)
 - [ ] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states
 - [ ] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism
 - [ ] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh
@@ -93,13 +93,13 @@ Plans:
   3. Card elements support flip animations and spring physics micro-interactions driven by Reanimated on the UI thread
   4. Modal-based detail views have been replaced by gesture-driven bottom sheets with drag-to-dismiss
   5. Skeleton loading placeholders use a consistent shimmer animation that matches the content layout they replace
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] 15-01-PLAN.md -- Spring/timing presets, useAnimatedPress, useStaggeredList hooks
 - [x] 15-02-PLAN.md -- AnimatedCounter component, useCardFlip, useCardTilt hooks
 - [x] 15-03-PLAN.md -- Shimmer animation system (useShimmer, Shimmer, ShimmerBox, ShimmerCircle, ShimmerText)
 - [x] 15-04-PLAN.md -- Bottom sheet dependencies, GestureHandlerRootView, DetailSheet wrapper
-- [ ] 15-05-PLAN.md -- Convert 6 detail modals to DetailSheet bottom sheets
+- [x] 15-05-PLAN.md -- Convert 6 detail modals to DetailSheet bottom sheets
 
 ### Phase 16: Screen Migration Tier 1
 **Goal**: The three highest-traffic tabs (Home, Cards, Trades) are fully refreshed with new primitives, loading states, empty states, and motion -- delivering visible impact to the most users
@@ -170,7 +170,7 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 12. Web App Companion | v2.0 | 7/7 | Complete | 2026-03-20 |
 | 13. Design System Foundation | v3.0 | 3/3 | Complete    | 2026-03-21 |
 | 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
-| 15. Animation Utilities and Motion System | v3.0 | 4/5 | In Progress|  |
+| 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete   | 2026-03-21 |
 | 16. Screen Migration Tier 1 | v3.0 | 0/TBD | Not started | - |
 | 17. Screen Migration Tier 2 | v3.0 | 0/TBD | Not started | - |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
