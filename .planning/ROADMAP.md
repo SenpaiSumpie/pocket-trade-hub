@@ -41,7 +41,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 **Milestone Goal:** Transform the app's visual identity and user experience from functional to premium -- cohesive design system, polished component library, restructured navigation chrome, motion system, and screen-by-screen visual refresh across mobile and web.
 
 - [x] **Phase 13: Design System Foundation** - Shared token package, semantic colors, backward-compatible shim, cross-platform sync, hardcoded value audit (completed 2026-03-21)
-- [ ] **Phase 14: Navigation Shell and App Chrome** - Custom tab bar, collapsible header, Inter font, Phosphor icons, haptic tab switching
+- [x] **Phase 14: Navigation Shell and App Chrome** - Custom tab bar, collapsible header, Inter font, Phosphor icons, haptic tab switching (completed 2026-03-21)
 - [ ] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system
 - [ ] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states
 - [ ] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism
@@ -76,12 +76,12 @@ Plans:
   3. All text throughout the app renders in Inter font (loaded at build time via expo-font config plugin)
   4. All icons use Phosphor icon set with consistent weight, replacing all Ionicons references
   5. Tab switches produce haptic feedback on supported devices
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 14-01-PLAN.md -- Inter font setup, expo-font config plugin, typography tokens, phosphor-react-native install
 - [x] 14-02-PLAN.md -- Custom animated tab bar with sliding pill indicator and haptic feedback
 - [x] 14-03-PLAN.md -- Collapsible scroll header hook and integration into 4 tab screens
-- [ ] 14-04-PLAN.md -- Bulk Ionicons-to-Phosphor migration across all 50 files
+- [x] 14-04-PLAN.md -- Bulk Ionicons-to-Phosphor migration across all 50 files
 
 ### Phase 15: Animation Utilities and Motion System
 **Goal**: A library of reusable, performant animation primitives is ready for screen migration -- built once, used everywhere
@@ -163,7 +163,7 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 11. Intelligence | v2.0 | 5/5 | Complete | 2026-03-20 |
 | 12. Web App Companion | v2.0 | 7/7 | Complete | 2026-03-20 |
 | 13. Design System Foundation | v3.0 | 3/3 | Complete    | 2026-03-21 |
-| 14. Navigation Shell and App Chrome | v3.0 | 3/4 | In Progress|  |
+| 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete   | 2026-03-21 |
 | 15. Animation Utilities and Motion System | v3.0 | 0/TBD | Not started | - |
 | 16. Screen Migration Tier 1 | v3.0 | 0/TBD | Not started | - |
 | 17. Screen Migration Tier 2 | v3.0 | 0/TBD | Not started | - |
