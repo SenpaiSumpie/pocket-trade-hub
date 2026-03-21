@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '@/src/constants/theme';
 import { useTradesStore } from '@/src/stores/trades';
@@ -10,6 +9,7 @@ import { fetchUnreadCount } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/stores/auth';
 import { useMatchSocket } from '@/src/hooks/useMatchSocket';
 import { NotificationBell } from '@/src/components/notifications/NotificationBell';
+import { CustomTabBar } from '@/src/components/navigation/CustomTabBar';
 
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -20,7 +20,6 @@ export default function TabLayout() {
       return 0;
     }
   });
-  const tradesBadge = pendingProposals;
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   // Connect Socket.IO at the tab level so real-time events work on any tab
@@ -43,87 +42,20 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-        },
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
+        headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
         headerShadowVisible: false,
         headerRight: () => <NotificationBell />,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="cards"
-        options={{
-          title: t('tabs.cards'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="albums" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="market"
-        options={{
-          title: t('tabs.market'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'storefront' : 'storefront-outline'}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="trades"
-        options={{
-          title: t('tabs.trades'),
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="swap-horizontal" size={size} color={color} />
-          ),
-          tabBarBadge: tradesBadge > 0 ? tradesBadge : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#e53e3e', fontSize: 10 },
-        }}
-      />
-      <Tabs.Screen
-        name="meta"
-        options={{
-          title: t('tabs.meta'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'trophy' : 'trophy-outline'}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('tabs.profile'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />
+      <Tabs.Screen name="cards" options={{ title: t('tabs.cards') }} />
+      <Tabs.Screen name="market" options={{ title: t('tabs.market') }} />
+      <Tabs.Screen name="trades" options={{ title: t('tabs.trades'), headerShown: false }} />
+      <Tabs.Screen name="meta" options={{ title: t('tabs.meta') }} />
+      <Tabs.Screen name="profile" options={{ title: t('tabs.profile') }} />
     </Tabs>
   );
 }
