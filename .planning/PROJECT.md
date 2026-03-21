@@ -47,7 +47,17 @@ Players can instantly find other players who have cards they want AND want cards
 
 ### Active
 
-(None — define in next milestone)
+#### Current Milestone: v3.0 UI/UX Overhaul
+
+**Goal:** Transform the app's visual identity and user experience to feel premium and distinctive — cohesive design system, refined typography and spacing, restructured navigation and information architecture, polished component library.
+
+**Target features:**
+- Design system foundation (tokens, typography, spacing, color palette)
+- Component library overhaul (cards, buttons, inputs, modals, lists)
+- Navigation and information architecture restructuring
+- Screen-by-screen visual refresh
+- Motion and micro-interactions
+- Premium/standout visual identity
 
 ### Out of Scope
 
@@ -61,7 +71,7 @@ Players can instantly find other players who have cards they want AND want cards
 
 ## Context
 
-Shipped v2.0 Full Platform with 40,275 LOC TypeScript.
+Shipped v2.0 Full Platform with 40,275 LOC TypeScript. Starting v3.0 UI/UX Overhaul to elevate visual identity and user experience.
 Tech stack: Expo (React Native) + Next.js + Fastify + PostgreSQL + Redis + BullMQ + Socket.IO + RevenueCat.
 Monorepo via Turborepo with pnpm workspaces and shared Zod schemas.
 Dark theme with Pokemon-inspired gold accent (#f0c040).
@@ -112,5 +122,22 @@ Known issues:
 | Text codes for language display | Culturally neutral (EN, DE) instead of flag emojis | ✓ Good |
 | 10 UI languages (includes Thai) | Broader audience reach beyond the 9 card languages | ✓ Good |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-20 after v2.0 milestone*
+*Last updated: 2026-03-20 after v3.0 milestone started*
