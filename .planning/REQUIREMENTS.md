@@ -91,47 +91,47 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DS-01 | — | Pending |
-| DS-02 | — | Pending |
-| DS-03 | — | Pending |
-| DS-04 | — | Pending |
-| DS-05 | — | Pending |
-| CL-01 | — | Pending |
-| CL-02 | — | Pending |
-| CL-03 | — | Pending |
-| CL-04 | — | Pending |
-| CL-05 | — | Pending |
-| CL-06 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| NAV-05 | — | Pending |
-| MOT-01 | — | Pending |
-| MOT-02 | — | Pending |
-| MOT-03 | — | Pending |
-| MOT-04 | — | Pending |
-| MOT-05 | — | Pending |
-| SCR-01 | — | Pending |
-| SCR-02 | — | Pending |
-| SCR-03 | — | Pending |
-| SCR-04 | — | Pending |
-| SCR-05 | — | Pending |
-| SCR-06 | — | Pending |
-| WEB-01 | — | Pending |
-| WEB-02 | — | Pending |
-| WEB-03 | — | Pending |
-| POL-01 | — | Pending |
-| POL-02 | — | Pending |
-| POL-03 | — | Pending |
-| POL-04 | — | Pending |
-| POL-05 | — | Pending |
+| DS-01 | Phase 13 | Pending |
+| DS-02 | Phase 13 | Pending |
+| DS-03 | Phase 13 | Pending |
+| DS-04 | Phase 13 | Pending |
+| DS-05 | Phase 13 | Pending |
+| CL-01 | Phase 16 | Pending |
+| CL-02 | Phase 16 | Pending |
+| CL-03 | Phase 16 | Pending |
+| CL-04 | Phase 16 | Pending |
+| CL-05 | Phase 16 | Pending |
+| CL-06 | Phase 16 | Pending |
+| NAV-01 | Phase 14 | Pending |
+| NAV-02 | Phase 14 | Pending |
+| NAV-03 | Phase 14 | Pending |
+| NAV-04 | Phase 14 | Pending |
+| NAV-05 | Phase 14 | Pending |
+| MOT-01 | Phase 15 | Pending |
+| MOT-02 | Phase 15 | Pending |
+| MOT-03 | Phase 15 | Pending |
+| MOT-04 | Phase 15 | Pending |
+| MOT-05 | Phase 15 | Pending |
+| SCR-01 | Phase 16 | Pending |
+| SCR-02 | Phase 16 | Pending |
+| SCR-03 | Phase 16 | Pending |
+| SCR-04 | Phase 17 | Pending |
+| SCR-05 | Phase 17 | Pending |
+| SCR-06 | Phase 17 | Pending |
+| WEB-01 | Phase 18 | Pending |
+| WEB-02 | Phase 18 | Pending |
+| WEB-03 | Phase 18 | Pending |
+| POL-01 | Phase 19 | Pending |
+| POL-02 | Phase 19 | Pending |
+| POL-03 | Phase 19 | Pending |
+| POL-04 | Phase 19 | Pending |
+| POL-05 | Phase 19 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35 ⚠️
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 after roadmap creation*
