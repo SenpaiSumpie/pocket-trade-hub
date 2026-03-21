@@ -7,7 +7,8 @@
   "scripts": {
     "test": "jest",
     "build": "echo 'shared package uses source imports'",
-    "generate-tokens": "npx tsx scripts/generate-css-tokens.ts"
+    "generate-tokens": "npx tsx scripts/generate-css-tokens.ts",
+    "audit-values": "npx tsx scripts/audit-hardcoded-values.ts"
   },
   "dependencies": {
     "zod": "^3.24.0"
