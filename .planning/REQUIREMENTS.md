@@ -34,7 +34,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Motion
 
-- [ ] **MOT-01**: Reusable animation hooks (useAnimatedPress, useStaggeredList, useScrollHeader)
+- [x] **MOT-01**: Reusable animation hooks (useAnimatedPress, useStaggeredList, useScrollHeader)
 - [ ] **MOT-02**: Animated counter component for numeric transitions
 - [ ] **MOT-03**: Card flip and spring physics micro-interactions
 - [ ] **MOT-04**: Bottom sheet gesture interactions replacing modal components
@@ -107,7 +107,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-03 | Phase 14 | Complete |
 | NAV-04 | Phase 14 | Complete |
 | NAV-05 | Phase 14 | Complete |
-| MOT-01 | Phase 15 | Pending |
+| MOT-01 | Phase 15 | Complete |
 | MOT-02 | Phase 15 | Pending |
 | MOT-03 | Phase 15 | Pending |
 | MOT-04 | Phase 15 | Pending |

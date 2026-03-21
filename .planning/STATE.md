@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: UI/UX Overhaul
 status: unknown
-stopped_at: Phase 15 context gathered
-last_updated: "2026-03-21T22:10:36.050Z"
+stopped_at: Completed 15-03-PLAN.md
+last_updated: "2026-03-21T23:00:54.058Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 12
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** Phase 14 — navigation-shell-and-app-chrome
+**Current focus:** Phase 15 — animation-utilities-and-motion-system
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
+Phase: 15 (animation-utilities-and-motion-system) — EXECUTING
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -48,6 +48,8 @@ Plan: Not started
 | Phase 14 P02 | 3min | 2 tasks | 3 files |
 | Phase 14 P03 | 13min | 2 tasks | 9 files |
 | Phase 14 P04 | 45m | 2 tasks | 51 files |
+| Phase 15 P01 | 2 | 2 tasks | 3 files |
+| Phase 15 P03 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -68,6 +70,10 @@ Plan: Not started
 - [Phase 14]: Pass scroll handler through child component props rather than wrapping in Animated.ScrollView to avoid nested scroll issues with FlashList
 - [Phase 14]: Converted data-driven icon maps from string-based to PhosphorIcon component references
 - [Phase 14]: Changed LockedFeatureCard interface from string icon prop to PhosphorIcon component prop
+- [Phase 15]: Pre-allocate MAX_STAGGER_ITEMS (15) shared values at hook init to maintain stable hook call count — avoids Rules of Hooks violation in useStaggeredList
+- [Phase 15]: useStaggeredList returns getItemStyle(index) pattern so callers index by position during render without breaking hook rules
+- [Phase 15]: SVG LinearGradient via react-native-svg for shimmer sweep (expo-linear-gradient not installed)
+- [Phase 15]: Shimmer primitives (Box/Circle/Text) are dumb Views — no animation logic — composed in Shimmer wrapper
 
 ### Pending Todos
 
@@ -81,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T22:10:36.047Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-animation-utilities-and-motion-system/15-CONTEXT.md
+Last session: 2026-03-21T23:00:54.055Z
+Stopped at: Completed 15-03-PLAN.md
+Resume file: None
