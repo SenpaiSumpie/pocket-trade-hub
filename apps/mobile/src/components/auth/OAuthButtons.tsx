@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Ionicons } from '@expo/vector-icons';
+import { GoogleLogo } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/src/stores/auth';
 import { isAppleSignInAvailable } from '@/src/services/apple-auth';
@@ -84,7 +84,7 @@ export function OAuthButtons() {
           <ActivityIndicator color="#333" />
         ) : (
           <>
-            <Ionicons name="logo-google" size={20} color="#333" />
+            <GoogleLogo size={20} color="#333" weight="regular" />
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </>
         )}

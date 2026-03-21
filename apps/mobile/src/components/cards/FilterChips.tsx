@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Pressable, Text, Modal, FlatList, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Globe, X, CaretDown, Check } from 'phosphor-react-native';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { RarityBadge } from './RarityBadge';
 import { useCardsStore } from '@/src/stores/cards';
@@ -114,7 +114,7 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
           style={[styles.chip, !!languageLabel && styles.chipActive]}
           onPress={() => setPickerOpen('language')}
         >
-          <Ionicons name="language-outline" size={16} color={languageLabel ? colors.primary : colors.textSecondary} />
+          <Globe size={16} color={languageLabel ? colors.primary : colors.textSecondary} weight="regular" />
           <Text style={[styles.chipText, !!languageLabel && styles.chipTextActive]}>
             {languageLabel || 'Language'}
           </Text>
@@ -124,10 +124,10 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
               hitSlop={8}
               style={styles.closeBtn}
             >
-              <Ionicons name="close" size={16} color={colors.primary} />
+              <X size={16} color={colors.primary} weight="regular" />
             </Pressable>
           ) : (
-            <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+            <CaretDown size={16} color={colors.textSecondary} weight="regular" />
           )}
         </Pressable>
 
@@ -150,10 +150,10 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
                   hitSlop={8}
                   style={styles.closeBtn}
                 >
-                  <Ionicons name="close" size={16} color={colors.primary} />
+                  <X size={16} color={colors.primary} weight="regular" />
                 </Pressable>
               ) : (
-                <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+                <CaretDown size={16} color={colors.textSecondary} weight="regular" />
               )}
             </Pressable>
           );
@@ -180,7 +180,7 @@ export function FilterChips({ activeFilters, sets, onSetFilter, onRemoveFilter }
                   <Text style={styles.optionText}>{item.label}</Text>
                   {item.rarity && <RarityBadge rarity={item.rarity} />}
                   {getActiveValue() === item.value && (
-                    <Ionicons name="checkmark" size={18} color={colors.primary} />
+                    <Check size={18} color={colors.primary} weight="regular" />
                   )}
                 </Pressable>
               )}

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Ionicons } from '@expo/vector-icons';
+import { CaretRight, Trophy } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useMetaStore } from '@/src/stores/meta';
@@ -96,7 +96,7 @@ export function DeckRankingList({ onScroll, scrollEventThrottle, contentContaine
               </Text>
             )}
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          <CaretRight size={18} color={colors.textMuted} weight="regular" />
         </Pressable>
       );
     },
@@ -117,7 +117,7 @@ export function DeckRankingList({ onScroll, scrollEventThrottle, contentContaine
   if (!loading && decks.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="trophy-outline" size={64} color={colors.textMuted} />
+        <Trophy size={64} color={colors.textMuted} weight="regular" />
         <Text style={styles.emptyTitle}>{t('meta.noDecks')}</Text>
         <Text style={styles.emptySubtitle}>{t('meta.noDecksHint')}</Text>
       </View>

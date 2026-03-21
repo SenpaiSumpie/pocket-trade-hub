@@ -1,28 +1,29 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Lock, Diamond } from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 interface LockedFeatureCardProps {
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: PhosphorIcon;
   onPress: () => void;
 }
 
-export function LockedFeatureCard({ title, description, icon, onPress }: LockedFeatureCardProps) {
+export function LockedFeatureCard({ title, description, Icon, onPress }: LockedFeatureCardProps) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={28} color={colors.textMuted} />
+        <Icon size={28} color={colors.textMuted} weight="regular" />
         <View style={styles.lockBadge}>
-          <Ionicons name="lock-closed" size={10} color={colors.background} />
+          <Lock size={10} color={colors.background} weight="fill" />
         </View>
       </View>
       <View style={styles.content}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{title}</Text>
           <View style={styles.premiumLabel}>
-            <Ionicons name="diamond" size={10} color="#f0c040" />
+            <Diamond size={10} color="#f0c040" weight="fill" />
             <Text style={styles.premiumText}>Premium</Text>
           </View>
         </View>

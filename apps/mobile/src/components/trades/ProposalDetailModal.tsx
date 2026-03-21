@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
-import { Ionicons } from '@expo/vector-icons';
+import { X, Copy, Star, StarHalf, ArrowsLeftRight, Check, ArrowUTurnLeft, Trophy, Newspaper } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { ProposalCreationModal } from './ProposalCreationModal';
 import { FairnessMeter } from './FairnessMeter';
@@ -87,7 +87,7 @@ function ThreadEntry({
             ))}
           </View>
         </View>
-        <Ionicons name="swap-horizontal" size={16} color={colors.textMuted} />
+        <ArrowsLeftRight size={16} color={colors.textMuted} weight="regular" />
         <View style={styles.threadSide}>
           <Text style={styles.threadSideLabel}>Gets</Text>
           <View style={styles.threadCardRow}>
@@ -252,7 +252,7 @@ export function ProposalDetailModal({
         <View style={styles.modalContainer}>
           {/* Close button */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <X size={24} color={colors.text} weight="regular" />
           </TouchableOpacity>
 
           {loading ? (
@@ -281,14 +281,13 @@ export function ProposalDetailModal({
                       {Array.from({ length: 5 }, (_, i) => {
                         const filled = partner.avgRating >= i + 1;
                         const half = !filled && partner.avgRating >= i + 0.5;
-                        return (
-                          <Ionicons
-                            key={i}
-                            name={filled ? 'star' : half ? 'star-half' : 'star-outline'}
-                            size={16}
-                            color={colors.primary}
-                          />
-                        );
+                        if (filled) {
+                          return <Star key={i} size={16} color={colors.primary} weight="fill" />;
+                        }
+                        if (half) {
+                          return <StarHalf key={i} size={16} color={colors.primary} weight="fill" />;
+                        }
+                        return <Star key={i} size={16} color={colors.primary} weight="regular" />;
                       })}
                       <Text style={styles.reputationText}>
                         {partner.avgRating.toFixed(1)} - {partner.tradeCount} completed trade
@@ -307,7 +306,7 @@ export function ProposalDetailModal({
                   <Text style={styles.friendCodeLabel}>Partner Friend Code</Text>
                   <View style={styles.friendCodeRow}>
                     <Text style={styles.friendCodeText}>{partner.friendCode}</Text>
-                    <Ionicons name="copy-outline" size={18} color={colors.primary} />
+                    <Copy size={18} color={colors.primary} weight="regular" />
                   </View>
                   <Text style={styles.friendCodeHint}>Tap to copy</Text>
                 </Pressable>
@@ -338,7 +337,7 @@ export function ProposalDetailModal({
                           <ActivityIndicator color="#fff" size="small" />
                         ) : (
                           <>
-                            <Ionicons name="checkmark" size={18} color="#fff" />
+                            <Check size={18} color="#fff" weight="bold" />
                             <Text style={styles.actionButtonText}>Accept</Text>
                           </>
                         )}
@@ -348,7 +347,7 @@ export function ProposalDetailModal({
                         onPress={handleReject}
                         disabled={actionLoading}
                       >
-                        <Ionicons name="close" size={18} color="#fff" />
+                        <X size={18} color="#fff" weight="bold" />
                         <Text style={styles.actionButtonText}>Reject</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -356,7 +355,7 @@ export function ProposalDetailModal({
                         onPress={() => setShowCounterModal(true)}
                         disabled={actionLoading}
                       >
-                        <Ionicons name="return-up-back" size={18} color="#fff" />
+                        <ArrowUTurnLeft size={18} color="#fff" weight="bold" />
                         <Text style={styles.actionButtonText}>Counter</Text>
                       </TouchableOpacity>
                     </>
@@ -372,7 +371,7 @@ export function ProposalDetailModal({
                         <ActivityIndicator color="#fff" size="small" />
                       ) : (
                         <>
-                          <Ionicons name="trophy" size={18} color="#fff" />
+                          <Trophy size={18} color="#fff" weight="fill" />
                           <Text style={styles.actionButtonText}>Mark as Completed</Text>
                         </>
                       )}
@@ -384,7 +383,7 @@ export function ProposalDetailModal({
                       style={[styles.actionButton, styles.rateButton]}
                       onPress={() => onRatePartner(activeProposal.id, partnerId)}
                     >
-                      <Ionicons name="star" size={18} color="#fff" />
+                      <Star size={18} color="#fff" weight="fill" />
                       <Text style={styles.actionButtonText}>Rate Partner</Text>
                     </TouchableOpacity>
                   )}
@@ -396,7 +395,7 @@ export function ProposalDetailModal({
           {/* Post context notice */}
           {postData && (
             <View style={styles.postNotice}>
-              <Ionicons name="newspaper-outline" size={16} color={colors.textSecondary} />
+              <Newspaper size={16} color={colors.textSecondary} weight="regular" />
               <View style={styles.postNoticeContent}>
                 <Text style={styles.postNoticeTitle}>
                   From {postData.type === 'offering' ? 'Offering' : 'Seeking'} post

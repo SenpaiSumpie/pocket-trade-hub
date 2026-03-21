@@ -1,5 +1,5 @@
 import { View, Text, Modal, Pressable, FlatList, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Check } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { UI_LANGUAGES } from '@pocket-trade-hub/shared';
 import { useLanguageStore } from '@/src/stores/language';
@@ -51,7 +51,7 @@ export function LanguageSelector({ visible, onClose }: LanguageSelectorProps) {
                     </Text>
                   </View>
                   {isSelected && (
-                    <Ionicons name="checkmark" size={20} color={colors.primary} />
+                    <Check size={20} color={colors.primary} weight="regular" />
                   )}
                 </Pressable>
               );

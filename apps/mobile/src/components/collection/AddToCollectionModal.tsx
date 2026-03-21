@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Check, Minus, Plus, PlusCircle, Heart } from 'phosphor-react-native';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { useAuthStore } from '@/src/stores/auth';
 import { useCardsStore } from '@/src/stores/cards';
@@ -118,7 +118,7 @@ export function AddToCollectionModal({
                     {lang.label}
                   </Text>
                   {isSelected && (
-                    <Ionicons name="checkmark" size={14} color={colors.primary} />
+                    <Check size={14} color={colors.primary} weight="regular" />
                   )}
                 </Pressable>
               );
@@ -141,14 +141,14 @@ export function AddToCollectionModal({
                   style={styles.quantityBtn}
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                 >
-                  <Ionicons name="remove" size={20} color={colors.primary} />
+                  <Minus size={20} color={colors.primary} weight="regular" />
                 </Pressable>
                 <Text style={styles.quantityValue}>{quantity}</Text>
                 <Pressable
                   style={styles.quantityBtn}
                   onPress={() => setQuantity(Math.min(99, quantity + 1))}
                 >
-                  <Ionicons name="add" size={20} color={colors.primary} />
+                  <Plus size={20} color={colors.primary} weight="regular" />
                 </Pressable>
               </View>
             </View>
@@ -166,11 +166,11 @@ export function AddToCollectionModal({
                 onClose();
               }}
             >
-              <Ionicons
-                name={mode === 'collection' ? 'add-circle' : 'heart'}
-                size={18}
-                color="#fff"
-              />
+              {mode === 'collection' ? (
+                <PlusCircle size={18} color="#fff" weight="fill" />
+              ) : (
+                <Heart size={18} color="#fff" weight="fill" />
+              )}
               <Text style={styles.confirmText}>
                 {mode === 'collection' ? 'Add to Collection' : 'Add to Wanted'}
               </Text>

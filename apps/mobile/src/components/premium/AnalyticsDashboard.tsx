@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Flame, Warning, TrendUp, Lightning, CaretUp, CaretDown } from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { usePremiumStore } from '@/src/stores/premium';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import type { AnalyticsCard } from '@pocket-trade-hub/shared';
@@ -20,7 +21,7 @@ const RARITY_SYMBOLS: Record<string, string> = {
 interface SectionConfig {
   key: string;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: PhosphorIcon;
   data: AnalyticsCard[];
   formatStat: (card: AnalyticsCard) => string;
   emptyText: string;
@@ -37,14 +38,14 @@ function AnalyticsSection({ config }: { config: SectionConfig }) {
         activeOpacity={0.7}
       >
         <View style={styles.sectionTitleRow}>
-          <Ionicons name={config.icon} size={20} color={colors.primary} />
+          <config.Icon size={20} color={colors.primary} weight="fill" />
           <Text style={styles.sectionTitle}>{config.title}</Text>
         </View>
-        <Ionicons
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={18}
-          color={colors.textMuted}
-        />
+        {expanded ? (
+          <CaretUp size={18} color={colors.textMuted} weight="regular" />
+        ) : (
+          <CaretDown size={18} color={colors.textMuted} weight="regular" />
+        )}
       </TouchableOpacity>
 
       {expanded && (
@@ -104,7 +105,7 @@ export default function AnalyticsDashboard() {
     {
       key: 'mostWanted',
       title: 'Most Wanted Cards',
-      icon: 'flame',
+      Icon: Flame,
       data: analyticsData?.mostWanted ?? [],
       formatStat: (card) => `${card.value} traders want this`,
       emptyText: 'No demand data yet',
@@ -112,7 +113,7 @@ export default function AnalyticsDashboard() {
     {
       key: 'leastAvailable',
       title: 'Least Available Cards',
-      icon: 'warning',
+      Icon: Warning,
       data: analyticsData?.leastAvailable ?? [],
       formatStat: (card) => `Only ${card.value} trainers have this`,
       emptyText: 'No scarcity data yet',
@@ -120,7 +121,7 @@ export default function AnalyticsDashboard() {
     {
       key: 'trending',
       title: 'Trending Cards',
-      icon: 'trending-up',
+      Icon: TrendUp,
       data: analyticsData?.trending ?? [],
       formatStat: (card) => `+${card.value} this week`,
       emptyText: 'No trending data yet',
@@ -128,7 +129,7 @@ export default function AnalyticsDashboard() {
     {
       key: 'tradePower',
       title: 'Your Trade Power',
-      icon: 'flash',
+      Icon: Lightning,
       data: analyticsData?.tradePower ?? [],
       formatStat: (card) => `${card.value} traders want your card`,
       emptyText: 'Add cards to your collection to see your trade power',

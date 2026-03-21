@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Link } from 'phosphor-react-native';
 import { useAuthStore } from '@/src/stores/auth';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
@@ -72,7 +72,7 @@ export function LinkAccountModal() {
         <View style={styles.modal}>
           {/* Header */}
           <View style={styles.header}>
-            <Ionicons name="link-outline" size={32} color={colors.primary} />
+            <Link size={32} color={colors.primary} weight="regular" />
             <Text style={styles.title}>Link Your Account</Text>
           </View>
 

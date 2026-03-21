@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowCircleUp, ArrowCircleDown, CaretRight } from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradePost } from '@pocket-trade-hub/shared';
 
@@ -15,9 +16,9 @@ const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   auto_closed: { color: '#e67e22', label: 'Auto-closed' },
 };
 
-const TYPE_CONFIG: Record<string, { color: string; label: string; icon: string }> = {
-  offering: { color: colors.success, label: 'Offering', icon: 'arrow-up-circle' },
-  seeking: { color: colors.primary, label: 'Seeking', icon: 'arrow-down-circle' },
+const TYPE_CONFIG: Record<string, { color: string; label: string; Icon: PhosphorIcon }> = {
+  offering: { color: colors.success, label: 'Offering', Icon: ArrowCircleUp },
+  seeking: { color: colors.primary, label: 'Seeking', Icon: ArrowCircleDown },
 };
 
 function formatTimeAgo(dateStr: string): string {
@@ -58,11 +59,7 @@ export function MyPostCard({ post, onPress }: MyPostCardProps) {
         <View style={styles.topRow}>
           {/* Type badge */}
           <View style={[styles.typeBadge, { backgroundColor: typeConfig.color }]}>
-            <Ionicons
-              name={typeConfig.icon as any}
-              size={12}
-              color="#fff"
-            />
+            <typeConfig.Icon size={12} color="#fff" weight="fill" />
             <Text style={styles.typeBadgeText}>{typeConfig.label}</Text>
           </View>
           {/* Status badge */}
@@ -83,7 +80,7 @@ export function MyPostCard({ post, onPress }: MyPostCardProps) {
       </View>
 
       {/* Chevron */}
-      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      <CaretRight size={18} color={colors.textMuted} weight="regular" />
     </TouchableOpacity>
   );
 }

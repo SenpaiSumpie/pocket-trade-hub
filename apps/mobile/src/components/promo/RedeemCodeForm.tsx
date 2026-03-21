@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Gift, CheckCircle, WarningCircle } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { usePromoStore } from '@/src/stores/promo';
@@ -67,7 +67,7 @@ export default function RedeemCodeForm() {
             <ActivityIndicator size="small" color={colors.background} />
           ) : (
             <>
-              <Ionicons name="gift-outline" size={18} color={colors.background} />
+              <Gift size={18} color={colors.background} weight="regular" />
               <Text style={styles.redeemButtonText}>{t('profile.redeem')}</Text>
             </>
           )}
@@ -76,7 +76,7 @@ export default function RedeemCodeForm() {
 
       {lastResult && (
         <View style={styles.successBox}>
-          <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+          <CheckCircle size={20} color={colors.success} weight="fill" />
           <Text style={styles.successText}>
             {lastResult.premiumDays} days of premium added! Expires: {formatDate(lastResult.newExpiresAt)}
           </Text>
@@ -85,7 +85,7 @@ export default function RedeemCodeForm() {
 
       {error && (
         <View style={styles.errorBox}>
-          <Ionicons name="alert-circle" size={18} color={colors.error} />
+          <WarningCircle size={18} color={colors.error} weight="fill" />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}

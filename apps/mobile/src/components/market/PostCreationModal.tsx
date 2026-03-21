@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowLeft, X, ArrowCircleUp, ArrowCircleDown } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { usePosts } from '@/src/hooks/usePosts';
@@ -166,11 +166,11 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
           <View style={styles.header}>
             {step !== 'type' ? (
               <Pressable onPress={goBack} style={styles.headerBtn}>
-                <Ionicons name="arrow-back" size={24} color={colors.text} />
+                <ArrowLeft size={24} color={colors.text} weight="regular" />
               </Pressable>
             ) : (
               <Pressable onPress={handleClose} style={styles.headerBtn}>
-                <Ionicons name="close" size={24} color={colors.text} />
+                <X size={24} color={colors.text} weight="regular" />
               </Pressable>
             )}
             <Text style={styles.title}>
@@ -189,7 +189,7 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
                 style={[styles.typeCard, { borderColor: colors.success }]}
                 onPress={() => selectType('offering')}
               >
-                <Ionicons name="arrow-up-circle" size={32} color={colors.success} />
+                <ArrowCircleUp size={32} color={colors.success} weight="regular" />
                 <View style={styles.typeCardContent}>
                   <Text style={styles.typeCardTitle}>{t('market.offering')}</Text>
                   <Text style={styles.typeCardDesc}>
@@ -201,7 +201,7 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
                 style={[styles.typeCard, { borderColor: '#3b82f6' }]}
                 onPress={() => selectType('seeking')}
               >
-                <Ionicons name="arrow-down-circle" size={32} color="#3b82f6" />
+                <ArrowCircleDown size={32} color="#3b82f6" weight="regular" />
                 <View style={styles.typeCardContent}>
                   <Text style={styles.typeCardTitle}>{t('market.seeking')}</Text>
                   <Text style={styles.typeCardDesc}>

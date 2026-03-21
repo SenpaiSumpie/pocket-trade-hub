@@ -13,7 +13,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { X, XCircle, PlusCircle, ArrowCircleUp, ArrowCircleDown } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { FairnessMeter } from './FairnessMeter';
 import { useProposals } from '@/src/hooks/useProposals';
@@ -255,7 +255,7 @@ export function ProposalCreationModal({
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text} />
+              <X size={24} color={colors.text} weight="regular" />
             </TouchableOpacity>
             <Text style={styles.title}>
               {isCounter ? 'Counter-Offer' : 'Propose Trade'}
@@ -265,11 +265,11 @@ export function ProposalCreationModal({
           {/* Post context hint */}
           {isPostMode && post && (
             <View style={styles.contextHint}>
-              <Ionicons
-                name={post.type === 'offering' ? 'arrow-up-circle' : 'arrow-down-circle'}
-                size={16}
-                color={post.type === 'offering' ? colors.success : colors.primary}
-              />
+              {post.type === 'offering' ? (
+                <ArrowCircleUp size={16} color={colors.success} weight="fill" />
+              ) : (
+                <ArrowCircleDown size={16} color={colors.primary} weight="fill" />
+              )}
               <Text style={styles.contextHintText}>
                 {post.type === 'offering'
                   ? 'This user is offering a card. Add what you will give in return.'
@@ -297,7 +297,7 @@ export function ProposalCreationModal({
                     style={styles.removeButton}
                     onPress={() => removeGivingCard(card.cardId)}
                   >
-                    <Ionicons name="close-circle" size={20} color={colors.error} />
+                    <XCircle size={20} color={colors.error} weight="fill" />
                   </Pressable>
                   <Text style={styles.cardName} numberOfLines={1}>
                     {card.cardName}
@@ -308,7 +308,7 @@ export function ProposalCreationModal({
                 style={styles.addCardButton}
                 onPress={() => openPicker('give')}
               >
-                <Ionicons name="add-circle-outline" size={28} color={colors.primary} />
+                <PlusCircle size={28} color={colors.primary} weight="regular" />
                 <Text style={styles.addCardText}>Add</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -331,7 +331,7 @@ export function ProposalCreationModal({
                     style={styles.removeButton}
                     onPress={() => removeGettingCard(card.cardId)}
                   >
-                    <Ionicons name="close-circle" size={20} color={colors.error} />
+                    <XCircle size={20} color={colors.error} weight="fill" />
                   </Pressable>
                   <Text style={styles.cardName} numberOfLines={1}>
                     {card.cardName}
@@ -342,7 +342,7 @@ export function ProposalCreationModal({
                 style={styles.addCardButton}
                 onPress={() => openPicker('get')}
               >
-                <Ionicons name="add-circle-outline" size={28} color={colors.primary} />
+                <PlusCircle size={28} color={colors.primary} weight="regular" />
                 <Text style={styles.addCardText}>Add</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -376,7 +376,7 @@ export function ProposalCreationModal({
                 <View style={styles.pickerContainer}>
                   <View style={styles.pickerHeader}>
                     <TouchableOpacity onPress={() => setShowPicker(null)}>
-                      <Ionicons name="close" size={24} color={colors.text} />
+                      <X size={24} color={colors.text} weight="regular" />
                     </TouchableOpacity>
                     <Text style={styles.pickerTitle}>
                       {showPicker === 'give' ? 'Your Collection' : 'Your Wanted Cards'}

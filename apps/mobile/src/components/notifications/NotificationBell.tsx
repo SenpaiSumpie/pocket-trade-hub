@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Bell } from 'phosphor-react-native';
 import { router } from 'expo-router';
 import { useNotificationStore } from '@/src/stores/notifications';
 import { colors } from '@/src/constants/theme';
@@ -15,7 +15,7 @@ export function NotificationBell() {
       onPress={() => router.push('/notifications')}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      <Ionicons name="notifications-outline" size={24} color={colors.text} />
+      <Bell size={24} color={colors.text} weight="regular" />
       {unreadCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{displayCount}</Text>

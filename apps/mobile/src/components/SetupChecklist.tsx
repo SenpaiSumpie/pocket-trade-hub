@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { CheckCircle, Circle } from 'phosphor-react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 interface User {
@@ -47,11 +47,11 @@ export default function SetupChecklist({ user }: SetupChecklistProps) {
           disabled={item.done}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={item.done ? 'checkmark-circle' : 'ellipse-outline'}
-            size={22}
-            color={item.done ? colors.success : colors.textMuted}
-          />
+          {item.done ? (
+            <CheckCircle size={22} color={colors.success} weight="fill" />
+          ) : (
+            <Circle size={22} color={colors.textMuted} weight="regular" />
+          )}
           <Text
             style={[
               styles.itemText,

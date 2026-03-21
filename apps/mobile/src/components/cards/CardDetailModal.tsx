@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Minus, Plus, CheckCircle, Heart, X, Stack, PlusCircle, Flag, Calculator, CaretRight, Trash, HeartBreak, CaretLeft } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { RarityBadge } from './RarityBadge';
 import { LuckCalculator } from './LuckCalculator';
@@ -71,11 +71,11 @@ function QuantityStepper({
   return (
     <View style={actionStyles.stepperRow}>
       <Pressable style={actionStyles.stepperBtn} onPress={onDecrement}>
-        <Ionicons name="remove" size={20} color={colors.primary} />
+        <Minus size={20} color={colors.primary} weight="regular" />
       </Pressable>
       <Text style={actionStyles.stepperValue}>{quantity}</Text>
       <Pressable style={actionStyles.stepperBtn} onPress={onIncrement}>
-        <Ionicons name="add" size={20} color={colors.primary} />
+        <Plus size={20} color={colors.primary} weight="regular" />
       </Pressable>
     </View>
   );
@@ -144,7 +144,7 @@ function StatusBanner({
     <View style={statusStyles.container}>
       {inCollection && (
         <View style={statusStyles.badge}>
-          <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+          <CheckCircle size={14} color={colors.success} weight="fill" />
           <Text style={statusStyles.badgeText}>
             {t('cards.myCollection')} ({qty})
           </Text>
@@ -152,7 +152,7 @@ function StatusBanner({
       )}
       {isWanted && (
         <View style={[statusStyles.badge, statusStyles.badgeWanted]}>
-          <Ionicons name="heart" size={14} color="#e74c3c" />
+          <Heart size={14} color="#e74c3c" weight="fill" />
           <Text style={[statusStyles.badgeText, { color: '#e74c3c' }]}>
             {t('cards.wanted')} ({priority!.charAt(0).toUpperCase() + priority!.slice(1)})
           </Text>
@@ -432,14 +432,14 @@ function CardDetailPage({
               style={styles.quickBtn}
               onPress={() => onAddToCollection?.(card.id)}
             >
-              <Ionicons name="add-circle" size={18} color={colors.primary} />
+              <PlusCircle size={18} color={colors.primary} weight="fill" />
               <Text style={styles.quickBtnText}>{t('cards.addToCollection')}</Text>
             </Pressable>
           )}
           {qty > 0 && (
             <View style={styles.quickBtnGroup}>
               <View style={styles.quickBtn}>
-                <Ionicons name="layers" size={18} color={colors.primary} />
+                <Stack size={18} color={colors.primary} weight="regular" />
                 <Text style={styles.quickBtnText}>{t('cards.quantity')}: {qty}</Text>
                 <QuantityStepper
                   quantity={qty}
@@ -454,13 +454,13 @@ function CardDetailPage({
               style={styles.quickBtn}
               onPress={() => onAddToWanted?.(card.id)}
             >
-              <Ionicons name="heart-outline" size={18} color={colors.primary} />
+              <Heart size={18} color={colors.primary} weight="regular" />
               <Text style={styles.quickBtnText}>{t('cards.addToWanted')}</Text>
             </Pressable>
           )}
           {priority && (
             <View style={styles.quickBtn}>
-              <Ionicons name="flag" size={18} color={PRIORITY_COLORS[priority]} />
+              <Flag size={18} color={PRIORITY_COLORS[priority]} weight="fill" />
               <Text style={styles.quickBtnText}>{t('cards.priority')}</Text>
               <PriorityPicker
                 current={priority}
@@ -475,9 +475,9 @@ function CardDetailPage({
           style={styles.oddsBtn}
           onPress={() => setLuckCalcVisible(true)}
         >
-          <Ionicons name="calculator-outline" size={18} color={colors.primary} />
+          <Calculator size={18} color={colors.primary} weight="regular" />
           <Text style={styles.oddsBtnText}>{t('cardDetail.calculateOdds')}</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          <CaretRight size={16} color={colors.textMuted} weight="regular" />
         </Pressable>
 
         <LuckCalculator
@@ -547,7 +547,7 @@ function CardDetailPage({
               style={styles.dangerBtn}
               onPress={() => onRemoveFromCollection?.(card.id)}
             >
-              <Ionicons name="trash-outline" size={16} color={colors.error} />
+              <Trash size={16} color={colors.error} weight="regular" />
               <Text style={styles.dangerBtnText}>{t('cards.removeFromCollection')}</Text>
             </Pressable>
           )}
@@ -556,7 +556,7 @@ function CardDetailPage({
               style={styles.dangerBtn}
               onPress={() => onRemoveFromWanted?.(card.id)}
             >
-              <Ionicons name="heart-dislike-outline" size={16} color={colors.error} />
+              <HeartBreak size={16} color={colors.error} weight="regular" />
               <Text style={styles.dangerBtnText}>{t('cards.removeFromWanted')}</Text>
             </Pressable>
           )}
@@ -635,7 +635,7 @@ export function CardDetailModal({
 
         <View style={styles.header}>
           <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <X size={24} color={colors.text} weight="regular" />
           </Pressable>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>
@@ -645,13 +645,13 @@ export function CardDetailModal({
             <View style={styles.headerBadges}>
               {currentQty > 0 && (
                 <View style={styles.headerBadge}>
-                  <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+                  <CheckCircle size={12} color={colors.success} weight="fill" />
                   <Text style={styles.headerBadgeText}>{currentQty}</Text>
                 </View>
               )}
               {currentPriority && (
                 <View style={[styles.headerBadge, { backgroundColor: PRIORITY_COLORS[currentPriority] + '30' }]}>
-                  <Ionicons name="heart" size={12} color={PRIORITY_COLORS[currentPriority]} />
+                  <Heart size={12} color={PRIORITY_COLORS[currentPriority]} weight="fill" />
                 </View>
               )}
             </View>
@@ -671,13 +671,13 @@ export function CardDetailModal({
                 onPress={() => canGoLeft && goTo(currentIndex - 1)}
                 style={[styles.navBtn, !canGoLeft && styles.navBtnDisabled]}
               >
-                <Ionicons name="chevron-back" size={20} color={canGoLeft ? colors.text : colors.textMuted} />
+                <CaretLeft size={20} color={canGoLeft ? colors.text : colors.textMuted} weight="regular" />
               </Pressable>
               <Pressable
                 onPress={() => canGoRight && goTo(currentIndex + 1)}
                 style={[styles.navBtn, !canGoRight && styles.navBtnDisabled]}
               >
-                <Ionicons name="chevron-forward" size={20} color={canGoRight ? colors.text : colors.textMuted} />
+                <CaretRight size={20} color={canGoRight ? colors.text : colors.textMuted} weight="regular" />
               </Pressable>
             </View>
           )}

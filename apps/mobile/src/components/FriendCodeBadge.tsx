@@ -1,6 +1,6 @@
 import { TouchableOpacity, Text, View, StyleSheet, Platform, ToastAndroid } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Ionicons } from '@expo/vector-icons';
+import { Copy } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 
@@ -34,10 +34,10 @@ export default function FriendCodeBadge({ code, size = 'large' }: FriendCodeBadg
         <Text style={[styles.code, size === 'small' && styles.codeSmall]}>
           {code}
         </Text>
-        <Ionicons
-          name="copy-outline"
+        <Copy
           size={size === 'small' ? 14 : 18}
           color={colors.textSecondary}
+          weight="regular"
         />
       </View>
       <Text style={styles.hint}>Tap to copy</Text>

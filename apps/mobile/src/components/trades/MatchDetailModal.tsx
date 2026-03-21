@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
-import { Ionicons } from '@expo/vector-icons';
+import { X, Copy, Star, ArrowsLeftRight } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { ProposalCreationModal } from './ProposalCreationModal';
 import { getAvatarById } from '@/src/constants/avatars';
@@ -67,7 +67,7 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
         <View style={styles.modalContainer}>
           {/* Close button */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <X size={24} color={colors.text} weight="regular" />
           </TouchableOpacity>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -82,7 +82,7 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
               {match.partnerFriendCode && (
                 <Pressable onPress={handleCopyFriendCode} style={styles.friendCodeRow}>
                   <Text style={styles.friendCode}>{match.partnerFriendCode}</Text>
-                  <Ionicons name="copy-outline" size={14} color={colors.textSecondary} />
+                  <Copy size={14} color={colors.textSecondary} weight="regular" />
                 </Pressable>
               )}
               <Text style={styles.tradeCount}>
@@ -93,11 +93,11 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
             {/* Star rating */}
             <View style={styles.ratingRow}>
               {Array.from({ length: 3 }, (_, i) => (
-                <Ionicons
+                <Star
                   key={i}
-                  name="star"
                   size={20}
                   color={i < match.starRating ? '#f0c040' : colors.surfaceLight}
+                  weight="fill"
                 />
               ))}
               <Text style={styles.ratingLabel}>
@@ -117,7 +117,7 @@ export function MatchDetailModal({ match, visible, onClose }: MatchDetailModalPr
 
               {/* Arrow */}
               <View style={styles.arrowColumn}>
-                <Ionicons name="swap-horizontal" size={24} color={colors.primary} />
+                <ArrowsLeftRight size={24} color={colors.primary} weight="regular" />
               </View>
 
               {/* You Get */}

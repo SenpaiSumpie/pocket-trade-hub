@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { Pressable, View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { CheckCircle, Heart, Circle } from 'phosphor-react-native';
 import * as Haptics from 'expo-haptics';
 import { RarityBadge } from './RarityBadge';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
@@ -130,12 +130,12 @@ export function CardThumbnail({
         <View style={styles.stateIndicators}>
           {inCollection && (
             <View style={styles.stateChip}>
-              <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+              <CheckCircle size={12} color={colors.success} weight="fill" />
             </View>
           )}
           {isWanted && (
             <View style={styles.stateChip}>
-              <Ionicons name="heart" size={12} color="#e74c3c" />
+              <Heart size={12} color="#e74c3c" weight="fill" />
             </View>
           )}
         </View>
@@ -143,7 +143,7 @@ export function CardThumbnail({
         {/* Owned indicator (collection mode - show checkmark on owned cards) */}
         {quantity != null && quantity >= 1 && !dimmed && (
           <View style={styles.ownedIndicator}>
-            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+            <CheckCircle size={16} color={colors.success} weight="fill" />
           </View>
         )}
 
@@ -159,17 +159,17 @@ export function CardThumbnail({
         {/* Multi-select overlay */}
         {checklistMode && (
           <View style={[styles.checkOverlay, checked && styles.checkOverlayChecked]}>
-            <Ionicons
-              name={checked ? 'checkmark-circle' : 'ellipse-outline'}
-              size={24}
-              color={checked ? colors.primary : 'rgba(255,255,255,0.7)'}
-            />
+            {checked ? (
+              <CheckCircle size={24} color={colors.primary} weight="fill" />
+            ) : (
+              <Circle size={24} color="rgba(255,255,255,0.7)" weight="regular" />
+            )}
           </View>
         )}
 
         {/* Toast overlay for quick-add */}
         <Animated.View style={[styles.toastOverlay, { opacity: toastOpacity }]} pointerEvents="none">
-          <Ionicons name="checkmark-circle" size={28} color="#ffffff" />
+          <CheckCircle size={28} color="#ffffff" weight="fill" />
           <Text style={styles.toastText}>Added!</Text>
         </Animated.View>
       </View>

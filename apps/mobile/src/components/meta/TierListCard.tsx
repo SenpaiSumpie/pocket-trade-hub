@@ -8,7 +8,7 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ShieldCheck, Heart, X, Trash } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useTierListStore } from '@/src/stores/tierlists';
@@ -72,7 +72,7 @@ export function TierListCard({ tierList }: TierListCardProps) {
           <View style={styles.titleRow}>
             {tierList.isOfficial && (
               <View style={styles.officialBadge}>
-                <Ionicons name="shield-checkmark" size={14} color="#f0c040" />
+                <ShieldCheck size={14} color="#f0c040" weight="fill" />
                 <Text style={styles.officialText}>{t('meta.official')}</Text>
               </View>
             )}
@@ -81,10 +81,10 @@ export function TierListCard({ tierList }: TierListCardProps) {
             </Text>
           </View>
           <Pressable style={styles.voteButton} onPress={handleVote}>
-            <Ionicons
-              name={tierList.userVoted ? 'heart' : 'heart-outline'}
+            <Heart
               size={20}
               color={tierList.userVoted ? colors.error : colors.textMuted}
+              weight={tierList.userVoted ? 'fill' : 'regular'}
             />
             <Text style={styles.voteCount}>{tierList.upvoteCount}</Text>
           </Pressable>
@@ -127,7 +127,7 @@ export function TierListCard({ tierList }: TierListCardProps) {
           <View style={styles.modalHeader}>
             <View style={styles.modalTitleRow}>
               {tierList.isOfficial && (
-                <Ionicons name="shield-checkmark" size={18} color="#f0c040" />
+                <ShieldCheck size={18} color="#f0c040" weight="fill" />
               )}
               <Text style={styles.modalTitle} numberOfLines={2}>
                 {tierList.title}
@@ -137,7 +137,7 @@ export function TierListCard({ tierList }: TierListCardProps) {
               style={styles.closeButton}
               onPress={() => setDetailVisible(false)}
             >
-              <Ionicons name="close" size={24} color={colors.text} />
+              <X size={24} color={colors.text} weight="regular" />
             </Pressable>
           </View>
 
@@ -156,10 +156,10 @@ export function TierListCard({ tierList }: TierListCardProps) {
                 {new Date(tierList.createdAt).toLocaleDateString()}
               </Text>
               <Pressable style={styles.voteButton} onPress={handleVote}>
-                <Ionicons
-                  name={tierList.userVoted ? 'heart' : 'heart-outline'}
+                <Heart
                   size={22}
                   color={tierList.userVoted ? colors.error : colors.textMuted}
+                  weight={tierList.userVoted ? 'fill' : 'regular'}
                 />
                 <Text style={styles.voteCountLarge}>{tierList.upvoteCount}</Text>
               </Pressable>
@@ -195,7 +195,7 @@ export function TierListCard({ tierList }: TierListCardProps) {
             {/* Delete button for owners */}
             {isOwner && !tierList.isOfficial && (
               <Pressable style={styles.deleteButton} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={18} color={colors.error} />
+                <Trash size={18} color={colors.error} weight="regular" />
                 <Text style={styles.deleteText}>{t('meta.deleteTierList')}</Text>
               </Pressable>
             )}

@@ -109,7 +109,7 @@ export default function HomeScreen() {
             <LockedFeatureCard
               title={t('premium.analyticsTitle')}
               description={t('premium.analyticsDescription')}
-              icon="analytics"
+              Icon={ChartBar}
               onPress={() => router.push('/(tabs)/profile')}
             />
           )}

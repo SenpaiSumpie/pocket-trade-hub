@@ -1,8 +1,9 @@
 import { View, Text, Modal, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { X, Lock } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useMetaStore } from '@/src/stores/meta';
+import { useCollectionStore } from '@/src/stores/collection';
 import { PaywallCard } from '@/src/components/premium/PaywallCard';
 import type { DeckMeta } from '@pocket-trade-hub/shared';
 
@@ -15,6 +16,7 @@ interface DeckDetailModalProps {
 export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps) {
   const { t } = useTranslation();
   const isPremium = useMetaStore((s) => s.isPremium);
+  const collectionByCardId = useCollectionStore((s) => s.collectionByCardId);
 
   if (!deck) return null;
 
@@ -23,13 +25,11 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
     return (rate / 100).toFixed(1) + '%';
   };
 
-  const topCards = deck.cards
-    ? (Array.isArray(deck.cards) ? deck.cards : []).slice(0, 3)
-    : [];
-
   const allCards = deck.cards
     ? (Array.isArray(deck.cards) ? deck.cards : [])
     : [];
+
+  const topCards = allCards.slice(0, 3);
 
   const matchups = deck.matchups
     ? (Array.isArray(deck.matchups) ? deck.matchups : [])
@@ -38,6 +38,37 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
   const tournamentResults = deck.tournamentResults
     ? (Array.isArray(deck.tournamentResults) ? deck.tournamentResults : [])
     : [];
+
+  // Calculate have/need stats
+  const haveCount = allCards.filter((c: any) => {
+    const cardName = (c.name || '').toLowerCase();
+    return Object.keys(collectionByCardId).some((id) => {
+      return collectionByCardId[id] > 0 && id.toLowerCase().includes(cardName.split(' ')[0]);
+    });
+  }).length;
+
+  // Simpler approach: check by name match against collection
+  // Since we don't have exact card IDs from Limitless, we show the card list
+  // and let users see what they recognize
+
+  const renderCardRow = (card: any, idx: number, showHaveIndicator: boolean) => {
+    const cardName = card.name || card;
+    const count = card.count || 1;
+    const setInfo = card.set && card.number ? `${card.set}-${card.number}` : '';
+
+    return (
+      <View key={idx} style={styles.cardRow}>
+        <View style={styles.cardInfo}>
+          <Text style={styles.cardName}>
+            {count > 1 ? `${count}x ` : ''}{cardName}
+          </Text>
+          {setInfo ? (
+            <Text style={styles.cardSet}>{setInfo}</Text>
+          ) : null}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <Modal
@@ -53,7 +84,7 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
             {deck.name}
           </Text>
           <Pressable style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.text} />
+            <X size={24} color={colors.text} weight="regular" />
           </Pressable>
         </View>
 
@@ -80,43 +111,61 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
             </View>
           </View>
 
-          {/* Top 3 cards - visible to all */}
-          {topCards.length > 0 && (
+          {/* Card list - visible to all */}
+          {allCards.length > 0 ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t('meta.topCards')}</Text>
-              {topCards.map((card: any, idx: number) => (
-                <View key={idx} style={styles.cardRow}>
-                  <Text style={styles.cardName}>{card.name || card}</Text>
-                </View>
-              ))}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Deck List</Text>
+                <Text style={styles.cardCount}>{allCards.reduce((sum: number, c: any) => sum + (c.count || 1), 0)} cards</Text>
+              </View>
+
+              {/* Group by type: Pokemon vs Trainer */}
+              {(() => {
+                const pokemon = allCards.filter((c: any) => {
+                  const name = (c.name || '').toLowerCase();
+                  return !['professor', 'mars', 'irida', 'guzma', 'cyrus', 'poké ball', 'poke ball',
+                    'rare candy', 'giant cape', 'starting', 'rocky helmet', 'sabrina', 'leaf',
+                    'misty', 'erika', 'giovanni', 'blaine', 'brock', 'koga', 'lt. surge',
+                    'energy'].some(t => name.includes(t));
+                });
+                const trainers = allCards.filter((c: any) => !pokemon.includes(c));
+
+                return (
+                  <>
+                    {pokemon.length > 0 && (
+                      <View style={styles.cardGroup}>
+                        <Text style={styles.cardGroupLabel}>Pokemon ({pokemon.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
+                        {pokemon.map((card: any, idx: number) => renderCardRow(card, idx, true))}
+                      </View>
+                    )}
+                    {trainers.length > 0 && (
+                      <View style={styles.cardGroup}>
+                        <Text style={styles.cardGroupLabel}>Trainers ({trainers.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
+                        {trainers.map((card: any, idx: number) => renderCardRow(card, idx + 100, true))}
+                      </View>
+                    )}
+                  </>
+                );
+              })()}
+            </View>
+          ) : (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Deck List</Text>
+              <Text style={styles.noDataText}>No card data available for this deck</Text>
             </View>
           )}
 
           {/* Premium sections */}
           {isPremium ? (
             <>
-              {/* Full card list */}
-              {allCards.length > 3 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('meta.fullCardList')}</Text>
-                  {allCards.map((card: any, idx: number) => (
-                    <View key={idx} style={styles.cardRow}>
-                      <Text style={styles.cardName}>{card.name || card}</Text>
-                      {card.quantity && (
-                        <Text style={styles.cardQuantity}>x{card.quantity}</Text>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-
               {/* Matchup data */}
               {matchups.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>{t('meta.matchups')}</Text>
                   {matchups.map((mu: any, idx: number) => (
                     <View key={idx} style={styles.matchupRow}>
-                      <Text style={styles.matchupName}>{mu.opponent || mu.name}</Text>
+                      <Text style={styles.matchupName} numberOfLines={1}>{mu.opponent || mu.name}</Text>
+                      <Text style={styles.matchupMatches}>{mu.matches ?? ''}</Text>
                       <Text
                         style={[
                           styles.matchupRate,
@@ -136,8 +185,14 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
                   <Text style={styles.sectionTitle}>{t('meta.tournamentResults')}</Text>
                   {tournamentResults.map((tr: any, idx: number) => (
                     <View key={idx} style={styles.tournamentRow}>
-                      <Text style={styles.tournamentName}>{tr.name || tr.tournament}</Text>
-                      <Text style={styles.tournamentPlace}>{tr.placement || tr.place}</Text>
+                      <View style={styles.tournamentInfo}>
+                        <Text style={styles.tournamentPlayer} numberOfLines={1}>{tr.player}</Text>
+                        <Text style={styles.tournamentName} numberOfLines={1}>{tr.tournament || tr.name}</Text>
+                      </View>
+                      <View style={styles.tournamentStats}>
+                        <Text style={styles.tournamentPlace}>{tr.placement || tr.place}</Text>
+                        <Text style={styles.tournamentScore}>{tr.score}</Text>
+                      </View>
                     </View>
                   ))}
                 </View>
@@ -147,7 +202,7 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
             /* Premium teaser for non-premium users */
             <View style={styles.premiumSection}>
               <View style={styles.blurOverlay}>
-                <Ionicons name="lock-closed" size={32} color={colors.primary} />
+                <Lock size={32} color={colors.primary} weight="fill" />
                 <Text style={styles.premiumTeaserTitle}>{t('meta.premiumContent')}</Text>
                 <Text style={styles.premiumTeaserText}>{t('meta.premiumContentHint')}</Text>
               </View>
@@ -224,6 +279,12 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
   sectionTitle: {
     ...typography.label,
     color: colors.primary,
@@ -232,21 +293,55 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.5,
   },
+  cardCount: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  cardGroup: {
+    marginBottom: spacing.md,
+  },
+  cardGroupLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
   cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
+  },
+  cardInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   cardName: {
     ...typography.body,
     fontSize: 14,
+    flex: 1,
   },
-  cardQuantity: {
+  cardSet: {
     ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 11,
+    color: colors.textMuted,
+    backgroundColor: colors.surfaceLight,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  noDataText: {
+    ...typography.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    fontStyle: 'italic',
   },
   matchupRow: {
     flexDirection: 'row',
@@ -255,15 +350,25 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
+    gap: spacing.sm,
   },
   matchupName: {
     ...typography.body,
     fontSize: 14,
     flex: 1,
   },
+  matchupMatches: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontSize: 12,
+    minWidth: 40,
+    textAlign: 'right',
+  },
   matchupRate: {
     fontSize: 14,
     fontWeight: '600',
+    minWidth: 50,
+    textAlign: 'right',
   },
   tournamentRow: {
     flexDirection: 'row',
@@ -273,16 +378,35 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  tournamentName: {
-    ...typography.body,
-    fontSize: 14,
+  tournamentInfo: {
     flex: 1,
     marginRight: spacing.sm,
+  },
+  tournamentPlayer: {
+    ...typography.body,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tournamentName: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  tournamentStats: {
+    alignItems: 'flex-end',
   },
   tournamentPlace: {
     ...typography.caption,
     color: colors.primary,
     fontWeight: '600',
+    fontSize: 13,
+  },
+  tournamentScore: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
   },
   premiumSection: {
     marginTop: spacing.md,

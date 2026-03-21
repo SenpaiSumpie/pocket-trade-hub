@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Star } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
@@ -59,7 +59,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
           <Text style={styles.cardName} numberOfLines={1}>{card.name}</Text>
           {post.isRelevant && (
             <View style={styles.matchBadge}>
-              <Ionicons name="star" size={10} color="#f0c040" />
+              <Star size={10} color="#f0c040" weight="fill" />
               <Text style={styles.matchBadgeText}>{t('trades.matchFound')}</Text>
             </View>
           )}
@@ -78,7 +78,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
             <Text style={styles.posterName} numberOfLines={1}>{post.poster.displayName}</Text>
             {post.poster.averageRating != null && (
               <View style={styles.ratingRow}>
-                <Ionicons name="star" size={10} color={colors.primary} />
+                <Star size={10} color={colors.primary} weight="fill" />
                 <Text style={styles.ratingText}>{post.poster.averageRating.toFixed(1)}</Text>
               </View>
             )}

@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { X, XCircle, Plus } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -163,7 +163,7 @@ export function TierListCreator() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="close" size={24} color={colors.text} />
+          <X size={24} color={colors.text} weight="regular" />
         </Pressable>
         <Text style={styles.headerTitle}>{t('tierlists.create')}</Text>
         <Pressable
@@ -238,7 +238,7 @@ export function TierListCreator() {
                     ))}
                   </View>
                   <Pressable onPress={() => removeFromUnranked(deck.id)} hitSlop={8}>
-                    <Ionicons name="close-circle" size={16} color={colors.textMuted} />
+                    <XCircle size={16} color={colors.textMuted} weight="fill" />
                   </Pressable>
                 </Pressable>
               ))}
@@ -259,7 +259,7 @@ export function TierListCreator() {
                   style={styles.addChip}
                   onPress={() => addToUnranked(deck)}
                 >
-                  <Ionicons name="add" size={14} color={colors.primary} />
+                  <Plus size={14} color={colors.primary} weight="bold" />
                   <Text style={styles.addChipText} numberOfLines={1}>
                     {deck.name}
                   </Text>

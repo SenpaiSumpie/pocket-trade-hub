@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Svg, { Path, Line, Text as SvgText } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
+import { X, CheckCircle } from 'phosphor-react-native';
 import { probabilityInNPacks, packsForProbability } from '@pocket-trade-hub/shared';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 
@@ -189,7 +189,7 @@ export function LuckCalculator({
           <View style={calcStyles.header}>
             <Text style={calcStyles.title}>Pull Rate Calculator</Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color={colors.textSecondary} />
+              <X size={22} color={colors.textSecondary} weight="regular" />
             </Pressable>
           </View>
 
@@ -203,7 +203,7 @@ export function LuckCalculator({
           >
             {isGuaranteed ? (
               <View style={calcStyles.guaranteedBox}>
-                <Ionicons name="checkmark-circle" size={32} color={colors.success} />
+                <CheckCircle size={32} color={colors.success} weight="fill" />
                 <Text style={calcStyles.guaranteedText}>
                   Guaranteed in every pack
                 </Text>

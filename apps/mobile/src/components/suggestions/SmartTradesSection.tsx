@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Lightning, Lightbulb } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { useSuggestionsStore } from '@/src/stores/suggestions';
@@ -28,7 +28,7 @@ export function SmartTradesSection() {
     return (
       <View>
         <View style={styles.header}>
-          <Ionicons name="flash" size={20} color={colors.primary} />
+          <Lightning size={20} color={colors.primary} weight="fill" />
           <Text style={styles.headerText}>{t('suggestions.smartTrades')}</Text>
         </View>
         <View style={styles.skeletonRow}>
@@ -47,7 +47,7 @@ export function SmartTradesSection() {
     return (
       <View>
         <View style={styles.header}>
-          <Ionicons name="flash" size={20} color={colors.primary} />
+          <Lightning size={20} color={colors.primary} weight="fill" />
           <Text style={styles.headerText}>{t('suggestions.smartTrades')}</Text>
         </View>
         <View style={styles.lockedContainer}>
@@ -64,7 +64,7 @@ export function SmartTradesSection() {
             <LockedFeatureCard
               title={t('suggestions.unlock')}
               description={t('suggestions.unlockDescription')}
-              icon="flash"
+              Icon={Lightning}
               onPress={() => router.push('/(tabs)/profile')}
             />
           </View>
@@ -78,11 +78,11 @@ export function SmartTradesSection() {
     return (
       <View>
         <View style={styles.header}>
-          <Ionicons name="flash" size={20} color={colors.primary} />
+          <Lightning size={20} color={colors.primary} weight="fill" />
           <Text style={styles.headerText}>{t('suggestions.smartTrades')}</Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Ionicons name="bulb-outline" size={32} color={colors.textMuted} />
+          <Lightbulb size={32} color={colors.textMuted} weight="regular" />
           <Text style={styles.emptyText}>{t('suggestions.noSuggestions')}</Text>
           <Text style={styles.emptySubtext}>{t('suggestions.addMoreCards')}</Text>
         </View>
@@ -94,7 +94,7 @@ export function SmartTradesSection() {
   return (
     <View>
       <View style={styles.header}>
-        <Ionicons name="flash" size={20} color={colors.primary} />
+        <Lightning size={20} color={colors.primary} weight="fill" />
         <Text style={styles.headerText}>{t('suggestions.smartTrades')}</Text>
       </View>
       <FlatList

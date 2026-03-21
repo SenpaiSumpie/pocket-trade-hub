@@ -1,5 +1,16 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  ArrowsLeftRight,
+  CheckCircle,
+  XCircle,
+  ArrowsClockwise,
+  Trophy,
+  Lightning,
+  Star,
+  Megaphone,
+  Bell,
+} from 'phosphor-react-native';
+import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { Notification, NotificationType } from '@pocket-trade-hub/shared';
 
@@ -8,15 +19,15 @@ interface NotificationItemProps {
   onPress: (notification: Notification) => void;
 }
 
-const TYPE_ICONS: Record<NotificationType, keyof typeof Ionicons.glyphMap> = {
-  proposal_received: 'swap-horizontal',
-  proposal_accepted: 'checkmark-circle',
-  proposal_rejected: 'close-circle',
-  proposal_countered: 'repeat',
-  trade_completed: 'trophy',
-  new_match: 'flash',
-  rating_received: 'star',
-  system: 'megaphone',
+const TYPE_ICONS: Record<NotificationType, PhosphorIcon> = {
+  proposal_received: ArrowsLeftRight,
+  proposal_accepted: CheckCircle,
+  proposal_rejected: XCircle,
+  proposal_countered: ArrowsClockwise,
+  trade_completed: Trophy,
+  new_match: Lightning,
+  rating_received: Star,
+  system: Megaphone,
 };
 
 const TYPE_COLORS: Record<NotificationType, string> = {
@@ -52,7 +63,7 @@ function getRelativeTime(dateStr: string): string {
 }
 
 export function NotificationItem({ notification, onPress }: NotificationItemProps) {
-  const iconName = TYPE_ICONS[notification.type] || 'notifications';
+  const IconComponent = TYPE_ICONS[notification.type] || Bell;
   const iconColor = TYPE_COLORS[notification.type] || colors.textSecondary;
   const isUnread = !notification.read;
 
@@ -63,7 +74,7 @@ export function NotificationItem({ notification, onPress }: NotificationItemProp
     >
       {isUnread && <View style={styles.unreadDot} />}
       <View style={[styles.iconCircle, { backgroundColor: iconColor + '20' }]}>
-        <Ionicons name={iconName} size={20} color={iconColor} />
+        <IconComponent size={20} color={iconColor} weight="fill" />
       </View>
       <View style={styles.textSection}>
         <Text

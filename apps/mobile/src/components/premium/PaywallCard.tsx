@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { ChartBar, GearSix, CheckCircle } from 'phosphor-react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
@@ -29,6 +29,16 @@ export function PaywallCard() {
   const premiumExpiresAt = usePremiumStore((s) => s.premiumExpiresAt);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [unsubscribing, setUnsubscribing] = useState(false);
+
+  const handleUnsubscribe = async () => {
+    setUnsubscribing(true);
+    try {
+      await purchase(); // dev-toggle flips off when already premium
+    } finally {
+      setUnsubscribing(false);
+    }
+  };
 
   const handlePurchase = async () => {
     setPurchasing(true);
@@ -66,14 +76,28 @@ export function PaywallCard() {
           style={styles.linkButton}
           onPress={() => router.push('/analytics' as any)}
         >
-          <Ionicons name="analytics" size={18} color={colors.primary} />
+          <ChartBar size={18} color={colors.primary} weight="fill" />
           <Text style={styles.linkText}>{t('premium.analyticsTitle')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.linkButton} onPress={openSubscriptionSettings}>
-          <Ionicons name="settings-outline" size={18} color={colors.textSecondary} />
-          <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t('profile.settings')}</Text>
-        </TouchableOpacity>
+        {__DEV__ ? (
+          <TouchableOpacity
+            style={[styles.unsubscribeButton, unsubscribing && styles.buttonDisabled]}
+            onPress={handleUnsubscribe}
+            disabled={unsubscribing}
+          >
+            {unsubscribing ? (
+              <ActivityIndicator size="small" color={colors.error} />
+            ) : (
+              <Text style={styles.unsubscribeText}>Unsubscribe (Dev)</Text>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.linkButton} onPress={openSubscriptionSettings}>
+            <GearSix size={18} color={colors.textSecondary} weight="regular" />
+            <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t('profile.settings')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -88,7 +112,7 @@ export function PaywallCard() {
       <View style={styles.featureList}>
         {FEATURES.map((feature) => (
           <View key={feature} style={styles.featureRow}>
-            <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+            <CheckCircle size={18} color={colors.primary} weight="fill" />
             <Text style={styles.featureText}>{feature}</Text>
           </View>
         ))}
@@ -204,5 +228,19 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.primary,
     fontSize: 14,
+  },
+  unsubscribeButton: {
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+  },
+  unsubscribeText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

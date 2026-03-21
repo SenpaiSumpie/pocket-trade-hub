@@ -1,5 +1,5 @@
 import { View, TextInput, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 
 interface SearchBarProps {
@@ -10,7 +10,7 @@ interface SearchBarProps {
 export function SearchBar({ value, onChangeText }: SearchBarProps) {
   return (
     <View style={styles.container}>
-      <Ionicons name="search" size={18} color={colors.textMuted} style={styles.icon} />
+      <MagnifyingGlass size={18} color={colors.textMuted} weight="regular" style={styles.icon} />
       <TextInput
         style={styles.input}
         placeholder="Search cards..."
@@ -23,7 +23,7 @@ export function SearchBar({ value, onChangeText }: SearchBarProps) {
       />
       {value.length > 0 && (
         <Pressable onPress={() => onChangeText('')} hitSlop={8}>
-          <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+          <XCircle size={18} color={colors.textMuted} weight="regular" />
         </Pressable>
       )}
     </View>

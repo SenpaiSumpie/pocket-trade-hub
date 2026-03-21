@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Star, ArrowsLeftRight } from 'phosphor-react-native';
 import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
@@ -32,7 +32,7 @@ export function MatchCard({ match, onPress }: MatchCardProps) {
         </View>
         {match.partnerAvgRating > 0 ? (
           <View style={styles.partnerRepRow}>
-            <Ionicons name="star" size={10} color="#f0c040" />
+            <Star size={10} color="#f0c040" weight="fill" />
             <Text style={styles.partnerRepText}>
               {match.partnerAvgRating.toFixed(1)} ({match.partnerTradeCount})
             </Text>
@@ -52,7 +52,7 @@ export function MatchCard({ match, onPress }: MatchCardProps) {
             transition={150}
           />
         )}
-        <Ionicons name="swap-horizontal" size={16} color={colors.textMuted} style={styles.swapIcon} />
+        <ArrowsLeftRight size={16} color={colors.textMuted} weight="regular" style={styles.swapIcon} />
         {bestGet && (
           <Image
             source={{ uri: bestGet.cardImageUrl }}
@@ -70,11 +70,11 @@ export function MatchCard({ match, onPress }: MatchCardProps) {
       <View style={styles.ratingSection}>
         <View style={styles.starsRow}>
           {Array.from({ length: 3 }, (_, i) => (
-            <Ionicons
+            <Star
               key={i}
-              name="star"
               size={14}
               color={i < match.starRating ? '#f0c040' : colors.surfaceLight}
+              weight="fill"
             />
           ))}
         </View>

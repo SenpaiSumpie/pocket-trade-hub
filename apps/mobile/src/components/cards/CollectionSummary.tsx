@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Stack } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { useCollectionStore } from '@/src/stores/collection';
 import { useLoadCollection } from '@/src/hooks/useCollection';
@@ -41,7 +41,7 @@ export default function CollectionSummary() {
     return (
       <View style={styles.card}>
         <View style={styles.titleRow}>
-          <Ionicons name="albums" size={22} color={colors.primary} />
+          <Stack size={22} color={colors.primary} weight="regular" />
           <Text style={styles.title}>{t('cards.myCollection')}</Text>
         </View>
         <Text style={styles.emptyText}>
@@ -69,7 +69,7 @@ export default function CollectionSummary() {
       </ExportRenderer>
 
       <View style={styles.titleRow}>
-        <Ionicons name="albums" size={22} color={colors.primary} />
+        <Stack size={22} color={colors.primary} weight="regular" />
         <Text style={styles.title}>{t('cards.myCollection')}</Text>
         <View style={styles.titleSpacer} />
         <ShareButton

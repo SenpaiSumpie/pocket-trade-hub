@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Star } from 'phosphor-react-native';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 import { useRating } from '@/src/hooks/useRating';
@@ -72,10 +72,10 @@ export function RatingModal({ visible, onClose, proposalId, partnerName }: Ratin
                   style={styles.starTouch}
                   activeOpacity={0.7}
                 >
-                  <Ionicons
-                    name={filled ? 'star' : 'star-outline'}
+                  <Star
                     size={40}
                     color={filled ? '#f0c040' : colors.textMuted}
+                    weight={filled ? 'fill' : 'regular'}
                   />
                 </TouchableOpacity>
               );

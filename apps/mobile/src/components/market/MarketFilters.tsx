@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { X, CaretDown, Globe, Check } from 'phosphor-react-native';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { SearchBar } from '@/src/components/cards/SearchBar';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
@@ -147,10 +147,10 @@ export function MarketFilters() {
           </Text>
           {setLabel ? (
             <Pressable onPress={() => setFilter('set', undefined)} hitSlop={8} style={styles.closeBtn}>
-              <Ionicons name="close" size={14} color={colors.primary} />
+              <X size={14} color={colors.primary} weight="regular" />
             </Pressable>
           ) : (
-            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+            <CaretDown size={14} color={colors.textSecondary} weight="regular" />
           )}
         </Pressable>
 
@@ -164,10 +164,10 @@ export function MarketFilters() {
           </Text>
           {rarityLabel ? (
             <Pressable onPress={() => setFilter('rarity', undefined)} hitSlop={8} style={styles.closeBtn}>
-              <Ionicons name="close" size={14} color={colors.primary} />
+              <X size={14} color={colors.primary} weight="regular" />
             </Pressable>
           ) : (
-            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+            <CaretDown size={14} color={colors.textSecondary} weight="regular" />
           )}
         </Pressable>
 
@@ -176,20 +176,20 @@ export function MarketFilters() {
           style={[styles.chip, !!languageLabel && styles.chipActive]}
           onPress={() => setPickerOpen('language')}
         >
-          <Ionicons
-            name="language-outline"
+          <Globe
             size={14}
             color={languageLabel ? colors.primary : colors.textSecondary}
+            weight="regular"
           />
           <Text style={[styles.chipText, !!languageLabel && styles.chipTextActive]}>
             {languageLabel || 'Language'}
           </Text>
           {languageLabel ? (
             <Pressable onPress={() => setFilter('language', undefined)} hitSlop={8} style={styles.closeBtn}>
-              <Ionicons name="close" size={14} color={colors.primary} />
+              <X size={14} color={colors.primary} weight="regular" />
             </Pressable>
           ) : (
-            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+            <CaretDown size={14} color={colors.textSecondary} weight="regular" />
           )}
         </Pressable>
 
@@ -228,7 +228,7 @@ export function MarketFilters() {
                   <Text style={styles.optionText}>{item.label}</Text>
                   {item.rarity && <RarityBadge rarity={item.rarity} />}
                   {(pickerOpen && filters[pickerOpen] === item.value) && (
-                    <Ionicons name="checkmark" size={18} color={colors.primary} />
+                    <Check size={18} color={colors.primary} weight="regular" />
                   )}
                 </Pressable>
               )}

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { X, Info, XCircle, Trash } from 'phosphor-react-native';
 import { usePosts } from '@/src/hooks/usePosts';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradePost } from '@pocket-trade-hub/shared';
@@ -104,7 +104,7 @@ export function MyPostDetailModal({ visible, onClose, post }: MyPostDetailModalP
           <View style={styles.modalContainer}>
             {/* Close button */}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={colors.text} />
+              <X size={24} color={colors.text} weight="regular" />
             </TouchableOpacity>
 
             <ScrollView
@@ -159,7 +159,7 @@ export function MyPostDetailModal({ visible, onClose, post }: MyPostDetailModalP
               {/* Status explanation for non-active posts */}
               {!isActive && (
                 <View style={styles.statusNotice}>
-                  <Ionicons name="information-circle-outline" size={18} color={statusConfig.color} />
+                  <Info size={18} color={statusConfig.color} weight="regular" />
                   <Text style={styles.statusNoticeText}>{statusConfig.description}</Text>
                 </View>
               )}
@@ -176,7 +176,7 @@ export function MyPostDetailModal({ visible, onClose, post }: MyPostDetailModalP
                       <ActivityIndicator color="#fff" size="small" />
                     ) : (
                       <>
-                        <Ionicons name="close-circle-outline" size={18} color="#fff" />
+                        <XCircle size={18} color="#fff" weight="regular" />
                         <Text style={styles.actionButtonText}>Close Post</Text>
                       </>
                     )}
@@ -187,7 +187,7 @@ export function MyPostDetailModal({ visible, onClose, post }: MyPostDetailModalP
                   onPress={handleDelete}
                   disabled={actionLoading}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#fff" />
+                  <Trash size={18} color="#fff" weight="regular" />
                   <Text style={styles.actionButtonText}>Delete Post</Text>
                 </TouchableOpacity>
               </View>

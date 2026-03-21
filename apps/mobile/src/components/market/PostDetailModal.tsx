@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import Toast from 'react-native-toast-message';
-import { Ionicons } from '@expo/vector-icons';
+import { X, Star, Info, XCircle, Trash, PaperPlaneTilt } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
@@ -146,7 +146,7 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
           {/* Header */}
           <View style={styles.header}>
             <Pressable onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text} />
+              <X size={24} color={colors.text} weight="regular" />
             </Pressable>
             <Text style={styles.title}>Post Details</Text>
             <ShareButton
@@ -177,7 +177,7 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
               </View>
               {post.isRelevant && (
                 <View style={styles.matchIndicator}>
-                  <Ionicons name="star" size={12} color="#f0c040" />
+                  <Star size={12} color="#f0c040" weight="fill" />
                   <Text style={styles.matchIndicatorText}>Matches your list</Text>
                 </View>
               )}
@@ -220,7 +220,7 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
             {/* Inactive post message */}
             {!isActive && (
               <View style={styles.inactiveNotice}>
-                <Ionicons name="information-circle" size={18} color={colors.textMuted} />
+                <Info size={18} color={colors.textMuted} weight="regular" />
                 <Text style={styles.inactiveText}>This post is no longer active</Text>
               </View>
             )}
@@ -230,12 +230,12 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
               <View style={styles.ownActions}>
                 {isActive && (
                   <Pressable style={styles.closePostButton} onPress={handleClose}>
-                    <Ionicons name="close-circle-outline" size={20} color={colors.text} />
+                    <XCircle size={20} color={colors.text} weight="regular" />
                     <Text style={styles.closePostText}>Close Post</Text>
                   </Pressable>
                 )}
                 <Pressable style={styles.deleteButton} onPress={handleDelete}>
-                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                  <Trash size={20} color={colors.error} weight="regular" />
                   <Text style={styles.deleteText}>Delete Post</Text>
                 </Pressable>
               </View>
@@ -246,7 +246,7 @@ export function PostDetailModal({ visible, post, onClose }: PostDetailModalProps
                   onPress={handleSendProposal}
                   disabled={sendingProposal}
                 >
-                  <Ionicons name="paper-plane" size={20} color={colors.background} />
+                  <PaperPlaneTilt size={20} color={colors.background} weight="fill" />
                   <Text style={styles.proposalButtonText}>
                     {sendingProposal ? 'Sending...' : 'Send Proposal'}
                   </Text>

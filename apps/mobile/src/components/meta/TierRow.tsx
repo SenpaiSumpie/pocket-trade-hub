@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { XCircle } from 'phosphor-react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 
 const TIER_COLORS: Record<string, string> = {
@@ -38,7 +38,7 @@ export function TierRow({ tier, items, onRemoveItem }: TierRowProps) {
                 hitSlop={8}
                 style={styles.removeButton}
               >
-                <Ionicons name="close-circle" size={14} color={colors.textMuted} />
+                <XCircle size={14} color={colors.textMuted} weight="fill" />
               </Pressable>
             </Pressable>
           ))

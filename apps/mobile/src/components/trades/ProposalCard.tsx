@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Star, Newspaper, ArrowsLeftRight } from 'phosphor-react-native';
 import { getAvatarById } from '@/src/constants/avatars';
 import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
 import type { TradeProposal, ProposalCard as ProposalCardType } from '@pocket-trade-hub/shared';
@@ -113,7 +113,7 @@ export function ProposalCard({
             </Text>
             {partner && partner.tradeCount > 0 ? (
               <View style={styles.reputationRow}>
-                <Ionicons name="star" size={11} color={colors.primary} />
+                <Star size={11} color={colors.primary} weight="fill" />
                 <Text style={styles.reputationText}>
                   {partner.avgRating.toFixed(1)}
                 </Text>
@@ -139,7 +139,7 @@ export function ProposalCard({
       {/* Post reference if from a post */}
       {(proposal as EnrichedProposal).postId && (
         <View style={styles.postRefRow}>
-          <Ionicons name="newspaper-outline" size={12} color={colors.textSecondary} />
+          <Newspaper size={12} color={colors.textSecondary} weight="regular" />
           <Text style={styles.postRefText}>
             From post{(proposal as EnrichedProposal).postInfo ? `: ${(proposal as EnrichedProposal).postInfo!.cardName}` : ''}
           </Text>
@@ -153,7 +153,7 @@ export function ProposalCard({
           <CardPreview cards={isOutgoing ? proposal.senderGives : proposal.senderGets} />
         </View>
         <View style={styles.swapContainer}>
-          <Ionicons name="swap-horizontal" size={18} color={colors.textMuted} />
+          <ArrowsLeftRight size={18} color={colors.textMuted} weight="regular" />
         </View>
         <View style={styles.tradeSide}>
           <Text style={styles.tradeSideLabel}>{isOutgoing ? 'You get' : 'They get'}</Text>

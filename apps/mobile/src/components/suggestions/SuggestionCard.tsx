@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowsLeftRight } from 'phosphor-react-native';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradeSuggestion } from '@pocket-trade-hub/shared';
@@ -37,7 +37,7 @@ export function SuggestionCard({ suggestion }: SuggestionCardProps) {
 
         {/* Arrow */}
         <View style={styles.arrowContainer}>
-          <Ionicons name="swap-horizontal" size={24} color={colors.primary} />
+          <ArrowsLeftRight size={24} color={colors.primary} weight="regular" />
         </View>
 
         {/* Get card */}

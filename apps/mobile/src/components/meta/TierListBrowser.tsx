@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Ionicons } from '@expo/vector-icons';
+import { List, Plus } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
@@ -76,7 +76,7 @@ export function TierListBrowser({ onScroll, scrollEventThrottle, contentContaine
   if (!loading && tierLists.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="list-outline" size={64} color={colors.textMuted} />
+        <List size={64} color={colors.textMuted} weight="regular" />
         <Text style={styles.emptyTitle}>{t('meta.noTierLists')}</Text>
         <Text style={styles.emptySubtitle}>{t('meta.noTierListsHint')}</Text>
       </View>
@@ -128,7 +128,7 @@ export function TierListBrowser({ onScroll, scrollEventThrottle, contentContaine
 
       {/* Create Tier List FAB */}
       <Pressable style={styles.fab} onPress={() => router.push('/create-tier-list' as any)}>
-        <Ionicons name="add" size={28} color={colors.background} />
+        <Plus size={28} color={colors.background} weight="bold" />
       </Pressable>
     </View>
   );
