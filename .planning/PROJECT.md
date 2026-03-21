@@ -140,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after Phase 14 (Navigation Shell & App Chrome) complete — Inter font, Phosphor icons, custom animated tab bar, collapsible headers, full icon migration*
+*Last updated: 2026-03-21 after Phase 15 (Animation Utilities & Motion System) complete — spring presets, animation hooks (press/stagger/flip/tilt), shimmer skeletons, AnimatedCounter, DetailSheet bottom sheets replacing 6 modals*
