@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
-  Modal,
   Pressable,
   ScrollView,
   FlatList,
@@ -10,8 +9,9 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import { DetailSheet } from '@/src/components/animation/DetailSheet';
 import { Image } from 'expo-image';
-import { Minus, Plus, CheckCircle, Heart, X, Stack, PlusCircle, Flag, Calculator, CaretRight, Trash, HeartBreak, CaretLeft } from 'phosphor-react-native';
+import { Minus, Plus, CheckCircle, Heart, Stack, PlusCircle, Flag, Calculator, CaretRight, Trash, HeartBreak, CaretLeft } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { RarityBadge } from './RarityBadge';
 import { LuckCalculator } from './LuckCalculator';
@@ -604,123 +604,104 @@ export function CardDetailModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="fullScreen"
-      onRequestClose={onClose}
-      onShow={() => {
-        setCurrentIndex(initialIndex);
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({
-            index: initialIndex,
-            animated: false,
-          });
-        }, 50);
-      }}
-    >
-      <View style={styles.container}>
-        {/* Offscreen export renderer */}
-        <ExportRenderer ref={exportRef}>
-          {currentCard && (
-            <CardExport
-              cardName={currentCard.name}
-              cardImage={currentCard.imageUrl}
-              rarity={currentCard.rarity}
-              setName={setName}
-              showWatermark={!isPremium}
-            />
-          )}
-        </ExportRenderer>
+    <DetailSheet visible={visible} onDismiss={onClose}>
+      {/* Offscreen export renderer */}
+      <ExportRenderer ref={exportRef}>
+        {currentCard && (
+          <CardExport
+            cardName={currentCard.name}
+            cardImage={currentCard.imageUrl}
+            rarity={currentCard.rarity}
+            setName={setName}
+            showWatermark={!isPremium}
+          />
+        )}
+      </ExportRenderer>
 
-        <View style={styles.header}>
-          <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-            <X size={24} color={colors.text} weight="regular" />
-          </Pressable>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>
-              {currentIndex + 1} / {cards.length}
-            </Text>
-            {/* Mini state indicators in header */}
-            <View style={styles.headerBadges}>
-              {currentQty > 0 && (
-                <View style={styles.headerBadge}>
-                  <CheckCircle size={12} color={colors.success} weight="fill" />
-                  <Text style={styles.headerBadgeText}>{currentQty}</Text>
-                </View>
-              )}
-              {currentPriority && (
-                <View style={[styles.headerBadge, { backgroundColor: PRIORITY_COLORS[currentPriority] + '30' }]}>
-                  <Heart size={12} color={PRIORITY_COLORS[currentPriority]} weight="fill" />
-                </View>
-              )}
-            </View>
+      <View style={styles.header}>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>
+            {currentIndex + 1} / {cards.length}
+          </Text>
+          {/* Mini state indicators in header */}
+          <View style={styles.headerBadges}>
+            {currentQty > 0 && (
+              <View style={styles.headerBadge}>
+                <CheckCircle size={12} color={colors.success} weight="fill" />
+                <Text style={styles.headerBadgeText}>{currentQty}</Text>
+              </View>
+            )}
+            {currentPriority && (
+              <View style={[styles.headerBadge, { backgroundColor: PRIORITY_COLORS[currentPriority] + '30' }]}>
+                <Heart size={12} color={PRIORITY_COLORS[currentPriority]} weight="fill" />
+              </View>
+            )}
           </View>
-          {/* Share button */}
-          <View style={styles.shareBtn}>
-            <ShareButton
-              onPress={() => exportAndShare('Share Card')}
-              loading={exporting}
-              size={20}
-            />
-          </View>
-          {/* Web navigation arrows */}
-          {Platform.OS === 'web' && (
-            <View style={styles.navArrows}>
-              <Pressable
-                onPress={() => canGoLeft && goTo(currentIndex - 1)}
-                style={[styles.navBtn, !canGoLeft && styles.navBtnDisabled]}
-              >
-                <CaretLeft size={20} color={canGoLeft ? colors.text : colors.textMuted} weight="regular" />
-              </Pressable>
-              <Pressable
-                onPress={() => canGoRight && goTo(currentIndex + 1)}
-                style={[styles.navBtn, !canGoRight && styles.navBtnDisabled]}
-              >
-                <CaretRight size={20} color={canGoRight ? colors.text : colors.textMuted} weight="regular" />
-              </Pressable>
-            </View>
-          )}
         </View>
-
-        <FlatList
-          ref={flatListRef}
-          data={cards}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <CardDetailPage
-              card={item}
-              allCards={cards}
-              setName={setName}
-              mode={mode}
-              collectionQuantity={collectionQuantity}
-              wantedPriority={wantedPriority}
-              onAddToCollection={onAddToCollection}
-              onRemoveFromCollection={onRemoveFromCollection}
-              onUpdateQuantity={onUpdateQuantity}
-              onAddToWanted={onAddToWanted}
-              onRemoveFromWanted={onRemoveFromWanted}
-              onUpdatePriority={onUpdatePriority}
-            />
-          )}
-          onMomentumScrollEnd={(e) => {
-            const idx = Math.round(
-              e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
-            );
-            setCurrentIndex(idx);
-          }}
-          getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
-            index,
-          })}
-          initialScrollIndex={initialIndex}
-        />
+        {/* Share button */}
+        <View style={styles.shareBtn}>
+          <ShareButton
+            onPress={() => exportAndShare('Share Card')}
+            loading={exporting}
+            size={20}
+          />
+        </View>
+        {/* Web navigation arrows */}
+        {Platform.OS === 'web' && (
+          <View style={styles.navArrows}>
+            <Pressable
+              onPress={() => canGoLeft && goTo(currentIndex - 1)}
+              style={[styles.navBtn, !canGoLeft && styles.navBtnDisabled]}
+            >
+              <CaretLeft size={20} color={canGoLeft ? colors.text : colors.textMuted} weight="regular" />
+            </Pressable>
+            <Pressable
+              onPress={() => canGoRight && goTo(currentIndex + 1)}
+              style={[styles.navBtn, !canGoRight && styles.navBtnDisabled]}
+            >
+              <CaretRight size={20} color={canGoRight ? colors.text : colors.textMuted} weight="regular" />
+            </Pressable>
+          </View>
+        )}
       </View>
-    </Modal>
+
+      <FlatList
+        ref={flatListRef}
+        data={cards}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <CardDetailPage
+            card={item}
+            allCards={cards}
+            setName={setName}
+            mode={mode}
+            collectionQuantity={collectionQuantity}
+            wantedPriority={wantedPriority}
+            onAddToCollection={onAddToCollection}
+            onRemoveFromCollection={onRemoveFromCollection}
+            onUpdateQuantity={onUpdateQuantity}
+            onAddToWanted={onAddToWanted}
+            onRemoveFromWanted={onRemoveFromWanted}
+            onUpdatePriority={onUpdatePriority}
+          />
+        )}
+        onMomentumScrollEnd={(e) => {
+          const idx = Math.round(
+            e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
+          );
+          setCurrentIndex(idx);
+        }}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        initialScrollIndex={initialIndex}
+      />
+    </DetailSheet>
   );
 }
 
@@ -769,18 +750,13 @@ const actionStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: Platform.OS === 'web' ? spacing.md : 56,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
@@ -811,21 +787,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.success,
   },
-  closeBtn: {
-    position: 'absolute',
-    left: spacing.md,
-    top: Platform.OS === 'web' ? spacing.md : 52,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   shareBtn: {
     position: 'absolute',
     right: spacing.md,
-    top: Platform.OS === 'web' ? spacing.md : 52,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -836,7 +800,6 @@ const styles = StyleSheet.create({
   navArrows: {
     position: 'absolute',
     right: spacing.md + 44,
-    top: Platform.OS === 'web' ? spacing.md : 52,
     flexDirection: 'row',
     gap: spacing.xs,
   },

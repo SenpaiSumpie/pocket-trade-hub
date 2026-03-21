@@ -1,5 +1,6 @@
-import { View, Text, Modal, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { X, Lock } from 'phosphor-react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Lock } from 'phosphor-react-native';
+import { DetailSheet } from '@/src/components/animation/DetailSheet';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useMetaStore } from '@/src/stores/meta';
@@ -71,183 +72,144 @@ export function DeckDetailModal({ visible, onClose, deck }: DeckDetailModalProps
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title} numberOfLines={2}>
-            {deck.name}
-          </Text>
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <X size={24} color={colors.text} weight="regular" />
-          </Pressable>
-        </View>
+    <DetailSheet visible={visible} onDismiss={onClose}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title} numberOfLines={2}>
+          {deck.name}
+        </Text>
+      </View>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Stats grid - visible to all */}
-          <View style={styles.statsGrid}>
-            <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>{t('meta.winRate')}</Text>
-              <Text style={styles.statBoxValue}>{formatRate(deck.winRate)}</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>{t('meta.usageRate')}</Text>
-              <Text style={styles.statBoxValue}>{formatRate(deck.usageRate)}</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>{t('meta.playCount')}</Text>
-              <Text style={styles.statBoxValue}>
-                {deck.playCount !== null ? deck.playCount.toLocaleString() : '--'}
-              </Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statBoxLabel}>{t('meta.matchRecord')}</Text>
-              <Text style={styles.statBoxValue}>{deck.matchRecord ?? '--'}</Text>
-            </View>
+      {/* Stats grid - visible to all */}
+      <View style={styles.statsGrid}>
+        <View style={styles.statBox}>
+          <Text style={styles.statBoxLabel}>{t('meta.winRate')}</Text>
+          <Text style={styles.statBoxValue}>{formatRate(deck.winRate)}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statBoxLabel}>{t('meta.usageRate')}</Text>
+          <Text style={styles.statBoxValue}>{formatRate(deck.usageRate)}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statBoxLabel}>{t('meta.playCount')}</Text>
+          <Text style={styles.statBoxValue}>
+            {deck.playCount !== null ? deck.playCount.toLocaleString() : '--'}
+          </Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statBoxLabel}>{t('meta.matchRecord')}</Text>
+          <Text style={styles.statBoxValue}>{deck.matchRecord ?? '--'}</Text>
+        </View>
+      </View>
+
+      {/* Card list - visible to all */}
+      {allCards.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Deck List</Text>
+            <Text style={styles.cardCount}>{allCards.reduce((sum: number, c: any) => sum + (c.count || 1), 0)} cards</Text>
           </View>
 
-          {/* Card list - visible to all */}
-          {allCards.length > 0 ? (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Deck List</Text>
-                <Text style={styles.cardCount}>{allCards.reduce((sum: number, c: any) => sum + (c.count || 1), 0)} cards</Text>
-              </View>
+          {/* Group by type: Pokemon vs Trainer */}
+          {(() => {
+            const pokemon = allCards.filter((c: any) => {
+              const name = (c.name || '').toLowerCase();
+              return !['professor', 'mars', 'irida', 'guzma', 'cyrus', 'poké ball', 'poke ball',
+                'rare candy', 'giant cape', 'starting', 'rocky helmet', 'sabrina', 'leaf',
+                'misty', 'erika', 'giovanni', 'blaine', 'brock', 'koga', 'lt. surge',
+                'energy'].some(t => name.includes(t));
+            });
+            const trainers = allCards.filter((c: any) => !pokemon.includes(c));
 
-              {/* Group by type: Pokemon vs Trainer */}
-              {(() => {
-                const pokemon = allCards.filter((c: any) => {
-                  const name = (c.name || '').toLowerCase();
-                  return !['professor', 'mars', 'irida', 'guzma', 'cyrus', 'poké ball', 'poke ball',
-                    'rare candy', 'giant cape', 'starting', 'rocky helmet', 'sabrina', 'leaf',
-                    'misty', 'erika', 'giovanni', 'blaine', 'brock', 'koga', 'lt. surge',
-                    'energy'].some(t => name.includes(t));
-                });
-                const trainers = allCards.filter((c: any) => !pokemon.includes(c));
+            return (
+              <>
+                {pokemon.length > 0 && (
+                  <View style={styles.cardGroup}>
+                    <Text style={styles.cardGroupLabel}>Pokemon ({pokemon.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
+                    {pokemon.map((card: any, idx: number) => renderCardRow(card, idx, true))}
+                  </View>
+                )}
+                {trainers.length > 0 && (
+                  <View style={styles.cardGroup}>
+                    <Text style={styles.cardGroupLabel}>Trainers ({trainers.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
+                    {trainers.map((card: any, idx: number) => renderCardRow(card, idx + 100, true))}
+                  </View>
+                )}
+              </>
+            );
+          })()}
+        </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Deck List</Text>
+          <Text style={styles.noDataText}>No card data available for this deck</Text>
+        </View>
+      )}
 
-                return (
-                  <>
-                    {pokemon.length > 0 && (
-                      <View style={styles.cardGroup}>
-                        <Text style={styles.cardGroupLabel}>Pokemon ({pokemon.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
-                        {pokemon.map((card: any, idx: number) => renderCardRow(card, idx, true))}
-                      </View>
-                    )}
-                    {trainers.length > 0 && (
-                      <View style={styles.cardGroup}>
-                        <Text style={styles.cardGroupLabel}>Trainers ({trainers.reduce((s: number, c: any) => s + (c.count || 1), 0)})</Text>
-                        {trainers.map((card: any, idx: number) => renderCardRow(card, idx + 100, true))}
-                      </View>
-                    )}
-                  </>
-                );
-              })()}
-            </View>
-          ) : (
+      {/* Premium sections */}
+      {isPremium ? (
+        <>
+          {/* Matchup data */}
+          {matchups.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Deck List</Text>
-              <Text style={styles.noDataText}>No card data available for this deck</Text>
+              <Text style={styles.sectionTitle}>{t('meta.matchups')}</Text>
+              {matchups.map((mu: any, idx: number) => (
+                <View key={idx} style={styles.matchupRow}>
+                  <Text style={styles.matchupName} numberOfLines={1}>{mu.opponent || mu.name}</Text>
+                  <Text style={styles.matchupMatches}>{mu.matches ?? ''}</Text>
+                  <Text
+                    style={[
+                      styles.matchupRate,
+                      { color: (mu.winRate ?? 0) >= 5000 ? colors.success : colors.error },
+                    ]}
+                  >
+                    {formatRate(mu.winRate ?? null)}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
 
-          {/* Premium sections */}
-          {isPremium ? (
-            <>
-              {/* Matchup data */}
-              {matchups.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('meta.matchups')}</Text>
-                  {matchups.map((mu: any, idx: number) => (
-                    <View key={idx} style={styles.matchupRow}>
-                      <Text style={styles.matchupName} numberOfLines={1}>{mu.opponent || mu.name}</Text>
-                      <Text style={styles.matchupMatches}>{mu.matches ?? ''}</Text>
-                      <Text
-                        style={[
-                          styles.matchupRate,
-                          { color: (mu.winRate ?? 0) >= 5000 ? colors.success : colors.error },
-                        ]}
-                      >
-                        {formatRate(mu.winRate ?? null)}
-                      </Text>
-                    </View>
-                  ))}
+          {/* Tournament results */}
+          {tournamentResults.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('meta.tournamentResults')}</Text>
+              {tournamentResults.map((tr: any, idx: number) => (
+                <View key={idx} style={styles.tournamentRow}>
+                  <View style={styles.tournamentInfo}>
+                    <Text style={styles.tournamentPlayer} numberOfLines={1}>{tr.player}</Text>
+                    <Text style={styles.tournamentName} numberOfLines={1}>{tr.tournament || tr.name}</Text>
+                  </View>
+                  <View style={styles.tournamentStats}>
+                    <Text style={styles.tournamentPlace}>{tr.placement || tr.place}</Text>
+                    <Text style={styles.tournamentScore}>{tr.score}</Text>
+                  </View>
                 </View>
-              )}
-
-              {/* Tournament results */}
-              {tournamentResults.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('meta.tournamentResults')}</Text>
-                  {tournamentResults.map((tr: any, idx: number) => (
-                    <View key={idx} style={styles.tournamentRow}>
-                      <View style={styles.tournamentInfo}>
-                        <Text style={styles.tournamentPlayer} numberOfLines={1}>{tr.player}</Text>
-                        <Text style={styles.tournamentName} numberOfLines={1}>{tr.tournament || tr.name}</Text>
-                      </View>
-                      <View style={styles.tournamentStats}>
-                        <Text style={styles.tournamentPlace}>{tr.placement || tr.place}</Text>
-                        <Text style={styles.tournamentScore}>{tr.score}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </>
-          ) : (
-            /* Premium teaser for non-premium users */
-            <View style={styles.premiumSection}>
-              <View style={styles.blurOverlay}>
-                <Lock size={32} color={colors.primary} weight="fill" />
-                <Text style={styles.premiumTeaserTitle}>{t('meta.premiumContent')}</Text>
-                <Text style={styles.premiumTeaserText}>{t('meta.premiumContentHint')}</Text>
-              </View>
-              <PaywallCard />
+              ))}
             </View>
           )}
-        </ScrollView>
-      </View>
-    </Modal>
+        </>
+      ) : (
+        /* Premium teaser for non-premium users */
+        <View style={styles.premiumSection}>
+          <View style={styles.blurOverlay}>
+            <Lock size={32} color={colors.primary} weight="fill" />
+            <Text style={styles.premiumTeaserTitle}>{t('meta.premiumContent')}</Text>
+            <Text style={styles.premiumTeaserText}>{t('meta.premiumContentHint')}</Text>
+          </View>
+          <PaywallCard />
+        </View>
+      )}
+    </DetailSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    marginBottom: spacing.md,
   },
   title: {
     ...typography.subheading,
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
   },
   statsGrid: {
     flexDirection: 'row',
