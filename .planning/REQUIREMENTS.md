@@ -13,7 +13,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 - [x] **DS-02**: Semantic color aliases (surface, onSurface, accent, error, success, warning)
 - [x] **DS-03**: Backward-compatible theme.ts shim re-exporting tokens with old property names
 - [x] **DS-04**: Cross-platform token sync (mobile TS imports + web CSS custom properties)
-- [ ] **DS-05**: Hardcoded value audit and migration across all 71 theme-referencing files
+- [x] **DS-05**: Hardcoded value audit and migration across all 71 theme-referencing files
 
 ### Component Library
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DS-02 | Phase 13 | Complete |
 | DS-03 | Phase 13 | Complete |
 | DS-04 | Phase 13 | Complete |
-| DS-05 | Phase 13 | Pending |
+| DS-05 | Phase 13 | Complete |
 | CL-01 | Phase 16 | Pending |
 | CL-02 | Phase 16 | Pending |
 | CL-03 | Phase 16 | Pending |
