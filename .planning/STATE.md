@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: UI/UX Overhaul
 status: unknown
-stopped_at: Phase 14 context gathered
-last_updated: "2026-03-21T16:21:06.433Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-21T17:22:56.292Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** Phase 13 — design-system-foundation
+**Current focus:** Phase 14 — navigation-shell-and-app-chrome
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
+Phase: 14 (navigation-shell-and-app-chrome) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: Not started
 | Phase 13 P01 | 3min | 2 tasks | 12 files |
 | Phase 13 P02 | 3min | 2 tasks | 7 files |
 | Phase 13 P03 | 5min | 2 tasks | 4 files |
+| Phase 14 P01 | 2min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,8 @@ Plan: Not started
 - [Phase 13]: Generated tokens.css uses @theme block for Tailwind v4 CSS-first config
 - [Phase 13]: Web constants.ts imports from shared token package, no hardcoded hex values
 - [Phase 13]: Semantic colors take priority over primitive palette in audit reverse lookup
+- [Phase 14]: Use PostScript font names in shared tokens; Platform.select in theme shim for iOS vs Android
+- [Phase 14]: Build-time font loading via expo-font config plugin, no runtime Font.loadAsync
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T16:21:06.430Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-navigation-shell-and-app-chrome/14-CONTEXT.md
+Last session: 2026-03-21T17:22:56.288Z
+Stopped at: Completed 14-01-PLAN.md
+Resume file: None
