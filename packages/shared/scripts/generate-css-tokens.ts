@@ -70,7 +70,7 @@ export function generateCSS(): string {
 if (require.main === module) {
   const { writeFileSync, mkdirSync } = require('fs');
   const { resolve, dirname } = require('path');
-  const outPath = resolve(__dirname, '../../apps/web/src/app/tokens.css');
+  const outPath = resolve(__dirname, '../../../apps/web/src/app/tokens.css');
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, generateCSS());
   console.log(`Generated ${outPath}`);

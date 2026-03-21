@@ -1,8 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "generate-tokens": {
+      "dependsOn": [],
+      "outputs": ["apps/web/src/app/tokens.css"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate-tokens"],
       "outputs": ["dist/**", ".next/**"]
     },
     "test": {

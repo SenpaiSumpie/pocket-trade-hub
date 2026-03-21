@@ -35,6 +35,9 @@ drizzle/meta/
 .DS_Store
 Thumbs.db
 
+# Generated design tokens
+apps/web/src/app/tokens.css
+
 # Test coverage
 coverage/
 
