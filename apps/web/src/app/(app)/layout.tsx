@@ -7,6 +7,7 @@ import { MobileGate } from '@/components/layout/MobileGate';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useSocket } from '@/hooks/useSocket';
 import { NotificationToast } from '@/components/layout/NotificationToast';
+import { ToastOverlay } from '@/components/ui/ToastOverlay';
 
 export default function AppLayout({
   children,
@@ -36,6 +37,7 @@ export default function AppLayout({
         <Sidebar />
         <main className="flex-1 overflow-auto p-6">{children}</main>
         <NotificationToast />
+        <ToastOverlay />
       </div>
     </MobileGate>
   );
