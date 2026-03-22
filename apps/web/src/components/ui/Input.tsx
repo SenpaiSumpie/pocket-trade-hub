@@ -1,15 +1,23 @@
 'use client';
 
-import { type InputHTMLAttributes, forwardRef } from 'react';
+import { type InputHTMLAttributes, type TextareaHTMLAttributes, forwardRef } from 'react';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+type InputProps = {
   label?: string;
   error?: string;
-}
+  textarea?: boolean;
+} & (
+  | (InputHTMLAttributes<HTMLInputElement> & { textarea?: false })
+  | (TextareaHTMLAttributes<HTMLTextAreaElement> & { textarea: true })
+);
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className = '', id, ...props }, ref) => {
+const baseClasses =
+  'rounded-lg border border-border bg-[var(--color-background)] px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-colors duration-[var(--motion-duration-fast)]';
+
+export const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
+  ({ label, error, textarea, className = '', id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+    const errorClass = error ? 'border-[var(--color-error)]' : '';
 
     return (
       <div className="flex flex-col gap-1">
@@ -21,15 +29,22 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          className={`rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-gold/50 ${
-            error ? 'border-red-500' : ''
-          } ${className}`}
-          {...props}
-        />
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {textarea ? (
+          <textarea
+            ref={ref as React.Ref<HTMLTextAreaElement>}
+            id={inputId}
+            className={`${baseClasses} min-h-[100px] resize-y ${errorClass} ${className}`}
+            {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)}
+          />
+        ) : (
+          <input
+            ref={ref as React.Ref<HTMLInputElement>}
+            id={inputId}
+            className={`${baseClasses} ${errorClass} ${className}`}
+            {...(props as InputHTMLAttributes<HTMLInputElement>)}
+          />
+        )}
+        {error && <p className="text-xs text-[var(--color-error)]">{error}</p>}
       </div>
     );
   },
