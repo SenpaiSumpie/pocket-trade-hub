@@ -1,8 +1,9 @@
-import { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Stack, GitBranch, PaperPlaneTilt, ChartBar, CaretRight } from 'phosphor-react-native';
+import { useCallback, useState } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { Stack, GitBranch, PaperPlaneTilt, ChartBar, CaretRight, Lightbulb } from 'phosphor-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import Animated from 'react-native-reanimated';
 import { useAuthStore } from '@/src/stores/auth';
 import SetupChecklist from '@/src/components/SetupChecklist';
 import CollectionSummary from '@/src/components/cards/CollectionSummary';
@@ -10,7 +11,12 @@ import { LockedFeatureCard } from '@/src/components/premium/LockedFeatureCard';
 import { SmartTradesSection } from '@/src/components/suggestions/SmartTradesSection';
 import { usePremiumStore } from '@/src/stores/premium';
 import { useSuggestionsStore } from '@/src/stores/suggestions';
-import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+import { Card, Text, EmptyState } from '@/src/components/ui';
+import { useStaggeredList } from '@/src/hooks/useStaggeredList';
+import { Shimmer } from '@/src/components/animation/Shimmer';
+import { ShimmerBox } from '@/src/components/animation/ShimmerBox';
+import { ShimmerText } from '@/src/components/animation/ShimmerText';
+import { colors, spacing } from '@/src/constants/theme';
 
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 
@@ -42,6 +48,9 @@ const PREVIEWS: PreviewCard[] = [
   },
 ];
 
+// Dashboard section count: setup checklist, collection summary, smart trades, analytics, previews header
+const SECTION_COUNT = 5;
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
@@ -49,6 +58,13 @@ export default function HomeScreen() {
   const displayName = user?.displayName || 'Trainer';
   const isPremium = usePremiumStore((s) => s.isPremium);
   const fetchSuggestions = useSuggestionsStore((s) => s.fetchSuggestions);
+  const suggestions = useSuggestionsStore((s) => s.suggestions);
+  const suggestionsLoading = useSuggestionsStore((s) => s.loading);
+  const suggestionsPremium = useSuggestionsStore((s) => s.isPremium);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { onLayout, getItemStyle } = useStaggeredList(SECTION_COUNT);
 
   // Fetch suggestions when Home tab gains focus
   useFocusEffect(
@@ -59,76 +75,151 @@ export default function HomeScreen() {
     }, [isLoggedIn, fetchSuggestions]),
   );
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      if (isLoggedIn) {
+        await fetchSuggestions(true);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [isLoggedIn, fetchSuggestions]);
+
+  // Smart trades section: show shimmer while loading, EmptyState when premium + empty
+  const renderSmartTradesContent = () => {
+    if (suggestionsLoading && suggestions.length === 0) {
+      // Shimmer skeleton for loading state
+      return (
+        <Card>
+          <Shimmer>
+            <ShimmerBox height={16} width="60%" style={styles.shimmerTitle} />
+            <ShimmerBox height={60} style={styles.shimmerRow} />
+            <ShimmerBox height={60} style={styles.shimmerRow} />
+            <ShimmerBox height={60} width="80%" />
+          </Shimmer>
+        </Card>
+      );
+    }
+
+    if (suggestionsPremium && suggestions.length === 0 && !suggestionsLoading) {
+      // Premium user with no suggestions — show EmptyState
+      return (
+        <Card>
+          <EmptyState
+            icon={Lightbulb}
+            title="No trade suggestions"
+            subtitle="Add wanted cards to your wishlist to see matches here"
+            ctaLabel="Add Wanted Cards"
+            onCta={() => router.push('/(tabs)/trades' as any)}
+          />
+        </Card>
+      );
+    }
+
+    return <SmartTradesSection />;
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.welcome}>{t('home.welcome', { name: displayName })}</Text>
-      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor="#f0c040"
+          colors={["#f0c040"]}
+        />
+      }
+    >
+      <Text preset="heading" color={colors.primary} style={styles.welcome}>
+        {t('home.welcome', { name: displayName })}
+      </Text>
+      <Text preset="label" style={styles.subtitle}>
+        {t('home.subtitle')}
+      </Text>
 
-      {/* Setup Checklist */}
-      {user && (
-        <View style={styles.section}>
-          <SetupChecklist user={user} />
-        </View>
-      )}
+      <View onLayout={onLayout}>
+        {/* Setup Checklist */}
+        {user && (
+          <Animated.View style={[styles.section, getItemStyle(0)]}>
+            <SetupChecklist user={user} />
+          </Animated.View>
+        )}
 
-      {/* Collection Summary (requires auth) */}
-      {isLoggedIn && (
-        <View style={styles.section}>
-          <CollectionSummary />
-        </View>
-      )}
+        {/* Collection Summary (requires auth) */}
+        {isLoggedIn && (
+          <Animated.View style={[styles.section, getItemStyle(1)]}>
+            <CollectionSummary />
+          </Animated.View>
+        )}
 
-      {/* Smart Trades Section (requires auth) */}
-      {isLoggedIn && (
-        <View style={styles.section}>
-          <SmartTradesSection />
-        </View>
-      )}
+        {/* Smart Trades Section (requires auth) */}
+        {isLoggedIn && (
+          <Animated.View style={[styles.section, getItemStyle(2)]}>
+            {renderSmartTradesContent()}
+          </Animated.View>
+        )}
 
-      {/* Analytics Section */}
-      {isLoggedIn && (
-        <View style={styles.section}>
-          {isPremium ? (
-            <TouchableOpacity
-              style={styles.analyticsCard}
-              onPress={() => router.push('/analytics' as any)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.previewIcon, { backgroundColor: '#f0c04020' }]}>
-                <ChartBar size={28} color={colors.primary} weight="regular" />
+        {/* Analytics Section */}
+        {isLoggedIn && (
+          <Animated.View style={[styles.section, getItemStyle(3)]}>
+            {isPremium ? (
+              <Card
+                onPress={() => router.push('/analytics' as any)}
+                style={styles.analyticsCard}
+              >
+                <View style={styles.analyticsInner}>
+                  <View style={[styles.previewIcon, { backgroundColor: '#f0c04020' }]}>
+                    <ChartBar size={28} color={colors.primary} weight="regular" />
+                  </View>
+                  <View style={styles.previewContent}>
+                    <Text preset="body" style={styles.previewTitle}>
+                      {t('premium.analyticsTitle')}
+                    </Text>
+                    <Text preset="label">
+                      {t('premium.analyticsDescription')}
+                    </Text>
+                  </View>
+                  <CaretRight size={18} color={colors.textMuted} weight="regular" />
+                </View>
+              </Card>
+            ) : (
+              <LockedFeatureCard
+                title={t('premium.analyticsTitle')}
+                description={t('premium.analyticsDescription')}
+                Icon={ChartBar}
+                onPress={() => router.push('/(tabs)/profile')}
+              />
+            )}
+          </Animated.View>
+        )}
+
+        {/* Coming Soon Previews */}
+        <Animated.View style={getItemStyle(4)}>
+          <Text preset="subheading" style={styles.previewsTitle}>
+            {t('home.comingSoon')}
+          </Text>
+          {PREVIEWS.map((preview, index) => (
+            <Card key={index} style={styles.previewCard}>
+              <View style={styles.previewInner}>
+                <View style={[styles.previewIcon, { backgroundColor: preview.color + '20' }]}>
+                  <preview.Icon size={28} color={preview.color} weight="regular" />
+                </View>
+                <View style={styles.previewContent}>
+                  <Text preset="body" style={styles.previewTitle}>
+                    {t(preview.titleKey)}
+                  </Text>
+                  <Text preset="label">
+                    {t(preview.descKey)}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.previewContent}>
-                <Text style={styles.previewTitle}>{t('premium.analyticsTitle')}</Text>
-                <Text style={styles.previewDescription}>
-                  {t('premium.analyticsDescription')}
-                </Text>
-              </View>
-              <CaretRight size={18} color={colors.textMuted} weight="regular" />
-            </TouchableOpacity>
-          ) : (
-            <LockedFeatureCard
-              title={t('premium.analyticsTitle')}
-              description={t('premium.analyticsDescription')}
-              Icon={ChartBar}
-              onPress={() => router.push('/(tabs)/profile')}
-            />
-          )}
-        </View>
-      )}
-
-      {/* Coming Soon Previews */}
-      <Text style={styles.previewsTitle}>{t('home.comingSoon')}</Text>
-      {PREVIEWS.map((preview, index) => (
-        <View key={index} style={styles.previewCard}>
-          <View style={[styles.previewIcon, { backgroundColor: preview.color + '20' }]}>
-            <preview.Icon size={28} color={preview.color} weight="regular" />
-          </View>
-          <View style={styles.previewContent}>
-            <Text style={styles.previewTitle}>{t(preview.titleKey)}</Text>
-            <Text style={styles.previewDescription}>{t(preview.descKey)}</Text>
-          </View>
-        </View>
-      ))}
+            </Card>
+          ))}
+        </Animated.View>
+      </View>
     </ScrollView>
   );
 }
@@ -143,44 +234,38 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   welcome: {
-    ...typography.heading,
-    color: colors.primary,
     marginBottom: spacing.xs,
   },
   subtitle: {
-    ...typography.caption,
     marginBottom: spacing.xl,
   },
   section: {
     marginBottom: spacing.lg,
   },
   previewsTitle: {
-    ...typography.subheading,
     marginBottom: spacing.md,
   },
   analyticsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
     borderWidth: 1,
     borderColor: colors.primary + '30',
   },
-  previewCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+  analyticsInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  previewCard: {
     marginBottom: spacing.md,
+  },
+  previewInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   previewIcon: {
     width: 52,
     height: 52,
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -188,12 +273,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   previewTitle: {
-    ...typography.body,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
-  previewDescription: {
-    ...typography.caption,
-    lineHeight: 18,
+  shimmerTitle: {
+    marginBottom: spacing.md,
+  },
+  shimmerRow: {
+    marginBottom: spacing.sm,
   },
 });
