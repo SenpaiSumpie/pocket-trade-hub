@@ -1,13 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { List, Plus } from 'phosphor-react-native';
+import { ListBullets } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
+import Animated from 'react-native-reanimated';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useTierListStore } from '@/src/stores/tierlists';
 import { TierListCard } from './TierListCard';
+import { Button } from '@/src/components/ui/Button';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { TierListSkeleton } from '@/src/components/skeleton/TierListSkeleton';
 import type { TierList } from '@pocket-trade-hub/shared';
+import type { ViewStyle } from 'react-native';
 
 type SortOption = 'most_liked' | 'newest';
 
@@ -20,9 +25,17 @@ interface TierListBrowserProps {
   onScroll?: any;
   scrollEventThrottle?: number;
   contentContainerStyleExtra?: Record<string, any>;
+  getItemStyle?: (index: number) => ViewStyle | object;
+  onStaggerLayout?: () => void;
 }
 
-export function TierListBrowser({ onScroll, scrollEventThrottle, contentContainerStyleExtra }: TierListBrowserProps = {}) {
+export function TierListBrowser({
+  onScroll,
+  scrollEventThrottle,
+  contentContainerStyleExtra,
+  getItemStyle,
+  onStaggerLayout,
+}: TierListBrowserProps = {}) {
   const { t } = useTranslation();
   const tierLists = useTierListStore((s) => s.tierLists);
   const loading = useTierListStore((s) => s.loading);
@@ -58,47 +71,44 @@ export function TierListBrowser({ onScroll, scrollEventThrottle, contentContaine
   });
 
   const renderItem = useCallback(
-    ({ item }: { item: TierList }) => <TierListCard tierList={item} />,
-    [],
+    ({ item, index }: { item: TierList; index: number }) => (
+      <Animated.View style={getItemStyle?.(index)}>
+        <TierListCard tierList={item} />
+      </Animated.View>
+    ),
+    [getItemStyle],
   );
 
   // Loading state
   if (loading && tierLists.length === 0) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>{t('meta.loadingTierLists')}</Text>
-      </View>
-    );
+    return <TierListSkeleton />;
   }
 
   // Empty state
   if (!loading && tierLists.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <List size={64} color={colors.textMuted} weight="regular" />
-        <Text style={styles.emptyTitle}>{t('meta.noTierLists')}</Text>
-        <Text style={styles.emptySubtitle}>{t('meta.noTierListsHint')}</Text>
-      </View>
+      <EmptyState
+        icon={ListBullets}
+        title={t('meta.noTierLists')}
+        subtitle={t('meta.noTierListsHint')}
+      />
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onStaggerLayout}>
       {/* Sort toggle pills */}
       <View style={styles.sortRow}>
         {SORT_OPTIONS.map((opt) => {
           const active = sortBy === opt.key;
           return (
-            <Pressable
+            <Button
               key={opt.key}
-              style={[styles.sortPill, active && styles.sortPillActive]}
+              label={t(opt.labelKey)}
+              variant={active ? 'secondary' : 'ghost'}
+              size="md"
               onPress={() => setSortBy(opt.key)}
-            >
-              <Text style={[styles.sortPillText, active && styles.sortPillTextActive]}>
-                {t(opt.labelKey)}
-              </Text>
-            </Pressable>
+            />
           );
         })}
       </View>
@@ -108,8 +118,14 @@ export function TierListBrowser({ onScroll, scrollEventThrottle, contentContaine
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         estimatedItemSize={120}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#f0c040"
+            colors={["#f0c040"]}
+          />
+        }
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.3}
         onScroll={onScroll}
@@ -127,9 +143,13 @@ export function TierListBrowser({ onScroll, scrollEventThrottle, contentContaine
       />
 
       {/* Create Tier List FAB */}
-      <Pressable style={styles.fab} onPress={() => router.push('/create-tier-list' as any)}>
-        <Plus size={28} color={colors.background} weight="bold" />
-      </Pressable>
+      <Button
+        label="+"
+        variant="primary"
+        size="lg"
+        onPress={() => router.push('/create-tier-list' as any)}
+        style={styles.fab}
+      />
     </View>
   );
 }
@@ -138,38 +158,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
   sortRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
-  },
-  sortPill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sortPillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  sortPillText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  sortPillTextActive: {
-    color: colors.background,
-    fontWeight: '600',
   },
   listContent: {
     paddingTop: spacing.xs,
@@ -185,29 +178,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  loadingText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
-  },
-  emptyTitle: {
-    ...typography.subheading,
-    marginTop: spacing.md,
-  },
-  emptySubtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    maxWidth: 280,
+    minWidth: 56,
   },
 });

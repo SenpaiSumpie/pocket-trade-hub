@@ -1,9 +1,13 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
+import { useStaggeredList } from '@/src/hooks/useStaggeredList';
+import { useToast } from '@/src/hooks/useToast';
 import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
+import { Button } from '@/src/components/ui/Button';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { DeckRankingList } from '@/src/components/meta/DeckRankingList';
 import { TierListBrowser } from '@/src/components/meta/TierListBrowser';
@@ -23,6 +27,19 @@ export default function MetaScreen() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>('rankings');
   const [scraping, setScraping] = useState(false);
+  const toast = useToast();
+
+  // Stagger hooks for both views (called unconditionally for Rules of Hooks)
+  const decks = useMetaStore((s) => s.decks);
+  const deckLoading = useMetaStore((s) => s.loading);
+  const tierLists = useTierListStore((s) => s.tierLists);
+  const tierLoading = useTierListStore((s) => s.loading);
+
+  const deckStaggerCount = deckLoading ? 0 : decks.length;
+  const { onLayout: onDeckStaggerLayout, getItemStyle: getDeckItemStyle } = useStaggeredList(deckStaggerCount);
+
+  const tierStaggerCount = tierLoading ? 0 : tierLists.length;
+  const { onLayout: onTierStaggerLayout, getItemStyle: getTierItemStyle } = useStaggeredList(tierStaggerCount);
 
   const handleSegmentSwitch = useCallback((tab: ActiveTab) => {
     setActiveTab(tab);
@@ -34,9 +51,9 @@ export default function MetaScreen() {
       const res = await apiFetch<{ ok: boolean; deckCount: number }>('/meta/scrape', { method: 'POST' });
       await useMetaStore.getState().fetchDecks();
       await useTierListStore.getState().fetchTierLists();
-      Alert.alert('Scrape Complete', `Loaded ${res.deckCount} decks.`);
+      toast.success(`Loaded ${res.deckCount} decks`);
     } catch (err: any) {
-      Alert.alert('Scrape Failed', err.message);
+      toast.error('Scrape failed: ' + err.message);
     } finally {
       setScraping(false);
     }
@@ -53,20 +70,17 @@ export default function MetaScreen() {
       >
         {/* Segmented control */}
         <View style={styles.segmentBar}>
-          {SEGMENTS.map((seg, i) => {
+          {SEGMENTS.map((seg) => {
             const active = activeTab === seg.key;
             return (
-              <View key={seg.key} style={styles.segmentWrapper}>
-                {i > 0 && <View style={styles.segmentDivider} />}
-                <Pressable
-                  style={[styles.segmentItem, active && styles.segmentItemActive]}
-                  onPress={() => handleSegmentSwitch(seg.key)}
-                >
-                  <Text style={[styles.segmentLabel, active && styles.segmentLabelActive]}>
-                    {t(seg.labelKey)}
-                  </Text>
-                </Pressable>
-              </View>
+              <Button
+                key={seg.key}
+                label={t(seg.labelKey)}
+                variant={active ? 'secondary' : 'ghost'}
+                size="md"
+                onPress={() => handleSegmentSwitch(seg.key)}
+                style={styles.segmentButton}
+              />
             );
           })}
         </View>
@@ -93,12 +107,16 @@ export default function MetaScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           contentContainerStyleExtra={!__DEV__ ? { paddingTop: HEADER_MAX } : undefined}
+          getItemStyle={getDeckItemStyle}
+          onStaggerLayout={onDeckStaggerLayout}
         />
       ) : (
         <TierListBrowser
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           contentContainerStyleExtra={!__DEV__ ? { paddingTop: HEADER_MAX } : undefined}
+          getItemStyle={getTierItemStyle}
+          onStaggerLayout={onTierStaggerLayout}
         />
       )}
     </SafeAreaView>
@@ -115,40 +133,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
+    gap: spacing.sm,
   },
-  segmentWrapper: {
+  segmentButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  segmentDivider: {
-    width: 1,
-    backgroundColor: colors.border,
-  },
-  segmentItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm + 2,
-  },
-  segmentItemActive: {
-    backgroundColor: colors.primary + '18',
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-  },
-  segmentLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textMuted,
-  },
-  segmentLabelActive: {
-    color: colors.primary,
-    fontWeight: '700',
   },
   devScrapeButton: {
     backgroundColor: colors.primary,
@@ -159,9 +147,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 40,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
   devScrapeText: {
     color: colors.background,
