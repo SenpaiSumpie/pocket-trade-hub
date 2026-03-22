@@ -165,6 +165,9 @@ export default function MarketScreen() {
           refresh();
           toast.success('Post created');
         }}
+        onError={() => {
+          toast.error('Could not create post. Please try again.');
+        }}
       />
     </SafeAreaView>
   );

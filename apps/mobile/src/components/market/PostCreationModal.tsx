@@ -22,6 +22,7 @@ interface PostCreationModalProps {
   visible: boolean;
   onClose: () => void;
   onCreated: () => void;
+  onError?: () => void;
 }
 
 interface CardPickerItem {
@@ -35,7 +36,7 @@ interface CardPickerItem {
 
 type Step = 'type' | 'card' | 'confirm';
 
-export function PostCreationModal({ visible, onClose, onCreated }: PostCreationModalProps) {
+export function PostCreationModal({ visible, onClose, onCreated, onError }: PostCreationModalProps) {
   const { t } = useTranslation();
   const { createPost } = usePosts();
   const [step, setStep] = useState<Step>('type');
@@ -132,8 +133,10 @@ export function PostCreationModal({ visible, onClose, onCreated }: PostCreationM
     if (result) {
       resetState();
       onCreated();
+    } else {
+      onError?.();
     }
-  }, [postType, selectedCard, createPost, resetState, onCreated]);
+  }, [postType, selectedCard, createPost, resetState, onCreated, onError]);
 
   const filteredCards = useMemo(() => {
     if (!search.trim()) return cards;
