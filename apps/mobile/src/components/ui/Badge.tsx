@@ -9,12 +9,14 @@ export type BadgeVariant =
   | 'error'
   | 'rarity-diamond'
   | 'rarity-star'
-  | 'rarity-crown';
+  | 'rarity-crown'
+  | 'premium';
 
 export interface BadgeProps {
   variant?: BadgeVariant;
   label: string;
   style?: StyleProp<ViewStyle>;
+  textColor?: string;
 }
 
 interface VariantColors {
@@ -51,14 +53,19 @@ const variantMap: Record<BadgeVariant, VariantColors> = {
     backgroundColor: 'rgba(232, 180, 248, 0.15)',
     textColor: '#e8b4f8',
   },
+  premium: {
+    backgroundColor: '#f0c040',
+    textColor: '#0c0c18',
+  },
 };
 
-export function Badge({ variant = 'default', label, style }: BadgeProps) {
+export function Badge({ variant = 'default', label, style, textColor: textColorOverride }: BadgeProps) {
   const { backgroundColor, textColor } = variantMap[variant];
+  const finalTextColor = textColorOverride ?? textColor;
 
   return (
     <View style={[styles.container, { backgroundColor }, style]}>
-      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: finalTextColor }]}>{label}</Text>
     </View>
   );
 }
