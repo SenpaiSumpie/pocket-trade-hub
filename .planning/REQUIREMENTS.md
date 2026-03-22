@@ -17,11 +17,11 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Component Library
 
-- [ ] **CL-01**: Shared primitive components (Button, Card, Text, Badge, Input, Divider)
+- [x] **CL-01**: Shared primitive components (Button, Card, Text, Badge, Input, Divider)
 - [ ] **CL-02**: Skeleton loading states with shimmer animation matching content layout
-- [ ] **CL-03**: Empty states with illustrations and CTAs for all list/grid screens
+- [x] **CL-03**: Empty states with illustrations and CTAs for all list/grid screens
 - [ ] **CL-04**: Toast/snackbar system with success/error/info/warning variants
-- [ ] **CL-05**: Animated Pressable with scale-down + haptic touch feedback
+- [x] **CL-05**: Animated Pressable with scale-down + haptic touch feedback
 - [ ] **CL-06**: Branded pull-to-refresh with gold tint animation
 
 ### Navigation
@@ -96,11 +96,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DS-03 | Phase 13 | Complete |
 | DS-04 | Phase 13 | Complete |
 | DS-05 | Phase 13 | Complete |
-| CL-01 | Phase 16 | Pending |
+| CL-01 | Phase 16 | Complete |
 | CL-02 | Phase 16 | Pending |
-| CL-03 | Phase 16 | Pending |
+| CL-03 | Phase 16 | Complete |
 | CL-04 | Phase 16 | Pending |
-| CL-05 | Phase 16 | Pending |
+| CL-05 | Phase 16 | Complete |
 | CL-06 | Phase 16 | Pending |
 | NAV-01 | Phase 14 | Complete |
 | NAV-02 | Phase 14 | Complete |

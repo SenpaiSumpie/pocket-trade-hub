@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: UI/UX Overhaul
 status: unknown
-stopped_at: Completed 15-05-PLAN.md
-last_updated: "2026-03-21T23:22:12.609Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-03-22T00:20:33.274Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 17
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Players can instantly find other players who have cards they want AND want cards they have, eliminating the friction of manual trade hunting.
-**Current focus:** Phase 15 — animation-utilities-and-motion-system
+**Current focus:** Phase 16 — screen-migration-tier-1
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
+Phase: 16 (screen-migration-tier-1) — EXECUTING
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -53,6 +53,8 @@ Plan: Not started
 | Phase 15 P02 | 5 | 2 tasks | 3 files |
 | Phase 15 P04 | 6 | 2 tasks | 3 files |
 | Phase 15 P05 | 5 | 2 tasks | 6 files |
+| Phase 16 P01 | 7 | 2 tasks | 8 files |
+| Phase 16 P02 | 8 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -84,6 +86,9 @@ Plan: Not started
 - [Phase 15]: BottomSheetScrollView chosen over custom ScrollView — gesture-aware, resolves RESEARCH open question #3
 - [Phase Phase 15]: Internal LuckCalculator and ProposalCreationModal modals preserved as Modal in migrated sheets — creation/utility modals exempt per D-02
 - [Phase Phase 15]: postNotice section moved inside DetailSheet content area in ProposalDetailModal — adapts to BottomSheetScrollView wrapping all children
+- [Phase 16]: Button renders Animated.View wrapping Pressable so disabled opacity applies to entire button including icon
+- [Phase 16]: Card splits into PressableCard helper component to call useAnimatedPress conditionally without Rules of Hooks violation
+- [Phase Phase 16]: ToastOverlay coexists with react-native-toast-message; matchNotification push toasts use existing system, new success/error/info/warning toasts use the Zustand system
 
 ### Pending Todos
 
@@ -97,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T23:10:21.434Z
-Stopped at: Completed 15-05-PLAN.md
+Last session: 2026-03-22T00:20:33.271Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
