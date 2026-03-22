@@ -43,7 +43,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 13: Design System Foundation** - Shared token package, semantic colors, backward-compatible shim, cross-platform sync, hardcoded value audit (completed 2026-03-21)
 - [x] **Phase 14: Navigation Shell and App Chrome** - Custom tab bar, collapsible header, Inter font, Phosphor icons, haptic tab switching (completed 2026-03-21)
 - [x] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system (completed 2026-03-21)
-- [ ] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states
+- [x] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states (completed 2026-03-22)
 - [ ] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism
 - [ ] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh
 - [ ] **Phase 19: Premium Touches and Polish** - Branded splash, grid layout modes, parallax headers, haptic patterns, reduced-motion support
@@ -113,11 +113,11 @@ Plans:
   5. All tappable elements respond with scale-down animation and haptic touch feedback via Animated Pressable
   6. Pull-to-refresh uses a branded gold tint animation
   7. Cards tab displays rarity-based visual effects (holographic shimmer for stars, glow for crowns)
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] 16-01-PLAN.md -- UI primitive component library (Button, Card, Text, Badge, Input, Divider, EmptyState)
 - [x] 16-02-PLAN.md -- Toast system (Zustand store + overlay) and skeleton loading compositions
-- [ ] 16-03-PLAN.md -- Cards tab migration with rarity effects, shimmer skeleton, staggered grid
+- [x] 16-03-PLAN.md -- Cards tab migration with rarity effects, shimmer skeleton, staggered grid
 - [x] 16-04-PLAN.md -- Trades tab migration with Card primitives, skeletons, empty states
 - [x] 16-05-PLAN.md -- Home tab migration with Card/Text primitives, staggered sections, skeleton loading
 
@@ -177,7 +177,7 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 13. Design System Foundation | v3.0 | 3/3 | Complete    | 2026-03-21 |
 | 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
-| 16. Screen Migration Tier 1 | v3.0 | 4/5 | In Progress|  |
+| 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete   | 2026-03-22 |
 | 17. Screen Migration Tier 2 | v3.0 | 0/TBD | Not started | - |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |

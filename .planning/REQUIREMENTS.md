@@ -43,7 +43,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 ### Screen Migration
 
 - [x] **SCR-01**: Home tab full visual refresh with new primitives and motion
-- [ ] **SCR-02**: Cards tab refresh with rarity visual effects (holographic shimmer, crown glow)
+- [x] **SCR-02**: Cards tab refresh with rarity visual effects (holographic shimmer, crown glow)
 - [x] **SCR-03**: Trades tab refresh with animated proposal cards and match cards
 - [ ] **SCR-04**: Market tab refresh with gradient accents on premium sections
 - [ ] **SCR-05**: Meta tab refresh with deck cards and tier list visual overhaul
@@ -113,7 +113,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOT-04 | Phase 15 | Complete |
 | MOT-05 | Phase 15 | Complete |
 | SCR-01 | Phase 16 | Complete |
-| SCR-02 | Phase 16 | Pending |
+| SCR-02 | Phase 16 | Complete |
 | SCR-03 | Phase 16 | Complete |
 | SCR-04 | Phase 17 | Pending |
 | SCR-05 | Phase 17 | Pending |
