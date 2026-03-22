@@ -1,30 +1,34 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   Modal,
   ScrollView,
   Alert,
   StyleSheet,
 } from 'react-native';
-import { ShieldCheck, Heart, X, Trash } from 'phosphor-react-native';
+import { Shield, Heart, X, Trash } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useTierListStore } from '@/src/stores/tierlists';
 import { useAuthStore } from '@/src/stores/auth';
+import { Card } from '@/src/components/ui/Card';
+import { Badge } from '@/src/components/ui/Badge';
+import { Button } from '@/src/components/ui/Button';
+import { Text } from '@/src/components/ui/Text';
+import { useToast } from '@/src/hooks/useToast';
 import type { TierList } from '@pocket-trade-hub/shared';
 
 interface TierListCardProps {
   tierList: TierList;
 }
 
-const TIER_COLORS: Record<string, string> = {
-  S: '#e74c3c',
-  A: '#e67e22',
-  B: '#f1c40f',
-  C: '#2ecc71',
-  D: '#3498db',
+const TIER_BADGE_STYLES: Record<string, { bg: string; text: string }> = {
+  S: { bg: 'rgba(240, 192, 64, 0.2)',  text: '#f0c040' },
+  A: { bg: 'rgba(167, 139, 250, 0.2)', text: '#a78bfa' },
+  B: { bg: 'rgba(96, 165, 250, 0.2)',  text: '#60a5fa' },
+  C: { bg: 'rgba(52, 211, 153, 0.2)',  text: '#34d399' },
+  D: { bg: colors.surfaceLight,         text: colors.textMuted },
 };
 
 const TIER_KEYS = ['S', 'A', 'B', 'C', 'D'] as const;
@@ -35,6 +39,7 @@ export function TierListCard({ tierList }: TierListCardProps) {
   const deleteTierList = useTierListStore((s) => s.deleteTierList);
   const currentUserId = useAuthStore((s) => s.user?.id) ?? '';
   const [detailVisible, setDetailVisible] = useState(false);
+  const toast = useToast();
 
   const isOwner = currentUserId === tierList.userId;
   const totalDecks = TIER_KEYS.reduce(
@@ -42,8 +47,17 @@ export function TierListCard({ tierList }: TierListCardProps) {
     0,
   );
 
-  const handleVote = () => {
-    vote(tierList.id);
+  const handleVote = async () => {
+    try {
+      await vote(tierList.id);
+      if (tierList.userVoted) {
+        toast.info('Vote removed');
+      } else {
+        toast.success('Vote recorded');
+      }
+    } catch {
+      toast.error('Could not record vote. Please try again.');
+    }
   };
 
   const handleDelete = () => {
@@ -66,54 +80,62 @@ export function TierListCard({ tierList }: TierListCardProps) {
 
   return (
     <>
-      <Pressable style={styles.card} onPress={() => setDetailVisible(true)}>
+      <Card onPress={() => setDetailVisible(true)} style={styles.cardWrapper}>
         {/* Header row */}
         <View style={styles.headerRow}>
           <View style={styles.titleRow}>
             {tierList.isOfficial && (
-              <View style={styles.officialBadge}>
-                <ShieldCheck size={14} color="#f0c040" weight="fill" />
-                <Text style={styles.officialText}>{t('meta.official')}</Text>
+              <View style={styles.officialRow}>
+                <Shield size={14} color="#2ecc71" weight="fill" />
+                <Badge variant="success" label={t('meta.official')} />
               </View>
             )}
-            <Text style={styles.title} numberOfLines={1}>
+            <Text preset="body" style={styles.title} numberOfLines={1}>
               {tierList.title}
             </Text>
           </View>
-          <Pressable style={styles.voteButton} onPress={handleVote}>
-            <Heart
-              size={20}
-              color={tierList.userVoted ? colors.error : colors.textMuted}
-              weight={tierList.userVoted ? 'fill' : 'regular'}
-            />
-            <Text style={styles.voteCount}>{tierList.upvoteCount}</Text>
-          </Pressable>
+          <Button
+            variant={tierList.userVoted ? 'primary' : 'ghost'}
+            size="sm"
+            onPress={handleVote}
+            Icon={({ size, color, weight }: { size: number; color: string; weight: string }) => (
+              <Heart
+                size={18}
+                weight={tierList.userVoted ? 'fill' : 'regular'}
+                color={tierList.userVoted ? '#0c0c18' : '#a0a0b8'}
+              />
+            )}
+            label={String(tierList.upvoteCount)}
+          />
         </View>
 
         {/* Tier preview */}
         <View style={styles.tierPreview}>
           {TIER_KEYS.map((key) => {
             const count = tierList.tiers[key]?.length ?? 0;
+            const tierStyle = TIER_BADGE_STYLES[key];
             return (
-              <View key={key} style={styles.tierPill}>
-                <View style={[styles.tierDot, { backgroundColor: TIER_COLORS[key] }]} />
-                <Text style={styles.tierLabel}>{key}</Text>
-                <Text style={styles.tierCount}>{count}</Text>
-              </View>
+              <Badge
+                key={key}
+                variant="default"
+                label={`${key} ${count}`}
+                style={{ backgroundColor: tierStyle.bg }}
+                textColor={tierStyle.text}
+              />
             );
           })}
         </View>
 
         {/* Footer */}
         <View style={styles.footerRow}>
-          <Text style={styles.footerText}>
+          <Text preset="label" style={styles.footerText}>
             {t('meta.deckCount', { count: totalDecks })}
           </Text>
-          <Text style={styles.footerText}>
+          <Text preset="label" style={styles.footerText}>
             {new Date(tierList.createdAt).toLocaleDateString()}
           </Text>
         </View>
-      </Pressable>
+      </Card>
 
       {/* Detail modal */}
       <Modal
@@ -127,9 +149,9 @@ export function TierListCard({ tierList }: TierListCardProps) {
           <View style={styles.modalHeader}>
             <View style={styles.modalTitleRow}>
               {tierList.isOfficial && (
-                <ShieldCheck size={18} color="#f0c040" weight="fill" />
+                <Shield size={18} color="#2ecc71" weight="fill" />
               )}
-              <Text style={styles.modalTitle} numberOfLines={2}>
+              <Text preset="subheading" style={styles.modalTitle} numberOfLines={2}>
                 {tierList.title}
               </Text>
             </View>
@@ -147,45 +169,53 @@ export function TierListCard({ tierList }: TierListCardProps) {
           >
             {/* Description */}
             {tierList.description && (
-              <Text style={styles.description}>{tierList.description}</Text>
+              <Text preset="body" color={colors.textSecondary} style={styles.description}>
+                {tierList.description}
+              </Text>
             )}
 
             {/* Creator info */}
             <View style={styles.metaRow}>
-              <Text style={styles.metaText}>
+              <Text preset="label">
                 {new Date(tierList.createdAt).toLocaleDateString()}
               </Text>
-              <Pressable style={styles.voteButton} onPress={handleVote}>
-                <Heart
-                  size={22}
-                  color={tierList.userVoted ? colors.error : colors.textMuted}
-                  weight={tierList.userVoted ? 'fill' : 'regular'}
-                />
-                <Text style={styles.voteCountLarge}>{tierList.upvoteCount}</Text>
-              </Pressable>
+              <Button
+                variant={tierList.userVoted ? 'primary' : 'ghost'}
+                size="sm"
+                onPress={handleVote}
+                Icon={({ size, color, weight }: { size: number; color: string; weight: string }) => (
+                  <Heart
+                    size={22}
+                    weight={tierList.userVoted ? 'fill' : 'regular'}
+                    color={tierList.userVoted ? '#0c0c18' : '#a0a0b8'}
+                  />
+                )}
+                label={String(tierList.upvoteCount)}
+              />
             </View>
 
             {/* Full tier breakdown */}
             {TIER_KEYS.map((key) => {
               const entries = tierList.tiers[key] ?? [];
+              const tierStyle = TIER_BADGE_STYLES[key];
               return (
                 <View key={key} style={styles.tierRow}>
                   <View
-                    style={[styles.tierHeader, { backgroundColor: TIER_COLORS[key] + '30' }]}
+                    style={[styles.tierHeader, { backgroundColor: tierStyle.bg }]}
                   >
-                    <Text style={[styles.tierHeaderText, { color: TIER_COLORS[key] }]}>
+                    <Text preset="body" style={[styles.tierHeaderText, { color: tierStyle.text }]}>
                       {key}
                     </Text>
                   </View>
                   <View style={styles.tierEntries}>
                     {entries.length > 0 ? (
                       entries.map((entry, idx) => (
-                        <Text key={idx} style={styles.tierEntryText}>
+                        <Text key={idx} preset="body" style={styles.tierEntryText}>
                           {entry.deckName}
                         </Text>
                       ))
                     ) : (
-                      <Text style={styles.tierEmptyText}>--</Text>
+                      <Text preset="label" style={styles.tierEmptyText}>--</Text>
                     )}
                   </View>
                 </View>
@@ -196,7 +226,9 @@ export function TierListCard({ tierList }: TierListCardProps) {
             {isOwner && !tierList.isOfficial && (
               <Pressable style={styles.deleteButton} onPress={handleDelete}>
                 <Trash size={18} color={colors.error} weight="regular" />
-                <Text style={styles.deleteText}>{t('meta.deleteTierList')}</Text>
+                <Text preset="body" color={colors.error} style={styles.deleteText}>
+                  {t('meta.deleteTierList')}
+                </Text>
               </Pressable>
             )}
           </ScrollView>
@@ -207,14 +239,9 @@ export function TierListCard({ tierList }: TierListCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
+  cardWrapper: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   headerRow: {
     flexDirection: 'row',
@@ -229,67 +256,26 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginRight: spacing.sm,
   },
-  officialBadge: {
+  officialRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    backgroundColor: '#f0c040' + '20',
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-  },
-  officialText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#f0c040',
+    gap: 4,
   },
   title: {
-    ...typography.body,
     fontWeight: '600',
     flex: 1,
-  },
-  voteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  voteCount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
   },
   tierPreview: {
     flexDirection: 'row',
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  tierPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  tierDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  tierLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  tierCount: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   footerText: {
-    ...typography.caption,
     fontSize: 11,
-    color: colors.textMuted,
   },
 
   // Modal styles
@@ -314,7 +300,6 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   modalTitle: {
-    ...typography.subheading,
     flex: 1,
   },
   closeButton: {
@@ -333,8 +318,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   description: {
-    ...typography.body,
-    color: colors.textSecondary,
     marginBottom: spacing.md,
   },
   metaRow: {
@@ -342,15 +325,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
-  },
-  metaText: {
-    ...typography.caption,
-    color: colors.textMuted,
-  },
-  voteCountLarge: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.textSecondary,
   },
   tierRow: {
     flexDirection: 'row',
@@ -379,9 +353,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   tierEntryText: {
-    ...typography.body,
     fontSize: 13,
-    color: colors.text,
     backgroundColor: colors.surfaceLight,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
@@ -389,8 +361,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tierEmptyText: {
-    ...typography.caption,
-    color: colors.textMuted,
     fontStyle: 'italic',
   },
   deleteButton: {
@@ -407,6 +377,5 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.error,
   },
 });

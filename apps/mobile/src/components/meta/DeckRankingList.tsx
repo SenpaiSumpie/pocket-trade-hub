@@ -1,12 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { CaretRight, Trophy } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
+import Animated from 'react-native-reanimated';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { useMetaStore } from '@/src/stores/meta';
 import { DeckDetailModal } from './DeckDetailModal';
+import { Card } from '@/src/components/ui/Card';
+import { Button } from '@/src/components/ui/Button';
+import { Badge } from '@/src/components/ui/Badge';
+import { Text } from '@/src/components/ui/Text';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { DeckRankingSkeleton } from '@/src/components/skeleton/DeckRankingSkeleton';
 import type { DeckMeta } from '@pocket-trade-hub/shared';
+import type { ViewStyle } from 'react-native';
 
 type SortOption = 'winRate' | 'usageRate' | 'trending';
 
@@ -20,9 +28,17 @@ interface DeckRankingListProps {
   onScroll?: any;
   scrollEventThrottle?: number;
   contentContainerStyleExtra?: Record<string, any>;
+  getItemStyle?: (index: number) => ViewStyle | object;
+  onStaggerLayout?: () => void;
 }
 
-export function DeckRankingList({ onScroll, scrollEventThrottle, contentContainerStyleExtra }: DeckRankingListProps = {}) {
+export function DeckRankingList({
+  onScroll,
+  scrollEventThrottle,
+  contentContainerStyleExtra,
+  getItemStyle,
+  onStaggerLayout,
+}: DeckRankingListProps = {}) {
   const { t } = useTranslation();
   const decks = useMetaStore((s) => s.decks);
   const loading = useMetaStore((s) => s.loading);
@@ -72,74 +88,73 @@ export function DeckRankingList({ onScroll, scrollEventThrottle, contentContaine
     ({ item, index }: { item: DeckMeta; index: number }) => {
       const topCards = getTopCards(item);
       return (
-        <Pressable style={styles.deckCard} onPress={() => handleDeckPress(item)}>
-          <View style={styles.rankBadge}>
-            <Text style={styles.rankText}>{index + 1}</Text>
-          </View>
-          <View style={styles.deckInfo}>
-            <Text style={styles.deckName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>{t('meta.winRate')}</Text>
-                <Text style={styles.statValue}>{formatRate(item.winRate)}</Text>
+        <Animated.View style={getItemStyle?.(index)}>
+          <Card onPress={() => handleDeckPress(item)} style={styles.deckCard}>
+            <View style={styles.deckCardInner}>
+              <Badge
+                variant="default"
+                label={String(index + 1)}
+                style={styles.rankBadge}
+              />
+              <View style={styles.deckInfo}>
+                <Text preset="body" style={styles.deckName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text preset="label">{t('meta.winRate')}</Text>
+                    <Text preset="body" style={styles.statValue}>{formatRate(item.winRate)}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text preset="label">{t('meta.usageRate')}</Text>
+                    <Text preset="body" style={styles.statValue}>{formatRate(item.usageRate)}</Text>
+                  </View>
+                </View>
+                {topCards.length > 0 && (
+                  <Text preset="label" style={styles.topCardsText} numberOfLines={1}>
+                    {topCards.join(', ')}
+                  </Text>
+                )}
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>{t('meta.usageRate')}</Text>
-                <Text style={styles.statValue}>{formatRate(item.usageRate)}</Text>
-              </View>
+              <CaretRight size={18} color={colors.textMuted} weight="regular" />
             </View>
-            {topCards.length > 0 && (
-              <Text style={styles.topCardsText} numberOfLines={1}>
-                {topCards.join(', ')}
-              </Text>
-            )}
-          </View>
-          <CaretRight size={18} color={colors.textMuted} weight="regular" />
-        </Pressable>
+          </Card>
+        </Animated.View>
       );
     },
-    [handleDeckPress, t],
+    [handleDeckPress, t, getItemStyle],
   );
 
   // Loading state
   if (loading && decks.length === 0) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>{t('meta.loadingDecks')}</Text>
-      </View>
-    );
+    return <DeckRankingSkeleton />;
   }
 
   // Empty state
   if (!loading && decks.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <Trophy size={64} color={colors.textMuted} weight="regular" />
-        <Text style={styles.emptyTitle}>{t('meta.noDecks')}</Text>
-        <Text style={styles.emptySubtitle}>{t('meta.noDecksHint')}</Text>
-      </View>
+      <EmptyState
+        icon={Trophy}
+        title={t('meta.noDecks')}
+        subtitle={t('meta.noDecksHint')}
+      />
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onStaggerLayout}>
       {/* Sort toggle pills */}
       <View style={styles.sortRow}>
         {SORT_OPTIONS.map((opt) => {
           const active = sortBy === opt.key;
           return (
-            <Pressable
+            <Button
               key={opt.key}
-              style={[styles.sortPill, active && styles.sortPillActive]}
+              label={t(opt.labelKey)}
+              variant={active ? 'secondary' : 'ghost'}
+              size="md"
               onPress={() => setSortBy(opt.key)}
-            >
-              <Text style={[styles.sortPillText, active && styles.sortPillTextActive]}>
-                {t(opt.labelKey)}
-              </Text>
-            </Pressable>
+            />
           );
         })}
       </View>
@@ -149,14 +164,20 @@ export function DeckRankingList({ onScroll, scrollEventThrottle, contentContaine
         keyExtractor={(item) => item.id}
         renderItem={renderDeckItem}
         estimatedItemSize={90}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#f0c040"
+            colors={["#f0c040"]}
+          />
+        }
         onScroll={onScroll}
         scrollEventThrottle={scrollEventThrottle ?? 16}
         contentContainerStyle={{ ...styles.listContent, ...contentContainerStyleExtra }}
         ListFooterComponent={
           scrapedAt ? (
-            <Text style={styles.footerText}>
+            <Text preset="label" style={styles.footerText}>
               {t('meta.lastUpdated', { date: new Date(scrapedAt).toLocaleDateString() })}
             </Text>
           ) : null
@@ -176,69 +197,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
   sortRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
-  sortPill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sortPillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  sortPillText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  sortPillTextActive: {
-    color: colors.background,
-    fontWeight: '600',
-  },
   deckCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+  },
+  deckCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
   },
   rankBadge: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  rankText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
+    alignSelf: 'flex-start',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   deckInfo: {
     flex: 1,
   },
   deckName: {
-    ...typography.body,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
@@ -252,44 +239,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
   statValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text,
   },
   topCardsText: {
-    ...typography.caption,
     fontSize: 11,
-    color: colors.textMuted,
   },
   listContent: {
     paddingTop: spacing.xs,
     paddingBottom: spacing.xxl,
   },
   footerText: {
-    ...typography.caption,
     textAlign: 'center',
     padding: spacing.md,
-    color: colors.textMuted,
-  },
-  loadingText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
-  },
-  emptyTitle: {
-    ...typography.subheading,
-    marginTop: spacing.md,
-  },
-  emptySubtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    maxWidth: 280,
   },
 });
