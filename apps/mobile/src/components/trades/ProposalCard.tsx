@@ -3,8 +3,8 @@ import { Image } from 'expo-image';
 import { Star, Newspaper, ArrowsLeftRight } from 'phosphor-react-native';
 import { getAvatarById } from '@/src/constants/avatars';
 import { Card, Text, Badge } from '@/src/components/ui';
+import type { BadgeVariant } from '@/src/components/ui/Badge';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
-import type { BadgeVariant } from '@/src/components/ui';
 import type { TradeProposal, ProposalCard as ProposalCardType } from '@pocket-trade-hub/shared';
 
 interface EnrichedProposal extends TradeProposal {

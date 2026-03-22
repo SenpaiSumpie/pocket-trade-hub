@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
+import Animated from 'react-native-reanimated';
 import { useFocusEffect } from 'expo-router';
-import { Newspaper, FileText, ArrowLeft, CaretDown, CaretUp, Check, Clock } from 'phosphor-react-native';
+import { Newspaper, FileText, ArrowLeft, CaretDown, CaretUp, Check, Tag, ArrowsLeftRight, Sparkle } from 'phosphor-react-native';
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { usePosts } from '@/src/hooks/usePosts';
 import { useProposals } from '@/src/hooks/useProposals';
@@ -14,10 +15,14 @@ import { MyPostDetailModal } from '@/src/components/trades/MyPostDetailModal';
 import { ProposalCard } from '@/src/components/trades/ProposalCard';
 import { ProposalDetailModal } from '@/src/components/trades/ProposalDetailModal';
 import { RatingModal } from '@/src/components/trades/RatingModal';
+import { Badge, EmptyState, Text } from '@/src/components/ui';
+import { PostListSkeleton } from '@/src/components/skeleton/PostListSkeleton';
+import { ProposalListSkeleton } from '@/src/components/skeleton/ProposalListSkeleton';
+import { useStaggeredList } from '@/src/hooks/useStaggeredList';
 import { useTranslation } from 'react-i18next';
 import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
 import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
-import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradePost, TradeProposal } from '@pocket-trade-hub/shared';
 
 type ProposalDirection = 'all' | 'incoming' | 'outgoing';
@@ -77,6 +82,14 @@ export default function TradesScreen() {
   const activePostCount = useMemo(() => {
     return myPosts.filter((p) => p?.status === 'active').length;
   }, [myPosts]);
+
+  // Staggered list animation — gate count behind loaded data (Pitfall 4)
+  const loading = activeSegment === 'posts' ? myPostsLoading : proposalsLoading;
+  const currentItems = activeSegment === 'posts' ? myPosts : filteredProposals;
+  const staggerCount = loading ? 0 : currentItems.length;
+  const { onLayout, getItemStyle } = useStaggeredList(staggerCount);
+
+  const isEmpty = currentItems.length === 0;
 
   // Refresh data when tab is focused
   useFocusEffect(
@@ -147,9 +160,6 @@ export default function TradesScreen() {
   );
 
   const directionLabel = DIRECTION_KEYS.find((o) => o.value === direction)?.labelKey ?? 'trades.all';
-
-  const loading = activeSegment === 'posts' ? myPostsLoading : proposalsLoading;
-  const isEmpty = activeSegment === 'posts' ? myPosts.length === 0 : filteredProposals.length === 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -258,45 +268,38 @@ export default function TradesScreen() {
         </View>
       )}
 
-      {/* Loading state */}
+      {/* Loading state — skeleton shimmer */}
       {loading && isEmpty ? (
-        <View style={[styles.centerContainer, { paddingTop: HEADER_MAX }]}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>
-            {activeSegment === 'posts' ? t('trades.loadingPosts') : t('trades.loadingProposals')}
-          </Text>
+        <View style={[styles.listContainer, { paddingTop: HEADER_MAX }]}>
+          {activeSegment === 'posts' ? (
+            <PostListSkeleton />
+          ) : (
+            <ProposalListSkeleton />
+          )}
         </View>
       ) : !loading && isEmpty ? (
-        /* Empty state */
+        /* Empty state — contextual per segment */
         <View style={[styles.centerContainer, { paddingTop: HEADER_MAX }]}>
           {activeSegment === 'posts' ? (
-            <>
-              <Newspaper size={64} color={colors.textMuted} weight="regular" />
-              <Text style={styles.emptyTitle}>{t('trades.noPosts')}</Text>
-              <Text style={styles.emptySubtitle}>
-                {t('trades.noPostsHint')}
-              </Text>
-              <Text style={styles.emptyHint}>{t('trades.goToMarket')}</Text>
-            </>
+            <EmptyState
+              icon={Tag}
+              title="No posts yet"
+              subtitle="Create a post to start trading with other players"
+              ctaLabel="Go to Marketplace"
+              onCta={() => { /* navigate to marketplace / post creation */ }}
+            />
           ) : proposalView === 'active' ? (
-            <>
-              <FileText size={64} color={colors.textMuted} weight="regular" />
-              <Text style={styles.emptyTitle}>{t('trades.noActiveProposals')}</Text>
-              <Text style={styles.emptySubtitle}>
-                {t('trades.noActiveProposalsHint')}
-              </Text>
-              <Text style={styles.emptyHint}>
-                {t('trades.proposalHint')}
-              </Text>
-            </>
+            <EmptyState
+              icon={ArrowsLeftRight}
+              title="No proposals yet"
+              subtitle="When other players propose trades, they'll appear here"
+            />
           ) : (
-            <>
-              <Clock size={64} color={colors.textMuted} weight="regular" />
-              <Text style={styles.emptyTitle}>{t('trades.noTradeHistory')}</Text>
-              <Text style={styles.emptySubtitle}>
-                {t('trades.noTradeHistoryHint')}
-              </Text>
-            </>
+            <EmptyState
+              icon={Sparkle}
+              title="No trade history"
+              subtitle="Completed and closed proposals will appear here"
+            />
           )}
         </View>
       ) : activeSegment === 'posts' ? (
@@ -304,14 +307,23 @@ export default function TradesScreen() {
         <FlashList
           data={myPosts}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <MyPostCard post={item} onPress={() => handlePostPress(item)} />
+          renderItem={({ item, index }) => (
+            <Animated.View style={getItemStyle(index)}>
+              <MyPostCard post={item} onPress={() => handlePostPress(item)} />
+            </Animated.View>
           )}
           estimatedItemSize={100}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#f0c040"
+              colors={["#f0c040"]}
+            />
+          }
           onScroll={scrollHandler}
           scrollEventThrottle={16}
+          onLayout={onLayout}
           contentContainerStyle={{ ...styles.listContent, paddingTop: HEADER_MAX }}
         />
       ) : (
@@ -319,18 +331,27 @@ export default function TradesScreen() {
         <FlashList
           data={filteredProposals}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ProposalCard
-              proposal={item}
-              currentUserId={currentUserId}
-              onPress={() => handleProposalPress(item)}
-            />
+          renderItem={({ item, index }) => (
+            <Animated.View style={getItemStyle(index)}>
+              <ProposalCard
+                proposal={item}
+                currentUserId={currentUserId}
+                onPress={() => handleProposalPress(item)}
+              />
+            </Animated.View>
           )}
           estimatedItemSize={180}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#f0c040"
+              colors={["#f0c040"]}
+            />
+          }
           onScroll={scrollHandler}
           scrollEventThrottle={16}
+          onLayout={onLayout}
           contentContainerStyle={{ ...styles.listContent, paddingTop: HEADER_MAX }}
         />
       )}
@@ -368,9 +389,10 @@ const styles = StyleSheet.create({
   centerContainer: {
     flex: 1,
     backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
+  },
+  listContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
 
   // Tab bar
@@ -520,26 +542,5 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
-  },
-  loadingText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
-  },
-  emptyTitle: {
-    ...typography.subheading,
-    marginTop: spacing.md,
-  },
-  emptySubtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.md,
-    maxWidth: 280,
-  },
-  emptyHint: {
-    ...typography.caption,
-    color: colors.primary,
-    marginTop: spacing.sm,
   },
 });
