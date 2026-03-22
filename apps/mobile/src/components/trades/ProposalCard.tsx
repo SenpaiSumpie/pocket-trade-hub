@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Star, Newspaper, ArrowsLeftRight } from 'phosphor-react-native';
 import { getAvatarById } from '@/src/constants/avatars';
-import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
+import { Card, Text, Badge } from '@/src/components/ui';
+import { colors, spacing, borderRadius } from '@/src/constants/theme';
+import type { BadgeVariant } from '@/src/components/ui';
 import type { TradeProposal, ProposalCard as ProposalCardType } from '@pocket-trade-hub/shared';
 
 interface EnrichedProposal extends TradeProposal {
@@ -25,13 +27,13 @@ interface ProposalCardProps {
   onPress: () => void;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: colors.primary,
-  accepted: colors.success,
-  rejected: colors.error,
-  countered: '#3498db',
-  completed: colors.success,
-  cancelled: colors.textMuted,
+const STATUS_VARIANTS: Record<string, BadgeVariant> = {
+  pending: 'default',
+  accepted: 'success',
+  rejected: 'error',
+  countered: 'default',
+  completed: 'success',
+  cancelled: 'default',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -76,7 +78,11 @@ function CardPreview({ cards, max = 3 }: { cards: ProposalCardType[]; max?: numb
           transition={150}
         />
       ))}
-      {extra > 0 && <Text style={styles.moreText}>+{extra}</Text>}
+      {extra > 0 && (
+        <Text preset="label" color={colors.textSecondary} style={styles.moreText}>
+          +{extra}
+        </Text>
+      )}
     </View>
   );
 }
@@ -91,11 +97,14 @@ export function ProposalCard({
   const avatar = partner ? getAvatarById(partner.avatarId) : null;
 
   const partnerName = partner?.displayName ?? 'Trainer';
-  const statusColor = STATUS_COLORS[proposal.status] ?? colors.textMuted;
+  const statusVariant = STATUS_VARIANTS[proposal.status] ?? 'default';
   const statusLabel = STATUS_LABELS[proposal.status] ?? proposal.status;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <Card
+      onPress={onPress}
+      style={styles.card}
+    >
       {/* Top row: partner info + status */}
       <View style={styles.topRow}>
         <View style={styles.partnerRow}>
@@ -108,29 +117,27 @@ export function ProposalCard({
             <Text style={styles.avatarEmoji}>{avatar?.emoji ?? '?'}</Text>
           </View>
           <View style={styles.partnerInfo}>
-            <Text style={styles.partnerName} numberOfLines={1}>
+            <Text preset="label" style={styles.partnerName} numberOfLines={1}>
               {partnerName}
             </Text>
             {partner && partner.tradeCount > 0 ? (
               <View style={styles.reputationRow}>
                 <Star size={11} color={colors.primary} weight="fill" />
-                <Text style={styles.reputationText}>
+                <Text preset="label" color={colors.primary} style={styles.reputationText}>
                   {partner.avgRating.toFixed(1)}
                 </Text>
-                <Text style={styles.tradeCountText}>
+                <Text preset="label" color={colors.textMuted}>
                   ({partner.tradeCount} trade{partner.tradeCount !== 1 ? 's' : ''})
                 </Text>
               </View>
             ) : (
-              <Text style={styles.newTraderText}>New trader</Text>
+              <Text preset="label" color={colors.textMuted}>New trader</Text>
             )}
           </View>
         </View>
         <View style={styles.metaColumn}>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{statusLabel}</Text>
-          </View>
-          <Text style={styles.directionText}>
+          <Badge variant={statusVariant} label={statusLabel} />
+          <Text preset="label" color={colors.textSecondary} style={styles.directionText}>
             {isOutgoing ? 'Outgoing' : 'Incoming'}
           </Text>
         </View>
@@ -140,7 +147,7 @@ export function ProposalCard({
       {(proposal as EnrichedProposal).postId && (
         <View style={styles.postRefRow}>
           <Newspaper size={12} color={colors.textSecondary} weight="regular" />
-          <Text style={styles.postRefText}>
+          <Text preset="label" color={colors.textSecondary}>
             From post{(proposal as EnrichedProposal).postInfo ? `: ${(proposal as EnrichedProposal).postInfo!.cardName}` : ''}
           </Text>
         </View>
@@ -149,38 +156,34 @@ export function ProposalCard({
       {/* Card trade preview — larger cards */}
       <View style={styles.tradeRow}>
         <View style={styles.tradeSide}>
-          <Text style={styles.tradeSideLabel}>{isOutgoing ? 'You give' : 'They give'}</Text>
+          <Text preset="label" color={colors.textSecondary} style={styles.tradeSideLabel}>
+            {isOutgoing ? 'You give' : 'They give'}
+          </Text>
           <CardPreview cards={isOutgoing ? proposal.senderGives : proposal.senderGets} />
         </View>
         <View style={styles.swapContainer}>
           <ArrowsLeftRight size={18} color={colors.textMuted} weight="regular" />
         </View>
         <View style={styles.tradeSide}>
-          <Text style={styles.tradeSideLabel}>{isOutgoing ? 'You get' : 'They get'}</Text>
+          <Text preset="label" color={colors.textSecondary} style={styles.tradeSideLabel}>
+            {isOutgoing ? 'You get' : 'They get'}
+          </Text>
           <CardPreview cards={isOutgoing ? proposal.senderGets : proposal.senderGives} />
         </View>
       </View>
 
       {/* Timestamp */}
-      <Text style={styles.timeText}>{formatTimeAgo(proposal.createdAt)}</Text>
-    </TouchableOpacity>
+      <Text preset="label" color={colors.textMuted} style={styles.timeText}>
+        {formatTimeAgo(proposal.createdAt)}
+      </Text>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
     marginBottom: spacing.sm,
     marginHorizontal: spacing.md,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
   },
   // Top row
   topRow: {
@@ -220,36 +223,14 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   reputationText: {
-    fontSize: 12,
-    color: colors.primary,
     fontWeight: '600',
-  },
-  tradeCountText: {
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  newTraderText: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
   },
   metaColumn: {
     alignItems: 'flex-end',
     gap: 3,
   },
-  statusBadge: {
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 3,
-    borderRadius: borderRadius.full,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
   directionText: {
     fontSize: 10,
-    color: colors.textSecondary,
   },
   // Trade row
   tradeRow: {
@@ -263,7 +244,6 @@ const styles = StyleSheet.create({
   },
   tradeSideLabel: {
     fontSize: 10,
-    color: colors.textSecondary,
     marginBottom: 6,
     fontWeight: '500',
     textTransform: 'uppercase',
@@ -290,8 +270,6 @@ const styles = StyleSheet.create({
     marginLeft: -10,
   },
   moreText: {
-    fontSize: 12,
-    color: colors.textSecondary,
     marginLeft: 6,
     fontWeight: '600',
   },
@@ -303,14 +281,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     marginBottom: spacing.xs,
   },
-  postRefText: {
-    fontSize: 11,
-    color: colors.textSecondary,
-  },
   // Timestamp
   timeText: {
-    fontSize: 11,
-    color: colors.textMuted,
     textAlign: 'right',
     marginTop: 2,
   },

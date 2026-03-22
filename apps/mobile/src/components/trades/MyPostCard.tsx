@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { ArrowCircleUp, ArrowCircleDown, CaretRight } from 'phosphor-react-native';
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
-import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
+import { Card, Text, Badge } from '@/src/components/ui';
+import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { TradePost } from '@pocket-trade-hub/shared';
 
 interface MyPostCardProps {
@@ -10,10 +11,10 @@ interface MyPostCardProps {
   onPress: () => void;
 }
 
-const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  active: { color: colors.success, label: 'Active' },
-  closed: { color: colors.textMuted, label: 'Closed' },
-  auto_closed: { color: '#e67e22', label: 'Auto-closed' },
+const STATUS_CONFIG: Record<string, { variant: 'success' | 'warning' | 'default'; label: string }> = {
+  active: { variant: 'success', label: 'Active' },
+  closed: { variant: 'default', label: 'Closed' },
+  auto_closed: { variant: 'warning', label: 'Auto-closed' },
 };
 
 const TYPE_CONFIG: Record<string, { color: string; label: string; Icon: PhosphorIcon }> = {
@@ -45,62 +46,67 @@ export function MyPostCard({ post, onPress }: MyPostCardProps) {
   const statusConfig = STATUS_CONFIG[post.status] ?? STATUS_CONFIG.active;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      {/* Card image */}
-      <Image
-        source={{ uri: card?.imageUrl }}
-        style={styles.cardImage}
-        contentFit="cover"
-        transition={150}
-      />
+    <Card
+      onPress={onPress}
+      style={styles.card}
+      padding={spacing.sm}
+    >
+      <View style={styles.row}>
+        {/* Card image */}
+        <Image
+          source={{ uri: card?.imageUrl }}
+          style={styles.cardImage}
+          contentFit="cover"
+          transition={150}
+        />
 
-      {/* Info column */}
-      <View style={styles.infoColumn}>
-        <View style={styles.topRow}>
-          {/* Type badge */}
-          <View style={[styles.typeBadge, { backgroundColor: typeConfig.color }]}>
-            <typeConfig.Icon size={12} color="#fff" weight="fill" />
-            <Text style={styles.typeBadgeText}>{typeConfig.label}</Text>
+        {/* Info column */}
+        <View style={styles.infoColumn}>
+          <View style={styles.topRow}>
+            {/* Type badge — custom coloured pill */}
+            <View style={[styles.typeBadge, { backgroundColor: typeConfig.color }]}>
+              <typeConfig.Icon size={12} color="#fff" weight="fill" />
+              <Text
+                preset="label"
+                style={styles.typeBadgeText}
+              >
+                {typeConfig.label}
+              </Text>
+            </View>
+            {/* Status badge */}
+            <Badge variant={statusConfig.variant} label={statusConfig.label} />
           </View>
-          {/* Status badge */}
-          <View style={[styles.statusBadge, { backgroundColor: statusConfig.color }]}>
-            <Text style={styles.statusBadgeText}>{statusConfig.label}</Text>
-          </View>
+
+          <Text preset="label" style={styles.cardName} numberOfLines={1}>
+            {card?.name ?? 'Unknown Card'}
+          </Text>
+
+          {card?.language && (
+            <Text preset="label" color={colors.textSecondary}>
+              {card.language.toUpperCase()}
+            </Text>
+          )}
+
+          <Text preset="label" color={colors.textMuted}>
+            {formatTimeAgo(post.createdAt)}
+          </Text>
         </View>
 
-        <Text style={styles.cardName} numberOfLines={1}>
-          {card?.name ?? 'Unknown Card'}
-        </Text>
-
-        {card?.language && (
-          <Text style={styles.languageText}>{card.language.toUpperCase()}</Text>
-        )}
-
-        <Text style={styles.timeText}>{formatTimeAgo(post.createdAt)}</Text>
+        {/* Chevron */}
+        <CaretRight size={18} color={colors.textMuted} weight="regular" />
       </View>
-
-      {/* Chevron */}
-      <CaretRight size={18} color={colors.textMuted} weight="regular" />
-    </TouchableOpacity>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
     marginBottom: spacing.sm,
     marginHorizontal: spacing.md,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardImage: {
     width: 56,
@@ -117,6 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flexWrap: 'wrap',
   },
   typeBadge: {
     flexDirection: 'row',
@@ -130,29 +137,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: '#ffffff',
-  },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: borderRadius.full,
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#ffffff',
+    lineHeight: 14,
   },
   cardName: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-  },
-  languageText: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  timeText: {
-    fontSize: 11,
-    color: colors.textMuted,
+    lineHeight: 18,
   },
 });
