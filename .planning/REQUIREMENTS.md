@@ -22,7 +22,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 - [x] **CL-03**: Empty states with illustrations and CTAs for all list/grid screens
 - [x] **CL-04**: Toast/snackbar system with success/error/info/warning variants
 - [x] **CL-05**: Animated Pressable with scale-down + haptic touch feedback
-- [ ] **CL-06**: Branded pull-to-refresh with gold tint animation
+- [x] **CL-06**: Branded pull-to-refresh with gold tint animation
 
 ### Navigation
 
@@ -44,7 +44,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 - [x] **SCR-01**: Home tab full visual refresh with new primitives and motion
 - [ ] **SCR-02**: Cards tab refresh with rarity visual effects (holographic shimmer, crown glow)
-- [ ] **SCR-03**: Trades tab refresh with animated proposal cards and match cards
+- [x] **SCR-03**: Trades tab refresh with animated proposal cards and match cards
 - [ ] **SCR-04**: Market tab refresh with gradient accents on premium sections
 - [ ] **SCR-05**: Meta tab refresh with deck cards and tier list visual overhaul
 - [ ] **SCR-06**: Profile tab refresh with glassmorphism backdrops and settings redesign
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CL-03 | Phase 16 | Complete |
 | CL-04 | Phase 16 | Complete |
 | CL-05 | Phase 16 | Complete |
-| CL-06 | Phase 16 | Pending |
+| CL-06 | Phase 16 | Complete |
 | NAV-01 | Phase 14 | Complete |
 | NAV-02 | Phase 14 | Complete |
 | NAV-03 | Phase 14 | Complete |
@@ -114,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOT-05 | Phase 15 | Complete |
 | SCR-01 | Phase 16 | Complete |
 | SCR-02 | Phase 16 | Pending |
-| SCR-03 | Phase 16 | Pending |
+| SCR-03 | Phase 16 | Complete |
 | SCR-04 | Phase 17 | Pending |
 | SCR-05 | Phase 17 | Pending |
 | SCR-06 | Phase 17 | Pending |
