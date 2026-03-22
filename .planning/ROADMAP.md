@@ -130,7 +130,11 @@ Plans:
   2. Meta tab deck cards and tier list views use the refreshed component library with consistent visual language
   3. Profile tab features glassmorphism backdrop effects and a redesigned settings screen using new primitives
   4. All six mobile tabs now share a unified visual language -- no screen looks like it belongs to a different app
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 17-01-PLAN.md -- Badge premium variant + expo-blur install + skeleton compositions + Market tab migration
+- [ ] 17-02-PLAN.md -- Meta tab migration (DeckRankingList, TierListBrowser, TierListCard, meta.tsx)
+- [ ] 17-03-PLAN.md -- Profile tab migration with glassmorphism header + PaywallCard gradient accent
 
 ### Phase 18: Web Companion Sync
 **Goal**: The web companion matches the mobile app's refreshed visual identity, consuming the same design tokens
@@ -177,7 +181,7 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 13. Design System Foundation | v3.0 | 3/3 | Complete    | 2026-03-21 |
 | 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
-| 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete   | 2026-03-22 |
-| 17. Screen Migration Tier 2 | v3.0 | 0/TBD | Not started | - |
+| 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
+| 17. Screen Migration Tier 2 | v3.0 | 0/3 | Not started | - |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |
