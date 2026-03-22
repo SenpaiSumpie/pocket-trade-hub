@@ -1,12 +1,16 @@
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 import { useState } from 'react';
 import { ChartBar, GearSix, CheckCircle } from 'phosphor-react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import { usePremium } from '@/src/hooks/usePremium';
 import { usePremiumStore } from '@/src/stores/premium';
 import { PremiumBadge } from './PremiumBadge';
+import { Card } from '@/src/components/ui/Card';
+import { Text } from '@/src/components/ui/Text';
+import { Button } from '@/src/components/ui/Button';
 
 const FEATURES = [
   'Card demand analytics',
@@ -21,6 +25,22 @@ function openSubscriptionSettings() {
   } else if (Platform.OS === 'android') {
     Linking.openURL('https://play.google.com/store/account/subscriptions');
   }
+}
+
+function GoldTopBorder() {
+  return (
+    <View style={styles.topBorderAccent}>
+      <Svg width="100%" height={2}>
+        <Defs>
+          <LinearGradient id="paywallTopGrad" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor="#f5d060" stopOpacity="1" />
+            <Stop offset="1" stopColor="#c9a020" stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height={2} fill="url(#paywallTopGrad)" />
+      </Svg>
+    </View>
+  );
 }
 
 export function PaywallCard() {
@@ -64,96 +84,100 @@ export function PaywallCard() {
       : '';
 
     return (
-      <View style={styles.card}>
+      <Card style={styles.card}>
+        <GoldTopBorder />
         <View style={styles.headerRow}>
           <PremiumBadge size={20} />
-          <Text style={styles.activeTitle}>{t('profile.premiumMember')}</Text>
+          <Text preset="subheading" color={colors.primary}>{t('profile.premiumMember')}</Text>
         </View>
 
-        {expiryText ? <Text style={styles.expiryText}>{expiryText}</Text> : null}
+        {expiryText ? <Text preset="label" color={colors.textSecondary} style={styles.expiryText}>{expiryText}</Text> : null}
 
         <TouchableOpacity
           style={styles.linkButton}
           onPress={() => router.push('/analytics' as any)}
         >
           <ChartBar size={18} color={colors.primary} weight="fill" />
-          <Text style={styles.linkText}>{t('premium.analyticsTitle')}</Text>
+          <Text preset="body" color={colors.primary} style={styles.linkText}>{t('premium.analyticsTitle')}</Text>
         </TouchableOpacity>
 
         {__DEV__ ? (
-          <TouchableOpacity
-            style={[styles.unsubscribeButton, unsubscribing && styles.buttonDisabled]}
+          <Button
+            variant="destructive"
+            label="Unsubscribe (Dev)"
             onPress={handleUnsubscribe}
             disabled={unsubscribing}
-          >
-            {unsubscribing ? (
-              <ActivityIndicator size="small" color={colors.error} />
-            ) : (
-              <Text style={styles.unsubscribeText}>Unsubscribe (Dev)</Text>
-            )}
-          </TouchableOpacity>
+            loading={unsubscribing}
+            size="sm"
+            style={styles.devButton}
+          />
         ) : (
           <TouchableOpacity style={styles.linkButton} onPress={openSubscriptionSettings}>
             <GearSix size={18} color={colors.textSecondary} weight="regular" />
-            <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t('profile.settings')}</Text>
+            <Text preset="body" color={colors.textSecondary} style={styles.linkText}>{t('profile.settings')}</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </Card>
     );
   }
 
   return (
-    <View style={styles.card}>
+    <Card style={styles.card}>
+      <GoldTopBorder />
       <View style={styles.headerRow}>
         <PremiumBadge size={22} />
-        <Text style={styles.title}>{t('profile.upgradeToPremium')}</Text>
+        <Text preset="subheading" color={colors.primary}>{t('profile.upgradeToPremium')}</Text>
       </View>
 
       <View style={styles.featureList}>
         {FEATURES.map((feature) => (
           <View key={feature} style={styles.featureRow}>
             <CheckCircle size={18} color={colors.primary} weight="fill" />
-            <Text style={styles.featureText}>{feature}</Text>
+            <Text preset="body" style={styles.featureText}>{feature}</Text>
           </View>
         ))}
       </View>
 
-      <Text style={styles.price}>$4.99/month</Text>
+      <Text preset="subheading" style={styles.price}>$4.99/month</Text>
 
-      <TouchableOpacity
-        style={[styles.subscribeButton, purchasing && styles.buttonDisabled]}
+      <Button
+        variant="primary"
+        label={t('profile.upgradeToPremium')}
         onPress={handlePurchase}
         disabled={purchasing || restoring}
-      >
-        {purchasing ? (
-          <ActivityIndicator size="small" color={colors.background} />
-        ) : (
-          <Text style={styles.subscribeText}>{t('profile.upgradeToPremium')}</Text>
-        )}
-      </TouchableOpacity>
+        loading={purchasing}
+        size="lg"
+      />
 
       <TouchableOpacity
         style={styles.restoreLink}
         onPress={handleRestore}
         disabled={purchasing || restoring}
       >
-        <Text style={styles.restoreLinkText}>
+        <Text preset="label" color={colors.textMuted}>
           {restoring ? t('common.loading') : t('common.retry')}
         </Text>
       </TouchableOpacity>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.primary + '40',
-    padding: spacing.lg,
     width: '100%',
     marginBottom: spacing.lg,
+  },
+  topBorderAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
   headerRow: {
     flexDirection: 'row',
@@ -161,17 +185,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  title: {
-    ...typography.subheading,
-    color: colors.primary,
-  },
-  activeTitle: {
-    ...typography.subheading,
-    color: colors.primary,
-  },
   expiryText: {
-    ...typography.caption,
-    color: colors.textSecondary,
     marginBottom: spacing.md,
   },
   featureList: {
@@ -184,39 +198,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   featureText: {
-    ...typography.body,
-    color: colors.text,
     fontSize: 14,
   },
   price: {
-    ...typography.subheading,
-    color: colors.text,
     textAlign: 'center',
     marginBottom: spacing.md,
-  },
-  subscribeButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 48,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  subscribeText: {
-    color: colors.background,
-    fontSize: 16,
-    fontWeight: '600',
   },
   restoreLink: {
     alignItems: 'center',
     marginTop: spacing.md,
-  },
-  restoreLinkText: {
-    ...typography.caption,
-    color: colors.textMuted,
   },
   linkButton: {
     flexDirection: 'row',
@@ -225,22 +215,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   linkText: {
-    ...typography.body,
-    color: colors.primary,
     fontSize: 14,
   },
-  unsubscribeButton: {
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
+  devButton: {
     marginTop: spacing.sm,
-  },
-  unsubscribeText: {
-    color: colors.error,
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
