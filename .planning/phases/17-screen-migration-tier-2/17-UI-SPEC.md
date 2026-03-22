@@ -1,7 +1,7 @@
 ---
 phase: 17
 slug: screen-migration-tier-2
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-03-21
@@ -143,6 +143,20 @@ These are one-off color definitions applied via Badge's `style` prop — no new 
 | `colors.onSurfaceMuted` | `#6c6c80` | Placeholder text, empty state body, tier D badge text |
 
 Source: `packages/shared/src/tokens/colors.ts`, CONTEXT.md D-01 through D-28
+
+---
+
+## Visual Hierarchy — Focal Points
+
+Each screen has a declared primary focal point to guide layout trade-off decisions:
+
+| Screen | Primary Focal Point | Secondary |
+|--------|-------------------|-----------|
+| Market | PostCard list with gold left-border accents on premium posts | Create Post FAB (gold, bottom-right) |
+| Meta | Sort toggle + first visible ranking/tier list card row | Rank badge circles and tier preview pills |
+| Profile | Glassmorphism header (avatar + name + premium badge) | PaywallCard with gold top-border accent |
+
+Source: CONTEXT.md D-01, D-09, D-18
 
 ---
 
@@ -423,8 +437,8 @@ No changes to the reputation display. The 5-point filled/half-star system retain
 | Edit profile | "Edit Profile" |
 | Logout | "Log Out" |
 | Link account | "Link Account" |
-| Unlink account | "Unlink" |
-| Vote on tier list | "Vote" |
+| Unlink account | "Unlink Account" |
+| Vote on tier list | "Vote" / "Voted" (toggle pair — accepted single-word pattern) |
 | Voted state | "Voted" |
 | Create tier list | "Create Tier List" |
 
@@ -448,7 +462,7 @@ No changes to the reputation display. The 5-point filled/half-star system retain
 |--------|----------------------|
 | Logout | Alert dialog: title "Log Out?", body "You will be signed out of your account.", confirm "Log Out" (destructive), cancel "Cancel" |
 | Delete post | Alert dialog: title "Delete Post?", body "This post will be permanently removed.", confirm "Delete" (destructive), cancel "Cancel" |
-| Unlink account | Alert dialog: title "Unlink Account?", body "You can re-link it later from your profile.", confirm "Unlink" (destructive), cancel "Cancel" |
+| Unlink account | Alert dialog: title "Unlink Account?", body "You can re-link it later from your profile.", confirm "Unlink Account" (destructive), cancel "Cancel" |
 
 Alert dialogs use React Native's native `Alert.alert` — no custom modal needed for these three.
 
