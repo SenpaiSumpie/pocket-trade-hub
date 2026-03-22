@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-03-21
+revised: 2026-03-21
 ---
 
 # Phase 16 — UI Design Contract
@@ -22,7 +23,7 @@ created: 2026-03-21
 | Preset | not applicable |
 | Component library | Custom primitives in `apps/mobile/src/components/ui/` (being built this phase) |
 | Icon library | phosphor-react-native (Phase 14 — fully migrated) |
-| Font | Inter (Inter-Regular, Inter-Medium, Inter-SemiBold, Inter-Bold via expo-font config plugin — Phase 14) |
+| Font | Inter (Inter-Regular, Inter-Bold via expo-font config plugin — Phase 14) |
 
 Source: CONTEXT.md D-01, STATE.md [v3.0 Research], STATE.md [Phase 14]
 
@@ -55,20 +56,20 @@ Source: `packages/shared/src/tokens/spacing.ts` (confirmed values)
 
 All values sourced from `packages/shared/src/tokens/typography.ts`. Inter font family throughout.
 
+Two weights only: 400 (Regular) and 700 (Bold).
+
 | Role | Size | Weight | Line Height | Token Preset |
 |------|------|--------|-------------|--------------|
 | Heading | 28px | 700 (Bold) | 34px (1.21) | `typography.heading` |
-| Subheading | 20px | 600 (SemiBold) | 26px (1.30) | `typography.subheading` |
+| Subheading | 20px | 700 (Bold) | 26px (1.30) | `typography.subheading` |
 | Body | 16px | 400 (Regular) | 22px (1.375) | `typography.body` |
-| Label | 14px | 500 (Medium) | 20px (1.43) | `typography.label` |
-| Caption | 13px | 400 (Regular) | 18px (1.38) | `typography.caption` |
+| Label | 13px | 400 (Regular) | 18px (1.38) | `typography.label` |
 
 Usage rules:
 - **Heading**: Screen titles, section headers, EmptyState main title
-- **Subheading**: Card section titles, segment labels, modal sheet titles
-- **Body**: List item content, description text, toast messages, input values
-- **Label**: Button text (all sizes), badge text, input labels, filter chip text
-- **Caption**: Secondary metadata, timestamps, card count labels, status sub-text
+- **Subheading**: Card section titles, segment labels, modal sheet titles, EmptyState section title
+- **Body**: List item content, description text, toast messages, input values, button text (all sizes)
+- **Label**: Secondary metadata, timestamps, card count labels, status sub-text, badge text, input labels, filter chip text
 
 Text component default color: `colors.onSurface` (`#ffffff`).
 Secondary/muted text: `colors.onSurfaceSecondary` (`#a0a0b8`) or `colors.onSurfaceMuted` (`#6c6c80`).
@@ -131,7 +132,7 @@ Source: `packages/shared/src/tokens/colors.ts`, `packages/shared/src/tokens/prim
 |----------|-------|
 | Variants | primary, secondary, ghost, destructive |
 | Sizes | sm (height 32px), md (height 44px), lg (height 52px) |
-| Font | Label preset (14px / 500 / 20px line-height) |
+| Font | Body preset (16px / 400 / 22px line-height) |
 | Primary bg | `colors.accent` (#f0c040) |
 | Primary text | `#0c0c18` (dark text on gold — forced, not a token) |
 | Secondary bg | transparent, border: `colors.accent`, text: `colors.accent` |
@@ -156,10 +157,9 @@ Source: `packages/shared/src/tokens/colors.ts`, `packages/shared/src/tokens/prim
 | Preset | Size | Weight | Line-height | Color default |
 |--------|------|--------|-------------|---------------|
 | heading | 28 | 700 | 34 | `colors.onSurface` |
-| subheading | 20 | 600 | 26 | `colors.onSurface` |
+| subheading | 20 | 700 | 26 | `colors.onSurface` |
 | body | 16 | 400 | 22 | `colors.onSurface` |
-| label | 14 | 500 | 20 | `colors.onSurface` |
-| caption | 13 | 400 | 18 | `colors.onSurfaceSecondary` |
+| label | 13 | 400 | 18 | `colors.onSurfaceSecondary` |
 
 Color prop overrides default. Never use raw color hex in consumers — pass token values.
 
@@ -175,7 +175,7 @@ Color prop overrides default. Never use raw color hex in consumers — pass toke
 | rarity-star | `colors.rarityStar` at 15% opacity | `colors.rarityStar` | `borderRadius.full` |
 | rarity-crown | `colors.rarityCrown` at 15% opacity | `colors.rarityCrown` | `borderRadius.full` |
 
-Font: Caption preset (13px / 400). Padding: 4px vertical, 8px horizontal (`spacing.xs` / `spacing.sm`).
+Font: Label preset (13px / 400). Padding: 4px vertical, 8px horizontal (`spacing.xs` / `spacing.sm`).
 
 ### Input (D-06)
 
@@ -186,8 +186,8 @@ Font: Caption preset (13px / 400). Padding: 4px vertical, 8px horizontal (`spaci
 | Focus border | `colors.accent` (#f0c040), width 2 |
 | Error border | `colors.error` (#e74c3c), width 1 |
 | Border radius | `borderRadius.md` (12px) |
-| Padding | 12px vertical, 16px horizontal |
-| Label font | Label preset (14px / 500), `colors.onSurfaceSecondary` |
+| Padding | `spacing.sm` (8px) vertical, `spacing.md` (16px) horizontal |
+| Label font | Label preset (13px / 400), `colors.onSurfaceSecondary` |
 | Input font | Body preset (16px / 400), `colors.onSurface` |
 | Placeholder color | `colors.onSurfaceMuted` (#6c6c80) |
 
@@ -237,7 +237,7 @@ Shared `EmptyState` component. Centered in available space. (D-11, D-12, D-13, D
 | Property | Value |
 |----------|-------|
 | Icon | Phosphor icon, `light` weight, 64px, `colors.onSurfaceMuted` |
-| Title font | Subheading preset (20px / 600) |
+| Title font | Subheading preset (20px / 700) |
 | Title color | `colors.onSurface` |
 | Body font | Body preset (16px / 400) |
 | Body color | `colors.onSurfaceSecondary` |
