@@ -11,11 +11,11 @@ const TIER_NAMES = ['S', 'A', 'B', 'C', 'D'] as const;
 type TierName = (typeof TIER_NAMES)[number];
 
 const TIER_STYLES: Record<TierName, string> = {
-  S: 'border-gold bg-gold/10',
-  A: 'border-purple-500 bg-purple-500/10',
-  B: 'border-blue-500 bg-blue-500/10',
-  C: 'border-green-500 bg-green-500/10',
-  D: 'border-gray-500 bg-gray-500/10',
+  S: 'border-[var(--color-tier-s)] bg-[color-mix(in_srgb,var(--color-tier-s)_10%,transparent)]',
+  A: 'border-[var(--color-tier-a)] bg-[color-mix(in_srgb,var(--color-tier-a)_10%,transparent)]',
+  B: 'border-[var(--color-tier-b)] bg-[color-mix(in_srgb,var(--color-tier-b)_10%,transparent)]',
+  C: 'border-[var(--color-tier-c)] bg-[color-mix(in_srgb,var(--color-tier-c)_10%,transparent)]',
+  D: 'border-[var(--color-tier-d)] bg-[color-mix(in_srgb,var(--color-tier-d)_10%,transparent)]',
 };
 
 const EMPTY_TIERS: Tiers = { S: [], A: [], B: [], C: [], D: [] };
@@ -190,7 +190,7 @@ export function TierListCreator() {
                     ))}
                     <button
                       onClick={() => removeDeckFromTier(tier, entry.deckId)}
-                      className="hidden text-text-muted hover:text-red-400 group-hover:inline"
+                      className="hidden text-text-muted hover:text-[var(--color-error)] group-hover:inline"
                     >
                       <X size={12} />
                     </button>

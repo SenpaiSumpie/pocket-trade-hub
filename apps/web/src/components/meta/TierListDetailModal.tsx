@@ -5,11 +5,11 @@ import { useAuthStore } from '@/stores/auth';
 import { Modal } from '@/components/ui/Modal';
 
 const TIER_CONFIG: Record<string, { label: string; color: string }> = {
-  S: { label: 'S Tier', color: 'border-gold bg-gold/10 text-gold' },
-  A: { label: 'A Tier', color: 'border-purple-500 bg-purple-500/10 text-purple-400' },
-  B: { label: 'B Tier', color: 'border-blue-500 bg-blue-500/10 text-blue-400' },
-  C: { label: 'C Tier', color: 'border-green-500 bg-green-500/10 text-green-400' },
-  D: { label: 'D Tier', color: 'border-gray-500 bg-gray-500/10 text-gray-400' },
+  S: { label: 'S Tier', color: 'border-[var(--color-tier-s)] bg-[color-mix(in_srgb,var(--color-tier-s)_10%,transparent)] text-[var(--color-tier-s)]' },
+  A: { label: 'A Tier', color: 'border-[var(--color-tier-a)] bg-[color-mix(in_srgb,var(--color-tier-a)_10%,transparent)] text-[var(--color-tier-a)]' },
+  B: { label: 'B Tier', color: 'border-[var(--color-tier-b)] bg-[color-mix(in_srgb,var(--color-tier-b)_10%,transparent)] text-[var(--color-tier-b)]' },
+  C: { label: 'C Tier', color: 'border-[var(--color-tier-c)] bg-[color-mix(in_srgb,var(--color-tier-c)_10%,transparent)] text-[var(--color-tier-c)]' },
+  D: { label: 'D Tier', color: 'border-[var(--color-tier-d)] bg-[color-mix(in_srgb,var(--color-tier-d)_10%,transparent)] text-[var(--color-tier-d)]' },
 };
 
 export function TierListDetailModal() {
@@ -39,7 +39,7 @@ export function TierListDetailModal() {
           {isOwner && (
             <button
               onClick={() => deleteTierList(selectedTierList.id)}
-              className="rounded-lg border border-red-500/50 px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+              className="rounded-lg border border-[var(--color-error)]/50 px-3 py-1.5 text-sm text-[var(--color-error)] transition-colors hover:bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]"
             >
               Delete
             </button>

@@ -12,15 +12,15 @@ function formatRate(basisPoints: number | null): string {
 
 function TrendIcon({ winRate }: { winRate: number | null }) {
   if (winRate == null) return <Minus size={16} className="text-text-muted" />;
-  if (winRate > 5000) return <TrendingUp size={16} className="text-green-400" />;
-  if (winRate < 5000) return <TrendingDown size={16} className="text-red-400" />;
+  if (winRate > 5000) return <TrendingUp size={16} className="text-[var(--color-success)]" />;
+  if (winRate < 5000) return <TrendingDown size={16} className="text-[var(--color-error)]" />;
   return <Minus size={16} className="text-text-muted" />;
 }
 
 function RateCell({ value, positiveThreshold }: { value: number | null; positiveThreshold?: number }) {
   if (value == null) return <span className="text-text-muted">--</span>;
   const threshold = positiveThreshold ?? 5000;
-  const color = value > threshold ? 'text-green-400' : value < threshold ? 'text-red-400' : 'text-text';
+  const color = value > threshold ? 'text-[var(--color-success)]' : value < threshold ? 'text-[var(--color-error)]' : 'text-text';
   return <span className={color}>{formatRate(value)}</span>;
 }
 

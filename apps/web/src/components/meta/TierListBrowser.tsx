@@ -5,11 +5,11 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierList } from '@pocket-trade-hub/shared/src/schemas/tierlist';
 
 const TIER_COLORS: Record<string, string> = {
-  S: 'bg-gold/20 text-gold',
-  A: 'bg-purple-500/20 text-purple-400',
-  B: 'bg-blue-500/20 text-blue-400',
-  C: 'bg-green-500/20 text-green-400',
-  D: 'bg-gray-500/20 text-gray-400',
+  S: 'bg-[color-mix(in_srgb,var(--color-tier-s)_20%,transparent)] text-[var(--color-tier-s)]',
+  A: 'bg-[color-mix(in_srgb,var(--color-tier-a)_20%,transparent)] text-[var(--color-tier-a)]',
+  B: 'bg-[color-mix(in_srgb,var(--color-tier-b)_20%,transparent)] text-[var(--color-tier-b)]',
+  C: 'bg-[color-mix(in_srgb,var(--color-tier-c)_20%,transparent)] text-[var(--color-tier-c)]',
+  D: 'bg-[color-mix(in_srgb,var(--color-tier-d)_20%,transparent)] text-[var(--color-tier-d)]',
 };
 
 function TierPreview({ tierList }: { tierList: TierList }) {
