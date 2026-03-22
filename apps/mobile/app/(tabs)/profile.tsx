@@ -22,8 +22,6 @@ import { Text } from '@/src/components/ui/Text';
 import { Card } from '@/src/components/ui/Card';
 import { Button } from '@/src/components/ui/Button';
 import { Badge } from '@/src/components/ui/Badge';
-import { ShimmerText } from '@/src/components/animation/ShimmerText';
-import { Shimmer } from '@/src/components/animation/Shimmer';
 import { ProfileHeaderSkeleton } from '@/src/components/skeleton/ProfileHeaderSkeleton';
 import { useStaggeredList } from '@/src/hooks/useStaggeredList';
 import { useToast } from '@/src/hooks/useToast';

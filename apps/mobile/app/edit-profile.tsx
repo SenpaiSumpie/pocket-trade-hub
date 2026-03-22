@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '@/src/hooks/useToast';
 import AvatarPicker from '@/src/components/AvatarPicker';
 import { useAuthStore } from '@/src/stores/auth';
 import { apiFetch } from '@/src/hooks/useApi';
@@ -30,6 +30,7 @@ interface UpdateProfileResponse {
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
+  const toast = useToast();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -65,11 +66,7 @@ export default function EditProfileScreen() {
     const result = updateProfileSchema.safeParse(updates);
     if (!result.success) {
       const firstError = result.error.errors[0];
-      Toast.show({
-        type: 'error',
-        text1: t('profile.validationError'),
-        text2: firstError?.message || t('profile.checkInput'),
-      });
+      toast.error(firstError?.message || t('profile.checkInput'));
       return;
     }
 
@@ -87,18 +84,10 @@ export default function EditProfileScreen() {
       if (user) {
         setUser({ ...user, ...updatedUser });
       }
-      Toast.show({
-        type: 'success',
-        text1: t('profile.profileUpdated'),
-        visibilityTime: 1500,
-      });
+      toast.success(t('profile.profileUpdated'));
       router.back();
     } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: t('profile.updateFailed'),
-        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-      });
+      toast.error(err instanceof Error ? err.message : t('common.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
