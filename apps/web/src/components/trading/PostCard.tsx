@@ -4,8 +4,8 @@ import type { MarketPost } from '@/stores/posts';
 import { usePostStore } from '@/stores/posts';
 
 const TYPE_STYLES: Record<string, string> = {
-  offering: 'bg-green-500/20 text-green-400',
-  seeking: 'bg-blue-500/20 text-blue-400',
+  offering: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  seeking: 'bg-[rgba(52,152,219,0.2)] text-[#3498db]',
 };
 
 function timeAgo(dateStr: string): string {

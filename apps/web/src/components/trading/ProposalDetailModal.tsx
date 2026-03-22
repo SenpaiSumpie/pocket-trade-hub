@@ -12,19 +12,19 @@ import type { ProposalCard } from '@pocket-trade-hub/shared/src/schemas/proposal
 import { Check, X as XIcon, RefreshCw, Search } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400',
-  accepted: 'bg-green-500/20 text-green-400',
-  rejected: 'bg-red-500/20 text-red-400',
-  countered: 'bg-blue-500/20 text-blue-400',
-  completed: 'bg-green-500/20 text-green-400',
-  cancelled: 'bg-zinc-500/20 text-zinc-400',
+  pending: 'bg-[rgba(241,196,15,0.2)] text-[var(--color-warning)]',
+  accepted: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  rejected: 'bg-[rgba(231,76,60,0.2)] text-[var(--color-error)]',
+  countered: 'bg-[rgba(52,152,219,0.2)] text-[#3498db]',
+  completed: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  cancelled: 'bg-[var(--color-surface-light)] text-[var(--color-on-surface-muted)]',
 };
 
 function fairnessLabel(score: number): { text: string; color: string } {
-  if (score >= 80) return { text: 'Great trade', color: 'text-green-400' };
-  if (score >= 60) return { text: 'Fair trade', color: 'text-yellow-400' };
-  if (score >= 40) return { text: 'Uneven trade', color: 'text-orange-400' };
-  return { text: 'Poor trade', color: 'text-red-400' };
+  if (score >= 80) return { text: 'Great trade', color: 'text-[var(--color-success)]' };
+  if (score >= 60) return { text: 'Fair trade', color: 'text-[var(--color-warning)]' };
+  if (score >= 40) return { text: 'Uneven trade', color: 'text-[var(--color-warning)]' };
+  return { text: 'Poor trade', color: 'text-[var(--color-error)]' };
 }
 
 export function ProposalDetailModal() {
@@ -324,7 +324,7 @@ export function ProposalDetailModal() {
               size="sm"
               onClick={confirmAction === 'accept' ? handleAccept : handleReject}
               loading={actionLoading === confirmAction}
-              className={confirmAction === 'reject' ? 'text-red-400' : ''}
+              className={confirmAction === 'reject' ? 'text-[var(--color-error)]' : ''}
             >
               {confirmAction === 'accept' ? 'Confirm Accept' : 'Confirm Reject'}
             </Button>
@@ -338,7 +338,7 @@ export function ProposalDetailModal() {
           <Button
             variant="secondary"
             onClick={() => setConfirmAction('reject')}
-            className="text-red-400 hover:text-red-300"
+            className="text-[var(--color-error)] hover:opacity-80"
           >
             <XIcon size={16} />
             Reject

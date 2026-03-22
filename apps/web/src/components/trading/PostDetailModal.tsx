@@ -8,8 +8,8 @@ import { useAuthStore } from '@/stores/auth';
 import { Trash2, Send } from 'lucide-react';
 
 const TYPE_STYLES: Record<string, string> = {
-  offering: 'bg-green-500/20 text-green-400',
-  seeking: 'bg-blue-500/20 text-blue-400',
+  offering: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  seeking: 'bg-[rgba(52,152,219,0.2)] text-[#3498db]',
 };
 
 interface PostDetailModalProps {
@@ -76,7 +76,7 @@ export function PostDetailModal({ onSendProposal }: PostDetailModalProps) {
             variant="secondary"
             onClick={handleDelete}
             loading={deleting}
-            className="text-red-400 hover:text-red-300"
+            className="text-[var(--color-error)] hover:opacity-80"
           >
             <Trash2 size={16} />
             Delete Post

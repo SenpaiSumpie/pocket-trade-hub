@@ -4,12 +4,12 @@ import type { TradeProposal } from '@pocket-trade-hub/shared/src/schemas/proposa
 import { useProposalStore } from '@/stores/proposals';
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400',
-  accepted: 'bg-green-500/20 text-green-400',
-  rejected: 'bg-red-500/20 text-red-400',
-  countered: 'bg-blue-500/20 text-blue-400',
-  completed: 'bg-green-500/20 text-green-400',
-  cancelled: 'bg-zinc-500/20 text-zinc-400',
+  pending: 'bg-[rgba(241,196,15,0.2)] text-[var(--color-warning)]',
+  accepted: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  rejected: 'bg-[rgba(231,76,60,0.2)] text-[var(--color-error)]',
+  countered: 'bg-[rgba(52,152,219,0.2)] text-[#3498db]',
+  completed: 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]',
+  cancelled: 'bg-[var(--color-surface-light)] text-[var(--color-on-surface-muted)]',
 };
 
 function timeAgo(dateStr: string): string {
@@ -24,10 +24,10 @@ function timeAgo(dateStr: string): string {
 }
 
 function fairnessLabel(score: number): { text: string; color: string } {
-  if (score >= 80) return { text: 'Great', color: 'text-green-400' };
-  if (score >= 60) return { text: 'Fair', color: 'text-yellow-400' };
-  if (score >= 40) return { text: 'Uneven', color: 'text-orange-400' };
-  return { text: 'Poor', color: 'text-red-400' };
+  if (score >= 80) return { text: 'Great', color: 'text-[var(--color-success)]' };
+  if (score >= 60) return { text: 'Fair', color: 'text-[var(--color-warning)]' };
+  if (score >= 40) return { text: 'Uneven', color: 'text-[var(--color-warning)]' };
+  return { text: 'Poor', color: 'text-[var(--color-error)]' };
 }
 
 interface ProposalCardProps {

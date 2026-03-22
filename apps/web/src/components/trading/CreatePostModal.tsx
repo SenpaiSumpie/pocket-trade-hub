@@ -115,22 +115,22 @@ export function CreatePostModal() {
               onClick={() => setPostType('offering')}
               className={`rounded-xl border-2 p-4 text-center transition-colors ${
                 postType === 'offering'
-                  ? 'border-green-500 bg-green-500/10'
+                  ? 'border-[var(--color-success)] bg-[rgba(46,204,113,0.1)]'
                   : 'border-border hover:border-border/80'
               }`}
             >
-              <p className="font-semibold text-green-400">Offering</p>
+              <p className="font-semibold text-[var(--color-success)]">Offering</p>
               <p className="mt-1 text-xs text-text-muted">Cards you want to trade away</p>
             </button>
             <button
               onClick={() => setPostType('seeking')}
               className={`rounded-xl border-2 p-4 text-center transition-colors ${
                 postType === 'seeking'
-                  ? 'border-blue-500 bg-blue-500/10'
+                  ? 'border-[#3498db] bg-[rgba(52,152,219,0.1)]'
                   : 'border-border hover:border-border/80'
               }`}
             >
-              <p className="font-semibold text-blue-400">Seeking</p>
+              <p className="font-semibold text-[#3498db]">Seeking</p>
               <p className="mt-1 text-xs text-text-muted">Cards you are looking for</p>
             </button>
           </div>
@@ -254,8 +254,8 @@ export function CreatePostModal() {
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
                   postType === 'offering'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-blue-500/20 text-blue-400'
+                    ? 'bg-[rgba(46,204,113,0.2)] text-[var(--color-success)]'
+                    : 'bg-[rgba(52,152,219,0.2)] text-[#3498db]'
                 }`}
               >
                 {postType}
