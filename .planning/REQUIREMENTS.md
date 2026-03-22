@@ -47,7 +47,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 - [x] **SCR-03**: Trades tab refresh with animated proposal cards and match cards
 - [x] **SCR-04**: Market tab refresh with gradient accents on premium sections
 - [ ] **SCR-05**: Meta tab refresh with deck cards and tier list visual overhaul
-- [ ] **SCR-06**: Profile tab refresh with glassmorphism backdrops and settings redesign
+- [x] **SCR-06**: Profile tab refresh with glassmorphism backdrops and settings redesign
 
 ### Web Sync
 
@@ -117,7 +117,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCR-03 | Phase 16 | Complete |
 | SCR-04 | Phase 17 | Complete |
 | SCR-05 | Phase 17 | Pending |
-| SCR-06 | Phase 17 | Pending |
+| SCR-06 | Phase 17 | Complete |
 | WEB-01 | Phase 18 | Pending |
 | WEB-02 | Phase 18 | Pending |
 | WEB-03 | Phase 18 | Pending |
