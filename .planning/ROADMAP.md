@@ -44,7 +44,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 14: Navigation Shell and App Chrome** - Custom tab bar, collapsible header, Inter font, Phosphor icons, haptic tab switching (completed 2026-03-21)
 - [x] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system (completed 2026-03-21)
 - [x] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states (completed 2026-03-22)
-- [x] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism (completed 2026-03-22)
+- [ ] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism (gap closure in progress)
 - [ ] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh
 - [ ] **Phase 19: Premium Touches and Polish** - Branded splash, grid layout modes, parallax headers, haptic patterns, reduced-motion support
 
@@ -130,11 +130,12 @@ Plans:
   2. Meta tab deck cards and tier list views use the refreshed component library with consistent visual language
   3. Profile tab features glassmorphism backdrop effects and a redesigned settings screen using new primitives
   4. All six mobile tabs now share a unified visual language -- no screen looks like it belongs to a different app
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
 - [x] 17-01-PLAN.md -- Badge premium variant + expo-blur install + skeleton compositions + Market tab migration
 - [x] 17-02-PLAN.md -- Meta tab migration (DeckRankingList, TierListBrowser, TierListCard, meta.tsx)
 - [x] 17-03-PLAN.md -- Profile tab migration with glassmorphism header + PaywallCard gradient accent
+- [ ] 17-04-PLAN.md -- Gap closure: PostCreationModal onError + dead import cleanup + edit-profile toast migration
 
 ### Phase 18: Web Companion Sync
 **Goal**: The web companion matches the mobile app's refreshed visual identity, consuming the same design tokens
@@ -182,6 +183,6 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
 | 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
-| 17. Screen Migration Tier 2 | v3.0 | 3/3 | Complete   | 2026-03-22 |
+| 17. Screen Migration Tier 2 | v3.0 | 3/4 | Gap closure | - |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |
