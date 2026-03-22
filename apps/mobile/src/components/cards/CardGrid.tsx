@@ -1,6 +1,8 @@
+import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
+import Animated from 'react-native-reanimated';
 import { CardThumbnail } from './CardThumbnail';
 import { CardGridSkeleton } from '@/src/components/skeleton/CardGridSkeleton';
 import { colors, spacing } from '@/src/constants/theme';
@@ -27,6 +29,12 @@ interface CardGridProps {
   onScroll?: any;
   scrollEventThrottle?: number;
   contentContainerStyleExtra?: Record<string, any>;
+  /** Stagger style getter from useStaggeredList — wraps each card in an Animated.View */
+  getItemStyle?: (index: number) => object;
+  /** onLayout trigger from useStaggeredList — called once on initial mount */
+  onStaggerLayout?: () => void;
+  /** Gold RefreshControl — pass instead of onRefresh/refreshing for gold tint */
+  refreshControl?: React.ReactElement;
 }
 
 function EmptyState() {
@@ -61,6 +69,9 @@ export function CardGrid({
   onScroll,
   scrollEventThrottle,
   contentContainerStyleExtra,
+  getItemStyle,
+  onStaggerLayout,
+  refreshControl,
 }: CardGridProps) {
   if (loading && cards.length === 0) {
     return <CardGridSkeleton />;
@@ -84,45 +95,64 @@ export function CardGrid({
   };
 
   return (
-    <FlashList
-      data={cards}
-      numColumns={3}
-      renderItem={({ item, index }) => (
-        <CardThumbnail
-          card={item}
-          onPress={() => onCardPress(item, index)}
-          showSetBadge={isSearchMode}
-          setName={getSetName(item.setId)}
-          quantity={collectionByCardId?.[item.id]}
-          priority={wantedByCardId?.[item.id]}
-          dimmed={isDimmed(item.id)}
-          onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
-          checklistMode={checklistMode}
-          checked={checklistSelections?.has(item.id)}
-          onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
-          inCollection={mode !== 'collection' && collectionByCardId != null && item.id in collectionByCardId}
-          isWanted={mode !== 'wanted' && wantedByCardId != null && item.id in wantedByCardId}
-        />
-      )}
-      keyExtractor={(item) => item.id}
-      onEndReached={hasMore ? onLoadMore : undefined}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={
-        loading && cards.length > 0 ? (
-          <ActivityIndicator
-            color={colors.primary}
-            style={{ paddingVertical: spacing.lg }}
-          />
-        ) : null
-      }
-      contentContainerStyle={{ paddingHorizontal: spacing.xs, ...contentContainerStyleExtra }}
-      onRefresh={onRefresh}
-      refreshing={refreshing}
-      onScroll={onScroll}
-      scrollEventThrottle={scrollEventThrottle ?? 16}
-    />
+    <View style={styles.wrapper} onLayout={onStaggerLayout}>
+      <FlashList
+        data={cards}
+        numColumns={3}
+        renderItem={({ item, index }) => {
+          const cardThumbnail = (
+            <CardThumbnail
+              card={item}
+              onPress={() => onCardPress(item, index)}
+              showSetBadge={isSearchMode}
+              setName={getSetName(item.setId)}
+              quantity={collectionByCardId?.[item.id]}
+              priority={wantedByCardId?.[item.id]}
+              dimmed={isDimmed(item.id)}
+              onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+              checklistMode={checklistMode}
+              checked={checklistSelections?.has(item.id)}
+              onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
+              inCollection={mode !== 'collection' && collectionByCardId != null && item.id in collectionByCardId}
+              isWanted={mode !== 'wanted' && wantedByCardId != null && item.id in wantedByCardId}
+            />
+          );
+          if (getItemStyle) {
+            return (
+              <Animated.View style={getItemStyle(index)}>
+                {cardThumbnail}
+              </Animated.View>
+            );
+          }
+          return cardThumbnail;
+        }}
+        keyExtractor={(item) => item.id}
+        onEndReached={hasMore ? onLoadMore : undefined}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading && cards.length > 0 ? (
+            <ActivityIndicator
+              color={colors.primary}
+              style={{ paddingVertical: spacing.lg }}
+            />
+          ) : null
+        }
+        contentContainerStyle={{ paddingHorizontal: spacing.xs, ...contentContainerStyleExtra }}
+        refreshControl={refreshControl}
+        onRefresh={refreshControl ? undefined : onRefresh}
+        refreshing={refreshControl ? false : refreshing}
+        onScroll={onScroll}
+        scrollEventThrottle={scrollEventThrottle ?? 16}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
+});
 
 const emptyStyles = StyleSheet.create({
   container: {

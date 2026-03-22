@@ -1,21 +1,24 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform } from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass } from 'phosphor-react-native';
+import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass, Cards } from 'phosphor-react-native';
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
+import Animated from 'react-native-reanimated';
 import { SearchBar } from '@/src/components/cards/SearchBar';
 import { SetPicker } from '@/src/components/cards/SetPicker';
 import { FilterChips } from '@/src/components/cards/FilterChips';
 import { CardGrid } from '@/src/components/cards/CardGrid';
 import { CardDetailModal } from '@/src/components/cards/CardDetailModal';
 import { AddToCollectionModal } from '@/src/components/collection/AddToCollectionModal';
+import { Badge, EmptyState } from '@/src/components/ui';
 import { useSets, useCardsBySet, useCardSearch } from '@/src/hooks/useCards';
 import { useCardsStore } from '@/src/stores/cards';
 import { useCollectionStore } from '@/src/stores/collection';
 import { useLoadCollection, useAddToCollection, useRemoveFromCollection, useUpdateQuantity, useBulkUpdateCollection } from '@/src/hooks/useCollection';
 import { useLoadWanted, useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
 import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
+import { useStaggeredList } from '@/src/hooks/useStaggeredList';
 import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
@@ -80,6 +83,9 @@ export default function CardsScreen() {
   const [showSetDropdown, setShowSetDropdown] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
+  // Refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
   // Auto-select first set when sets load
   useEffect(() => {
     if (sets.length > 0 && !selectedSetId) {
@@ -142,6 +148,10 @@ export default function CardsScreen() {
     return displayCards;
   }, [displayCards, setFilterId, isSearchMode]);
 
+  // Staggered list animation for card grid
+  const staggerItemCount = !currentLoading && filteredCards.length > 0 ? filteredCards.length : 0;
+  const { onLayout: onStaggerLayout, getItemStyle } = useStaggeredList(staggerItemCount);
+
   const handleCardPress = useCallback((card: Card, index: number) => {
     if (multiSelectMode) {
       setMultiSelectIds((prev) => {
@@ -159,9 +169,11 @@ export default function CardsScreen() {
     setDetailVisible(true);
   }, [multiSelectMode]);
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     if (!isSearchMode) {
-      refreshSet();
+      setRefreshing(true);
+      await refreshSet();
+      setRefreshing(false);
     }
   }, [isSearchMode, refreshSet]);
 
@@ -269,6 +281,10 @@ export default function CardsScreen() {
   const selectedSetLabel = setFilterId
     ? sets.find((s) => s.id === setFilterId)?.name ?? t('cards.allSets')
     : t('cards.allSets');
+
+  // Empty state rendering (outside of CardGrid since CardGrid handles its own empty state)
+  const showNoCardsEmpty = !currentLoading && filteredCards.length === 0 && !searchQuery;
+  const showNoResultsEmpty = !currentLoading && filteredCards.length === 0 && !!searchQuery;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -432,36 +448,64 @@ export default function CardsScreen() {
       )}
 
       <View style={styles.grid}>
-        <CardGrid
-          cards={filteredCards}
-          loading={currentLoading}
-          hasMore={!isSearchMode ? hasMore : false}
-          onLoadMore={!isSearchMode ? loadMore : undefined}
-          onCardPress={handleCardPress}
-          onRefresh={handleRefresh}
-          refreshing={false}
-          isSearchMode={isSearchMode}
-          sets={sets}
-          mode={mode}
-          collectionByCardId={collectionByCardId}
-          wantedByCardId={wantedByCardId}
-          onCardLongPress={(card) => handleLongPress(card)}
-          checklistMode={multiSelectMode}
-          checklistSelections={multiSelectIds}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          onCheckToggle={(cardId) => {
-            setMultiSelectIds((prev) => {
-              const next = new Set(prev);
-              if (next.has(cardId)) {
-                next.delete(cardId);
-              } else {
-                next.add(cardId);
-              }
-              return next;
-            });
-          }}
-        />
+        {showNoCardsEmpty ? (
+          <EmptyState
+            icon={Cards}
+            title="No cards yet"
+            subtitle="Add cards to your collection to get started"
+            ctaLabel="Browse Cards"
+            onCta={() => handleModeSwitch('browse')}
+          />
+        ) : showNoResultsEmpty ? (
+          <EmptyState
+            icon={MagnifyingGlass}
+            title="No results found"
+            subtitle="Try a different search term or clear your filters"
+            ctaLabel="Clear Filters"
+            onCta={() => {
+              setSearchQuery('');
+            }}
+          />
+        ) : (
+          <CardGrid
+            cards={filteredCards}
+            loading={currentLoading}
+            hasMore={!isSearchMode ? hasMore : false}
+            onLoadMore={!isSearchMode ? loadMore : undefined}
+            onCardPress={handleCardPress}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor="#f0c040"
+                colors={["#f0c040"]}
+              />
+            }
+            isSearchMode={isSearchMode}
+            sets={sets}
+            mode={mode}
+            collectionByCardId={collectionByCardId}
+            wantedByCardId={wantedByCardId}
+            onCardLongPress={(card) => handleLongPress(card)}
+            checklistMode={multiSelectMode}
+            checklistSelections={multiSelectIds}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            onCheckToggle={(cardId) => {
+              setMultiSelectIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(cardId)) {
+                  next.delete(cardId);
+                } else {
+                  next.add(cardId);
+                }
+                return next;
+              });
+            }}
+            getItemStyle={getItemStyle}
+            onStaggerLayout={onStaggerLayout}
+          />
+        )}
       </View>
 
       {/* Multi-select floating action bar */}
