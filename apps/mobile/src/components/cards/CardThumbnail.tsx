@@ -1,8 +1,17 @@
-import { useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Pressable, View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { CheckCircle, Heart, Circle } from 'phosphor-react-native';
 import * as Haptics from 'expo-haptics';
+import ReanimatedAnimated, {
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  useSharedValue,
+} from 'react-native-reanimated';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { useShimmer } from '@/src/hooks/useShimmer';
 import { RarityBadge } from './RarityBadge';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
@@ -70,6 +79,38 @@ export function CardThumbnail({
   const typeColor = card.type ? TYPE_COLORS[card.type] || colors.textMuted : colors.textMuted;
   const toastOpacity = useRef(new Animated.Value(0)).current;
 
+  // Width measurement for star shimmer
+  const [imageWidth, setImageWidth] = useState(0);
+
+  // Rarity detection
+  const isStarRarity = card.rarity?.startsWith('star');
+  const isCrownRarity = card.rarity === 'crown';
+
+  // Star shimmer (call unconditionally — hooks can't be conditional)
+  const shimmerTranslateX = useShimmer(imageWidth);
+  const shimmerAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shimmerTranslateX.value }],
+  }));
+
+  // Crown glow (call unconditionally)
+  const crownGlowOpacity = useSharedValue(0.15);
+  const crownGlowStyle = useAnimatedStyle(() => ({
+    opacity: crownGlowOpacity.value,
+  }));
+
+  useEffect(() => {
+    if (isCrownRarity) {
+      crownGlowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.45, { duration: 900 }),
+          withTiming(0.15, { duration: 900 })
+        ),
+        -1,
+        false
+      );
+    }
+  }, [isCrownRarity]);
+
   const showToast = useCallback(() => {
     toastOpacity.setValue(1);
     Animated.timing(toastOpacity, {
@@ -97,9 +138,14 @@ export function CardThumbnail({
     }
   }, [checklistMode, onCheckToggle, onPress]);
 
+  const bandWidth = imageWidth * 0.4;
+
   return (
     <Pressable style={styles.container} onPress={handlePress} onLongPress={handleLongPress}>
-      <View style={[styles.imageContainer, checklistMode && checked && styles.imageContainerSelected]}>
+      <View
+        style={[styles.imageContainer, checklistMode && checked && styles.imageContainerSelected]}
+        onLayout={(e) => setImageWidth(e.nativeEvent.layout.width)}
+      >
         <Image
           source={{ uri: card.imageUrl }}
           style={styles.image}
@@ -108,6 +154,55 @@ export function CardThumbnail({
           placeholder={{ blurhash: 'L6Pj0^jE.AyE_3t7t7R**0o#DgR4' }}
           transition={200}
         />
+
+        {/* Star rarity shimmer overlay */}
+        {isStarRarity && imageWidth > 0 && (
+          <ReanimatedAnimated.View
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: bandWidth,
+              },
+              shimmerAnimStyle,
+            ]}
+            pointerEvents="none"
+          >
+            <Svg width={bandWidth} height="100%">
+              <Defs>
+                <LinearGradient id="starShimmer" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor="transparent" stopOpacity="0" />
+                  <Stop offset="0.5" stopColor="rgba(240, 192, 64, 0.15)" stopOpacity="1" />
+                  <Stop offset="1" stopColor="transparent" stopOpacity="0" />
+                </LinearGradient>
+              </Defs>
+              <Rect x="0" y="0" width={bandWidth} height="100%" fill="url(#starShimmer)" />
+            </Svg>
+          </ReanimatedAnimated.View>
+        )}
+
+        {/* Crown rarity glow border */}
+        {isCrownRarity && (
+          <ReanimatedAnimated.View
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderWidth: 2,
+                borderColor: '#e8b4f8',
+                borderRadius: borderRadius.md,
+              },
+              crownGlowStyle,
+            ]}
+            pointerEvents="none"
+          />
+        )}
 
         {/* Dimmed overlay for unowned cards */}
         {dimmed && <View style={styles.dimOverlay} />}

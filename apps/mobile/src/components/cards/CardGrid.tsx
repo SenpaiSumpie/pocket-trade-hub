@@ -2,11 +2,10 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import { CardThumbnail } from './CardThumbnail';
-import { colors, spacing, borderRadius } from '@/src/constants/theme';
+import { CardGridSkeleton } from '@/src/components/skeleton/CardGridSkeleton';
+import { colors, spacing } from '@/src/constants/theme';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
 import type { Priority } from '@pocket-trade-hub/shared';
-import { useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
 
 interface CardGridProps {
   cards: Card[];
@@ -28,47 +27,6 @@ interface CardGridProps {
   onScroll?: any;
   scrollEventThrottle?: number;
   contentContainerStyleExtra?: Record<string, any>;
-}
-
-function SkeletonCard() {
-  const opacity = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View style={[skeletonStyles.card, { opacity }]}>
-      <View style={skeletonStyles.image} />
-      <View style={skeletonStyles.textLine} />
-      <View style={skeletonStyles.textShort} />
-    </Animated.View>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <View style={skeletonStyles.container}>
-      {Array.from({ length: 9 }).map((_, i) => (
-        <SkeletonCard key={i} />
-      ))}
-    </View>
-  );
 }
 
 function EmptyState() {
@@ -105,7 +63,7 @@ export function CardGrid({
   contentContainerStyleExtra,
 }: CardGridProps) {
   if (loading && cards.length === 0) {
-    return <LoadingSkeleton />;
+    return <CardGridSkeleton />;
   }
 
   if (!loading && cards.length === 0) {
@@ -165,37 +123,6 @@ export function CardGrid({
     />
   );
 }
-
-const skeletonStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: spacing.xs,
-  },
-  card: {
-    flex: 1,
-    padding: spacing.xs,
-  },
-  image: {
-    aspectRatio: 0.715,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.surface,
-  },
-  textLine: {
-    height: 10,
-    borderRadius: 4,
-    backgroundColor: colors.surface,
-    marginTop: spacing.xs,
-    width: '80%',
-  },
-  textShort: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.surface,
-    marginTop: spacing.xs,
-    width: '50%',
-  },
-});
 
 const emptyStyles = StyleSheet.create({
   container: {
