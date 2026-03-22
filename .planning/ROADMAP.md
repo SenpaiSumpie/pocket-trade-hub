@@ -45,7 +45,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 15: Animation Utilities and Motion System** - Reusable animation hooks, animated counters, card physics, bottom sheets, shimmer system (completed 2026-03-21)
 - [x] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states (completed 2026-03-22)
 - [x] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism (gap closure in progress) (completed 2026-03-22)
-- [ ] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh
+- [x] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh (completed 2026-03-22)
 - [ ] **Phase 19: Premium Touches and Polish** - Branded splash, grid layout modes, parallax headers, haptic patterns, reduced-motion support
 
 ## Phase Details
@@ -145,7 +145,7 @@ Plans:
   1. A build script generates CSS custom properties from the shared TS token package, integrated into the Turborepo pipeline
   2. Web primitive components (Button, Input, Badge, Card, Modal, Skeleton) exist and consume tokens via CSS custom properties
   3. All web pages have been refreshed to match the mobile visual language -- same colors, spacing, typography scale, and component patterns
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 18-01-PLAN.md -- Token pipeline validation, Inter font via next/font, shimmer keyframes, upgrade existing primitives (Button, Input, Skeleton, Modal)
 - [x] 18-02-PLAN.md -- New web primitives (Badge, Card, EmptyState, Toast/ToastOverlay) and Zustand toast store
@@ -189,5 +189,5 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
 | 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
 | 17. Screen Migration Tier 2 | v3.0 | 4/4 | Complete    | 2026-03-22 |
-| 18. Web Companion Sync | v3.0 | 2/4 | In Progress|  |
+| 18. Web Companion Sync | v3.0 | 2/4 | Complete    | 2026-03-22 |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |
