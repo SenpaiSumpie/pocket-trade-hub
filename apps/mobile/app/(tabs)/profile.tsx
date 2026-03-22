@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { View, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { Star, StarHalf, User, GoogleLogo, AppleLogo, CaretRight, PencilSimple, SignOut } from 'phosphor-react-native';
-import Toast from 'react-native-toast-message';
+import { BlurView } from 'expo-blur';
+import Animated from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { UI_LANGUAGES } from '@pocket-trade-hub/shared';
 import { useAuthStore } from '@/src/stores/auth';
@@ -14,10 +15,18 @@ import { signInWithGoogle } from '@/src/services/google-auth';
 import { signInWithApple, isAppleSignInAvailable } from '@/src/services/apple-auth';
 import { colors, typography, spacing, borderRadius } from '@/src/constants/theme';
 import { PaywallCard } from '@/src/components/premium/PaywallCard';
-import { PremiumBadge } from '@/src/components/premium/PremiumBadge';
 import { usePremiumStore } from '@/src/stores/premium';
 import RedeemCodeForm from '@/src/components/promo/RedeemCodeForm';
 import { LanguageSelector } from '@/src/components/LanguageSelector';
+import { Text } from '@/src/components/ui/Text';
+import { Card } from '@/src/components/ui/Card';
+import { Button } from '@/src/components/ui/Button';
+import { Badge } from '@/src/components/ui/Badge';
+import { ShimmerText } from '@/src/components/animation/ShimmerText';
+import { Shimmer } from '@/src/components/animation/Shimmer';
+import { ProfileHeaderSkeleton } from '@/src/components/skeleton/ProfileHeaderSkeleton';
+import { useStaggeredList } from '@/src/hooks/useStaggeredList';
+import { useToast } from '@/src/hooks/useToast';
 
 interface UserReputation {
   avgRating: number;
@@ -26,7 +35,7 @@ interface UserReputation {
 
 function ReputationStars({ avgRating, tradeCount, t }: UserReputation & { t: (key: string, opts?: Record<string, unknown>) => string }) {
   if (tradeCount === 0) {
-    return <Text style={styles.noRatingsText}>{t('profile.noRatings')}</Text>;
+    return <Text preset="label" color={colors.textMuted}>{t('profile.noRatings')}</Text>;
   }
 
   const fullStars = Math.floor(avgRating);
@@ -44,7 +53,7 @@ function ReputationStars({ avgRating, tradeCount, t }: UserReputation & { t: (ke
           <Star key={`e${i}`} size={18} color={colors.textMuted} weight="regular" />
         ))}
       </View>
-      <Text style={styles.ratingText}>
+      <Text preset="label" color={colors.textSecondary}>
         {avgRating.toFixed(1)} ({t('trades.tradeCount', { count: tradeCount })})
       </Text>
     </View>
@@ -53,6 +62,7 @@ function ReputationStars({ avgRating, tradeCount, t }: UserReputation & { t: (ke
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
+  const toast = useToast();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
@@ -63,29 +73,55 @@ export default function ProfileScreen() {
   const [languageVisible, setLanguageVisible] = useState(false);
   const [reputation, setReputation] = useState<UserReputation>({ avgRating: 0, tradeCount: 0 });
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const isPremium = usePremiumStore((s) => s.isPremium);
   const fetchPremiumStatus = usePremiumStore((s) => s.fetchStatus);
 
-  useEffect(() => {
+  // Info sections for stagger animation
+  const infoSections = [
+    'friendCode',
+    'premium',
+    'redeem',
+    'linkedAccounts',
+    'memberInfo',
+    'language',
+  ] as const;
+
+  const sectionCount = loading ? 0 : infoSections.length;
+  const { onLayout, getItemStyle } = useStaggeredList(sectionCount);
+
+  const fetchData = useCallback(async () => {
     if (!isLoggedIn || !user?.id) return;
-    apiFetch<{ avgRating: number; tradeCount: number }>(`/users/${user.id}`)
-      .then((data) => {
-        setReputation({ avgRating: data.avgRating, tradeCount: data.tradeCount });
-      })
-      .catch(() => {});
-    fetchPremiumStatus();
-    // Fetch linked providers
-    apiFetch<{ providers: string[] }>('/auth/providers')
-      .then((data) => setLinkedProviders(data.providers))
-      .catch(() => {});
+    try {
+      const [userData, providerData] = await Promise.all([
+        apiFetch<{ avgRating: number; tradeCount: number }>(`/users/${user.id}`),
+        apiFetch<{ providers: string[] }>('/auth/providers'),
+      ]);
+      setReputation({ avgRating: userData.avgRating, tradeCount: userData.tradeCount });
+      setLinkedProviders(providerData.providers);
+    } catch {
+      // Silently handle errors
+    }
+    await fetchPremiumStatus();
+    setLoading(false);
   }, [isLoggedIn, user?.id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, [fetchData]);
 
   const handleLinkGoogle = async () => {
     setLinkingProvider('google');
     try {
       const idToken = await signInWithGoogle();
       if (!idToken) return;
-      // Prompt for password to confirm linking
       if (Platform.OS === 'web') {
         const password = window.prompt(t('profile.enterPasswordToConfirm'));
         if (!password) return;
@@ -99,24 +135,16 @@ export default function ProfileScreen() {
             try {
               await linkAccount('google', idToken, password);
               setLinkedProviders([...linkedProviders, 'google']);
-              Toast.show({ type: 'success', text1: t('profile.googleAccountLinked') });
+              toast.success(t('profile.googleAccountLinked'));
             } catch (err) {
-              Toast.show({
-                type: 'error',
-                text1: t('profile.linkFailed'),
-                text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-              });
+              toast.error(t('profile.linkFailed'));
             }
           },
           'secure-text',
         );
       }
     } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: t('profile.googleSignInFailed'),
-        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-      });
+      toast.error(t('profile.googleSignInFailed'));
     } finally {
       setLinkingProvider(null);
     }
@@ -127,7 +155,7 @@ export default function ProfileScreen() {
     try {
       const result = await signInWithApple();
       if (!result) return;
-      if (Platform.OS === 'web') return; // Apple only on iOS
+      if (Platform.OS === 'web') return;
       Alert.prompt(
         t('profile.linkAppleAccount'),
         t('profile.enterPasswordToConfirm'),
@@ -136,31 +164,22 @@ export default function ProfileScreen() {
           try {
             await linkAccount('apple', result.idToken, password);
             setLinkedProviders([...linkedProviders, 'apple']);
-            Toast.show({ type: 'success', text1: t('profile.appleAccountLinked') });
+            toast.success(t('profile.appleAccountLinked'));
           } catch (err) {
-            Toast.show({
-              type: 'error',
-              text1: t('profile.linkFailed'),
-              text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-            });
+            toast.error(t('profile.linkFailed'));
           }
         },
         'secure-text',
       );
     } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: t('profile.appleSignInFailed'),
-        text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-      });
+      toast.error(t('profile.appleSignInFailed'));
     } finally {
       setLinkingProvider(null);
     }
   };
 
   const handleUnlink = (provider: string) => {
-    // Guard: don't allow unlinking the only auth method
-    const hasPassword = true; // Assume user has password if they have email/password account
+    const hasPassword = true;
     if (linkedProviders.length <= 1 && !hasPassword) {
       Alert.alert(
         t('profile.cannotUnlink'),
@@ -179,13 +198,9 @@ export default function ProfileScreen() {
           try {
             await apiFetch(`/auth/unlink/${provider}`, { method: 'DELETE' });
             setLinkedProviders(linkedProviders.filter((p) => p !== provider));
-            Toast.show({ type: 'success', text1: t('profile.accountUnlinked', { provider: label }) });
+            toast.success(t('profile.accountUnlinked', { provider: label }));
           } catch (err) {
-            Toast.show({
-              type: 'error',
-              text1: t('profile.unlinkFailed'),
-              text2: err instanceof Error ? err.message : t('common.somethingWentWrong'),
-            });
+            toast.error(t('profile.unlinkFailed'));
           }
         },
       },
@@ -222,149 +237,170 @@ export default function ProfileScreen() {
 
   const avatar = getAvatarById(user?.avatarId);
 
+  // Initial load skeleton
+  if (!user && loading) return <ProfileHeaderSkeleton />;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Avatar */}
-      <View style={styles.avatarContainer}>
-        <View style={[styles.avatarCircle, avatar && { borderColor: avatar.color }]}>
-          {avatar ? (
-            <Text style={styles.avatarEmoji}>{avatar.emoji}</Text>
-          ) : (
-            <User size={48} color={colors.textMuted} weight="regular" />
-          )}
-        </View>
-        <View style={styles.nameRow}>
-          <Text style={styles.displayName}>
-            {user?.displayName || t('profile.noDisplayName')}
-          </Text>
-          {isPremium && <PremiumBadge size={18} />}
-        </View>
-        <Text style={styles.email}>{user?.email}</Text>
-        <View style={styles.reputationSection}>
-          <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} t={t} />
-        </View>
-      </View>
-
-      {/* Friend Code */}
-      {user?.friendCode && (
-        <View style={styles.friendCodeSection}>
-          <FriendCodeBadge code={user.friendCode} />
-        </View>
-      )}
-
-      {/* Premium Section */}
-      <PaywallCard />
-
-      {/* Redeem Code */}
-      <RedeemCodeForm />
-
-      {/* Linked Accounts */}
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>{t('profile.linkedAccounts')}</Text>
-        <View style={styles.divider} />
-
-        {/* Google */}
-        <View style={styles.providerRow}>
-          <View style={styles.providerInfo}>
-            <GoogleLogo size={20} color={colors.text} weight="regular" />
-            <Text style={styles.providerLabel}>Google</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor="#f0c040"
+          colors={["#f0c040"]}
+        />
+      }
+    >
+      {/* Glassmorphism Header */}
+      <BlurView intensity={40} tint="dark" style={styles.glassHeader}>
+        <View style={styles.goldOverlay} pointerEvents="none" />
+        <View style={styles.headerContent}>
+          {/* Avatar */}
+          <View style={[styles.avatarCircle, avatar && { borderColor: avatar.color }]}>
+            {avatar ? (
+              <Text preset="heading" style={styles.avatarEmoji}>{avatar.emoji}</Text>
+            ) : (
+              <User size={48} color={colors.textMuted} weight="regular" />
+            )}
           </View>
-          {linkedProviders.includes('google') ? (
-            <TouchableOpacity onPress={() => handleUnlink('google')}>
-              <Text style={styles.unlinkText}>{t('profile.unlinkAccount')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.linkProviderButton}
-              onPress={handleLinkGoogle}
-              disabled={linkingProvider !== null}
-            >
-              {linkingProvider === 'google' ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text style={styles.linkProviderText}>{t('profile.linkAccount')}</Text>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
 
-        {/* Apple (iOS only) */}
-        {isAppleSignInAvailable() && (
-          <>
+          {/* Display Name + Premium Badge */}
+          <View style={styles.nameRow}>
+            <Text preset="subheading">{user?.displayName || t('profile.noDisplayName')}</Text>
+            {isPremium && <Badge variant="premium" label="PRO" />}
+          </View>
+
+          {/* Email */}
+          <Text preset="label" color={colors.textSecondary} style={styles.emailText}>{user?.email}</Text>
+
+          {/* Reputation Stars (unchanged per D-25) */}
+          <View style={styles.reputationSection}>
+            <ReputationStars avgRating={reputation.avgRating} tradeCount={reputation.tradeCount} t={t} />
+          </View>
+        </View>
+      </BlurView>
+
+      {/* Staggered Info Sections */}
+      <View onLayout={onLayout} style={styles.sectionsContainer}>
+        {/* Friend Code */}
+        {user?.friendCode && (
+          <Animated.View style={getItemStyle(0)}>
+            <Card style={styles.sectionCard}>
+              <View style={styles.friendCodeInner}>
+                <FriendCodeBadge code={user.friendCode} />
+              </View>
+            </Card>
+          </Animated.View>
+        )}
+
+        {/* Premium Section */}
+        <Animated.View style={getItemStyle(1)}>
+          <PaywallCard />
+        </Animated.View>
+
+        {/* Redeem Code */}
+        <Animated.View style={getItemStyle(2)}>
+          <RedeemCodeForm />
+        </Animated.View>
+
+        {/* Linked Accounts */}
+        <Animated.View style={getItemStyle(3)}>
+          <Card style={styles.sectionCard}>
+            <Text preset="subheading" style={styles.sectionTitle}>{t('profile.linkedAccounts')}</Text>
             <View style={styles.divider} />
+
+            {/* Google */}
             <View style={styles.providerRow}>
               <View style={styles.providerInfo}>
-                <AppleLogo size={20} color={colors.text} weight="regular" />
-                <Text style={styles.providerLabel}>Apple</Text>
+                <GoogleLogo size={20} color={colors.text} weight="regular" />
+                <Text preset="body">Google</Text>
               </View>
-              {linkedProviders.includes('apple') ? (
-                <TouchableOpacity onPress={() => handleUnlink('apple')}>
-                  <Text style={styles.unlinkText}>{t('profile.unlinkAccount')}</Text>
-                </TouchableOpacity>
+              {linkedProviders.includes('google') ? (
+                <Button variant="secondary" label={t('profile.unlinkAccount')} onPress={() => handleUnlink('google')} size="sm" />
               ) : (
-                <TouchableOpacity
-                  style={styles.linkProviderButton}
-                  onPress={handleLinkApple}
+                <Button
+                  variant="secondary"
+                  label={t('profile.linkAccount')}
+                  onPress={handleLinkGoogle}
                   disabled={linkingProvider !== null}
-                >
-                  {linkingProvider === 'apple' ? (
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  ) : (
-                    <Text style={styles.linkProviderText}>{t('profile.linkAccount')}</Text>
-                  )}
-                </TouchableOpacity>
+                  loading={linkingProvider === 'google'}
+                  size="sm"
+                />
               )}
             </View>
-          </>
-        )}
-      </View>
 
-      {/* Info Cards */}
-      <View style={styles.infoCard}>
-        {!user?.friendCode && (
-          <>
+            {/* Apple (iOS only) */}
+            {isAppleSignInAvailable() && (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.providerRow}>
+                  <View style={styles.providerInfo}>
+                    <AppleLogo size={20} color={colors.text} weight="regular" />
+                    <Text preset="body">Apple</Text>
+                  </View>
+                  {linkedProviders.includes('apple') ? (
+                    <Button variant="secondary" label={t('profile.unlinkAccount')} onPress={() => handleUnlink('apple')} size="sm" />
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      label={t('profile.linkAccount')}
+                      onPress={handleLinkApple}
+                      disabled={linkingProvider !== null}
+                      loading={linkingProvider === 'apple'}
+                      size="sm"
+                    />
+                  )}
+                </View>
+              </>
+            )}
+          </Card>
+        </Animated.View>
+
+        {/* Member Info */}
+        <Animated.View style={getItemStyle(4)}>
+          <Card style={styles.sectionCard}>
+            {!user?.friendCode && (
+              <>
+                <View style={styles.infoRow}>
+                  <Text preset="label">{t('profile.friendCode')}</Text>
+                  <Text preset="body">{t('profile.friendCodeNotSet')}</Text>
+                </View>
+                <View style={styles.divider} />
+              </>
+            )}
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('profile.friendCode')}</Text>
-              <Text style={styles.infoValue}>{t('profile.friendCodeNotSet')}</Text>
+              <Text preset="label">{t('profile.memberSince')}</Text>
+              <Text preset="body">{formatDate(user?.createdAt)}</Text>
             </View>
-            <View style={styles.divider} />
-          </>
-        )}
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{t('profile.memberSince')}</Text>
-          <Text style={styles.infoValue}>{formatDate(user?.createdAt)}</Text>
-        </View>
-      </View>
+          </Card>
+        </Animated.View>
 
-      {/* Language */}
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>{t('profile.language')}</Text>
-        <View style={styles.divider} />
-        <TouchableOpacity
-          style={styles.infoRow}
-          onPress={() => setLanguageVisible(true)}
-        >
-          <Text style={styles.infoLabel}>{t('profile.currentLanguage')}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Text style={styles.infoValue}>{currentLanguageName}</Text>
-            <CaretRight size={16} color={colors.textMuted} weight="regular" />
-          </View>
-        </TouchableOpacity>
+        {/* Language */}
+        <Animated.View style={getItemStyle(5)}>
+          <Card style={styles.sectionCard}>
+            <Text preset="subheading" style={styles.sectionTitle}>{t('profile.language')}</Text>
+            <View style={styles.divider} />
+            <TouchableOpacity
+              style={styles.infoRow}
+              onPress={() => setLanguageVisible(true)}
+            >
+              <Text preset="label">{t('profile.currentLanguage')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                <Text preset="body">{currentLanguageName}</Text>
+                <CaretRight size={16} color={colors.textMuted} weight="regular" />
+              </View>
+            </TouchableOpacity>
+          </Card>
+        </Animated.View>
       </View>
 
       {/* Actions */}
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => router.push('/edit-profile')}
-      >
-        <PencilSimple size={20} color={colors.background} weight="regular" />
-        <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <SignOut size={20} color={colors.error} weight="regular" />
-        <Text style={styles.logoutButtonText}>{t('profile.logOut')}</Text>
-      </TouchableOpacity>
+      <View style={styles.actionsContainer}>
+        <Button variant="primary" label={t('profile.editProfile')} onPress={() => router.push('/edit-profile')} Icon={PencilSimple} />
+        <Button variant="destructive" label={t('profile.logOut')} onPress={handleLogout} Icon={SignOut} />
+      </View>
 
       <LanguageSelector visible={languageVisible} onClose={() => setLanguageVisible(false)} />
     </ScrollView>
@@ -378,12 +414,22 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    alignItems: 'center',
   },
-  avatarContainer: {
-    alignItems: 'center',
+  // Glassmorphism header
+  glassHeader: {
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    marginHorizontal: 0,
     marginBottom: spacing.xl,
-    marginTop: spacing.md,
+  },
+  goldOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(240, 192, 64, 0.08)',
+  },
+  headerContent: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   avatarCircle: {
     width: 96,
@@ -402,14 +448,9 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
-  displayName: {
-    ...typography.subheading,
-    color: colors.text,
-  },
-  email: {
-    ...typography.caption,
+  emailText: {
     marginTop: spacing.xs,
   },
   reputationSection: {
@@ -425,44 +466,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 2,
   },
-  ratingText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-  noRatingsText: {
-    ...typography.caption,
-    color: colors.textMuted,
-  },
-  friendCodeSection: {
+  // Sections
+  sectionsContainer: {
     width: '100%',
-    alignItems: 'center',
+    gap: spacing.md,
     marginBottom: spacing.lg,
   },
-  infoCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+  sectionCard: {
     width: '100%',
-    marginBottom: spacing.lg,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  friendCodeInner: {
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  infoLabel: {
-    ...typography.label,
-  },
-  infoValue: {
-    ...typography.body,
-    color: colors.text,
   },
   sectionTitle: {
-    ...typography.label,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
+    fontSize: 16,
     marginBottom: spacing.xs,
   },
   divider: {
@@ -481,57 +498,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  providerLabel: {
-    ...typography.body,
-    color: colors.text,
-  },
-  linkProviderButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  linkProviderText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  unlinkText: {
-    color: colors.error,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  editButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
+  infoRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  // Actions
+  actionsContainer: {
     width: '100%',
-    marginBottom: spacing.md,
-  },
-  editButtonText: {
-    color: colors.background,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  logoutButton: {
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: colors.error,
-  },
-  logoutButtonText: {
-    color: colors.error,
-    fontSize: 16,
-    fontWeight: '600',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
 });
