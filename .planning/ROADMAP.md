@@ -183,6 +183,6 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 14. Navigation Shell and App Chrome | v3.0 | 4/4 | Complete    | 2026-03-21 |
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
 | 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
-| 17. Screen Migration Tier 2 | v3.0 | 4/4 | Complete   | 2026-03-22 |
+| 17. Screen Migration Tier 2 | v3.0 | 4/4 | Complete    | 2026-03-22 |
 | 18. Web Companion Sync | v3.0 | 0/TBD | Not started | - |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |
