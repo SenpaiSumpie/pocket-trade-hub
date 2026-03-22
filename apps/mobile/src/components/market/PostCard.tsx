@@ -1,9 +1,13 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Star } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { Card } from '@/src/components/ui/Card';
+import { Badge } from '@/src/components/ui/Badge';
+import { Text } from '@/src/components/ui/Text';
 import { RarityBadge } from '@/src/components/cards/RarityBadge';
-import { colors, spacing, borderRadius, typography } from '@/src/constants/theme';
+import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { MarketPost } from '@/src/stores/posts';
 
 interface PostCardProps {
@@ -28,88 +32,129 @@ export function PostCard({ post, onPress }: PostCardProps) {
   if (!card) return null;
 
   const isOffering = post.type === 'offering';
-  const typeBadgeColor = isOffering ? colors.success : '#3b82f6';
+  const typeBadgeVariant = isOffering ? 'success' : 'default';
   const typeBadgeLabel = isOffering ? t('market.offering').toUpperCase() : t('market.seeking').toUpperCase();
 
+  // Scaffold for premium poster -- field may not exist yet on the type
+  const isPremium = !!(post.poster as any)?.isPremium;
+
   return (
-    <Pressable
-      style={[
-        styles.container,
-        post.isRelevant && styles.containerRelevant,
-      ]}
+    <Card
       onPress={onPress}
+      style={[
+        styles.cardOuter,
+        post.isRelevant && styles.cardRelevant,
+      ]}
+      padding={0}
     >
-      {/* Card image */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: card.imageUrl }}
-          style={styles.image}
-          contentFit="cover"
-          transition={200}
-        />
-        {/* Type badge */}
-        <View style={[styles.typeBadge, { backgroundColor: typeBadgeColor }]}>
-          <Text style={styles.typeBadgeText}>{typeBadgeLabel}</Text>
-        </View>
-      </View>
-
-      {/* Info section */}
-      <View style={styles.info}>
-        <View style={styles.topRow}>
-          <Text style={styles.cardName} numberOfLines={1}>{card.name}</Text>
-          {post.isRelevant && (
-            <View style={styles.matchBadge}>
-              <Star size={10} color="#f0c040" weight="fill" />
-              <Text style={styles.matchBadgeText}>{t('trades.matchFound')}</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.metaRow}>
-          <RarityBadge rarity={card.rarity} />
-          {card.setId && (
-            <Text style={styles.metaText} numberOfLines={1}>{card.setId}</Text>
-          )}
-        </View>
-
-        {/* Poster info (when available) */}
-        {post.poster && (
-          <View style={styles.posterRow}>
-            <Text style={styles.posterName} numberOfLines={1}>{post.poster.displayName}</Text>
-            {post.poster.averageRating != null && (
-              <View style={styles.ratingRow}>
-                <Star size={10} color={colors.primary} weight="fill" />
-                <Text style={styles.ratingText}>{post.poster.averageRating.toFixed(1)}</Text>
-              </View>
-            )}
-            {post.poster.tradeCount > 0 && (
-              <Text style={styles.tradeCountText}>{post.poster.tradeCount} trades</Text>
-            )}
+      <View style={styles.container}>
+        {/* Premium gold gradient left-border */}
+        {isPremium && (
+          <View style={styles.premiumBorder}>
+            <Svg width={3} height="100%">
+              <Defs>
+                <LinearGradient id={`premiumGrad-${post.id}`} x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="#f5d060" />
+                  <Stop offset="1" stopColor="#c9a020" />
+                </LinearGradient>
+              </Defs>
+              <Rect x="0" y="0" width={3} height="100%" fill={`url(#premiumGrad-${post.id})`} />
+            </Svg>
           </View>
         )}
 
-        <View style={styles.bottomRow}>
-          <Text style={styles.languageBadge}>{card.language.toUpperCase()}</Text>
-          <Text style={styles.timeText}>{timeAgo(post.createdAt)}</Text>
+        {/* Card image */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: card.imageUrl }}
+            style={styles.image}
+            contentFit="cover"
+            transition={200}
+          />
+          {/* Type badge */}
+          <View style={styles.typeBadgeWrapper}>
+            <Badge
+              variant={typeBadgeVariant}
+              label={typeBadgeLabel}
+              textColor={isOffering ? undefined : '#3b82f6'}
+              style={!isOffering ? { backgroundColor: 'rgba(59, 130, 246, 0.2)' } : undefined}
+            />
+          </View>
+        </View>
+
+        {/* Info section */}
+        <View style={styles.info}>
+          <View style={styles.topRow}>
+            <Text preset="body" style={styles.cardName} numberOfLines={1}>{card.name}</Text>
+            {post.isRelevant && (
+              <Badge
+                variant="warning"
+                label={t('trades.matchFound')}
+                style={styles.matchBadge}
+              />
+            )}
+          </View>
+
+          <View style={styles.metaRow}>
+            <RarityBadge rarity={card.rarity} />
+            {card.setId && (
+              <Text preset="label" numberOfLines={1}>{card.setId}</Text>
+            )}
+          </View>
+
+          {/* Poster info (when available) */}
+          {post.poster && (
+            <View style={styles.posterRow}>
+              <Text preset="label" style={styles.posterName} numberOfLines={1}>{post.poster.displayName}</Text>
+              {isPremium && (
+                <Badge variant="premium" label="PRO" />
+              )}
+              {post.poster.averageRating != null && (
+                <View style={styles.ratingRow}>
+                  <Star size={10} color={colors.primary} weight="fill" />
+                  <Text preset="label" style={styles.ratingText}>{post.poster.averageRating.toFixed(1)}</Text>
+                </View>
+              )}
+              {post.poster.tradeCount > 0 && (
+                <Text preset="label" style={styles.tradeCountText}>{post.poster.tradeCount} trades</Text>
+              )}
+            </View>
+          )}
+
+          <View style={styles.bottomRow}>
+            <Badge variant="default" label={card.language.toUpperCase()} textColor={colors.primary} style={styles.langBadge} />
+            <Text preset="label" style={styles.timeText}>{timeAgo(post.createdAt)}</Text>
+          </View>
         </View>
       </View>
-    </Pressable>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
+  cardOuter: {
     marginHorizontal: spacing.md,
     marginVertical: spacing.xs,
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
     borderWidth: 1.5,
     borderColor: colors.border,
   },
-  containerRelevant: {
+  cardRelevant: {
     borderColor: '#f0c040',
+  },
+  container: {
+    flexDirection: 'row',
+    position: 'relative',
+  },
+  premiumBorder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+    zIndex: 1,
+    borderTopLeftRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
   imageContainer: {
     width: 90,
@@ -120,19 +165,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  typeBadge: {
+  typeBadgeWrapper: {
     position: 'absolute',
     top: spacing.xs,
     left: spacing.xs,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-  },
-  typeBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#ffffff',
-    letterSpacing: 0.5,
   },
   info: {
     flex: 1,
@@ -146,50 +182,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   cardName: {
-    ...typography.body,
     fontWeight: '600',
     fontSize: 15,
     flex: 1,
   },
   matchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
     backgroundColor: '#f0c040' + '30',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-  },
-  matchBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#f0c040',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     marginTop: spacing.xs,
-  },
-  metaText: {
-    ...typography.caption,
-    fontSize: 12,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
-  languageBadge: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.primary,
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-    overflow: 'hidden',
   },
   posterRow: {
     flexDirection: 'row',
@@ -217,8 +221,16 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textMuted,
   },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  langBadge: {
+    backgroundColor: colors.primary + '20',
+  },
   timeText: {
-    ...typography.caption,
     fontSize: 11,
   },
 });
