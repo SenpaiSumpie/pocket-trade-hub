@@ -34,8 +34,7 @@ Token source: `apps/web/src/app/tokens.css` `@theme` block. All values already g
 
 | Token | Value | CSS Var | Usage |
 |-------|-------|---------|-------|
-| 2xs | 2px | `--spacing-2xs` | Icon gaps, tight inline padding |
-| xs | 4px | `--spacing-xs` | Badge padding, chip gaps |
+| xs | 4px | `--spacing-xs` | Badge padding, chip gaps, icon gaps, tight inline padding |
 | sm | 8px | `--spacing-sm` | Compact element spacing, icon-to-label gaps |
 | md | 16px | `--spacing-md` | Default card padding, form field spacing |
 | lg | 24px | `--spacing-lg` | Section padding, card row gaps |
@@ -43,23 +42,24 @@ Token source: `apps/web/src/app/tokens.css` `@theme` block. All values already g
 | 2xl | 48px | `--spacing-xxl` | Major section breaks |
 | 3xl | 64px | `--spacing-3xl` | Page-level top/bottom padding |
 
-Exceptions: Sidebar nav item vertical padding uses 10px (2.5 spacing — existing pattern in Sidebar.tsx; keep for optical balance with icon alignment). Main content area uses `p-6` (24px = lg token).
+Exceptions: none. Sidebar nav item vertical padding uses 8px (`--spacing-sm`). Main content area uses `p-6` (24px = lg token).
 
 ---
 
 ## Typography
 
-Token source: `apps/web/src/app/tokens.css`. Five declared sizes from shared token package.
+Token source: `apps/web/src/app/tokens.css`. Four declared sizes from shared token package.
 
 | Role | Size | CSS Var | Weight | Line Height | Usage |
 |------|------|---------|--------|-------------|-------|
-| Heading | 28px (1.75rem) | `--font-size-heading` | 700 (`--font-weight-heading`) | 34px (2.125rem) | Page titles (h1), modal titles |
-| Subheading | 20px (1.25rem) | `--font-size-subheading` | 600 (`--font-weight-subheading`) | 26px (1.625rem) | Section headers (h2), card titles |
-| Body | 16px (1rem) | `--font-size-body` | 400 (`--font-weight-body`) | 22px (1.375rem) | Default text, descriptions, form content |
-| Label | 14px (0.875rem) | `--font-size-label` | 500 (`--font-weight-label`) | 20px (1.25rem) | Button labels, nav items, form labels, badge text |
-| Caption | 13px (0.8125rem) | `--font-size-caption` | 400 (`--font-weight-caption`) | 18px (1.125rem) | Helper text, timestamps, metadata |
+| Heading | 28px (1.75rem) | `--font-size-heading` | 700 (`--font-weight-bold`) | 34px (2.125rem) | Page titles (h1), modal titles |
+| Subheading | 20px (1.25rem) | `--font-size-subheading` | 700 (`--font-weight-bold`) | 26px (1.625rem) | Section headers (h2), card titles |
+| Body | 16px (1rem) | `--font-size-body` | 400 (`--font-weight-regular`) | 22px (1.375rem) | Default text, descriptions, form content |
+| Label | 14px (0.875rem) | `--font-size-label` | 400 (`--font-weight-regular`) | 20px (1.25rem) | Button labels, nav items, form labels, badge text, helper text, timestamps, metadata |
 
-All weights used: 400 (body/caption), 500 (label), 600 (subheading), 700 (heading). Per D-18, no web Text primitive — Tailwind utility classes handle typography directly using `text-[var(--font-size-X)]` or Tailwind v4 token-mapped classes.
+Two weights only: 400 (regular — body, label, secondary text) and 700 (bold — headings, subheadings). Per D-18, no web Text primitive — Tailwind utility classes handle typography directly using `text-[var(--font-size-X)]` or Tailwind v4 token-mapped classes.
+
+Note: `--font-size-caption` and `--font-weight-caption`/`--font-weight-label`/`--font-weight-subheading` tokens may exist in the shared token package for historical reasons. On the web layer, treat Label (14px/400) as the canonical small-text role. Do not introduce any size below 14px or weight between 400 and 700.
 
 ---
 
@@ -77,7 +77,7 @@ Token source: `apps/web/src/app/tokens.css`. Dark+gold brand identity — dark m
 | Accent Dark | `#c49a20` | `--color-accent-dark` | Accent hover state only |
 | On Surface | `#ffffff` | `--color-on-surface` | Primary text |
 | On Surface Secondary | `#a0a0b8` | `--color-on-surface-secondary` | Secondary/descriptive text |
-| On Surface Muted | `#6c6c80` | `--color-on-surface-muted` | Placeholder text, disabled states, captions |
+| On Surface Muted | `#6c6c80` | `--color-on-surface-muted` | Placeholder text, disabled states, label/helper text |
 | Border | `#2a2a45` | `--color-border` | All border strokes, dividers |
 | Error / Destructive | `#e74c3c` | `--color-error` | Destructive actions, error states only |
 | Success | `#2ecc71` | `--color-success` | Success toast, positive feedback |
@@ -120,7 +120,7 @@ Source: 18-CONTEXT.md D-10 through D-17. These define the specific work for WEB-
 |-----------|------|------|
 | Badge | `apps/web/src/components/ui/Badge.tsx` | Variants: `default`, `success`, `warning`, `error`, `rarity-diamond`, `rarity-star`, `rarity-crown`, `premium`; parity with `apps/mobile/src/components/ui/Badge.tsx` variant map; uses token CSS vars for all colors |
 | Card | `apps/web/src/components/ui/Card.tsx` | `elevation` prop (`none`/`low`/`medium`/`high`) maps to `--elevation-*` CSS vars; optional `onClick` triggers CSS hover effect (translate-y-[-2px] + elevated shadow); `padding` size prop (`sm`/`md`/`lg`); `forwardRef` not required (not a form element) |
-| EmptyState | `apps/web/src/components/ui/EmptyState.tsx` | Props: `icon` (Lucide component), `title`, `subtitle?`, `ctaLabel?`, `onCta?`; icon renders at 64px in `--color-on-surface-muted`; title uses subheading size/weight; subtitle uses body size in muted color; CTA uses Button primary variant; parity with mobile EmptyState |
+| EmptyState | `apps/web/src/components/ui/EmptyState.tsx` | Props: `icon` (Lucide component), `title`, `subtitle?`, `ctaLabel?`, `onCta?`; icon renders at 64px in `--color-on-surface-muted`; title uses subheading size (20px) at weight 700; subtitle uses body size (16px) at weight 400 in muted color; CTA uses Button primary variant; parity with mobile EmptyState |
 | Toast | `apps/web/src/components/ui/Toast.tsx` + `ToastOverlay.tsx` | Zustand store (`useToastStore`); variants: `success`, `error`, `info`, `warning`; fixed overlay positioned top-right, 16px inset; auto-dismiss after 4000ms with animated progress bar; CSS slide-in from right (`--motion-duration-fast`) + fade-out (`--motion-duration-fast`); stacks up to 4 toasts; mounts in `apps/web/src/app/(app)/layout.tsx` alongside existing `NotificationToast` |
 
 ---
@@ -212,6 +212,8 @@ Per D-23. Sidebar is already functional — upgrade its visual treatment.
 | Icon active | `text-gold` | `text-accent` — token var |
 | Notification badge | `bg-red-500` | `bg-[var(--color-error)]` |
 | Transition | `transition-colors` | `transition-colors duration-[var(--motion-duration-fast)]` |
+
+Sidebar nav item vertical padding: 8px (`--spacing-sm`).
 
 ---
 
