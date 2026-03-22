@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
+import { ToastOverlay } from '@/src/components/ui/ToastOverlay';
 import { ArrowsLeftRight } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -166,6 +167,7 @@ export default function RootLayout() {
         </Stack.Protected>
       </Stack>
       <Toast config={toastConfig} />
+      <ToastOverlay />
     </GestureHandlerRootView>
   );
 }
