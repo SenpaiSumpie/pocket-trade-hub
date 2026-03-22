@@ -48,7 +48,7 @@ export default function LoginForm() {
           placeholder="you@example.com"
         />
         {errors.email && (
-          <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
+          <p className="mt-1 text-sm text-[var(--color-error)]">{errors.email.message}</p>
         )}
       </div>
 
@@ -68,14 +68,14 @@ export default function LoginForm() {
           placeholder="Enter your password"
         />
         {errors.password && (
-          <p className="mt-1 text-sm text-red-400">
+          <p className="mt-1 text-sm text-[var(--color-error)]">
             {errors.password.message}
           </p>
         )}
       </div>
 
       {serverError && (
-        <p className="rounded-md bg-red-900/30 px-3 py-2 text-sm text-red-400">
+        <p className="rounded-md bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] px-3 py-2 text-sm text-[var(--color-error)]">
           {serverError}
         </p>
       )}

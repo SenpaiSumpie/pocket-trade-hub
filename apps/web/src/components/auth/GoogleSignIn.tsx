@@ -37,7 +37,7 @@ export default function GoogleSignIn() {
       </div>
 
       {error && (
-        <p className="mb-3 rounded-md bg-red-900/30 px-3 py-2 text-sm text-red-400">
+        <p className="mb-3 rounded-md bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] px-3 py-2 text-sm text-[var(--color-error)]">
           {error}
         </p>
       )}
