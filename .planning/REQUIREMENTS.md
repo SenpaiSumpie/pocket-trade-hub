@@ -51,8 +51,8 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Web Sync
 
-- [ ] **WEB-01**: CSS token generation script from shared TS token package
-- [ ] **WEB-02**: Web primitive components (Button, Input, Badge, Card, Modal, Skeleton)
+- [x] **WEB-01**: CSS token generation script from shared TS token package
+- [x] **WEB-02**: Web primitive components (Button, Input, Badge, Card, Modal, Skeleton)
 - [ ] **WEB-03**: Screen-by-screen web page refresh matching mobile visual language
 
 ### Polish
@@ -118,8 +118,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCR-04 | Phase 17 | Complete |
 | SCR-05 | Phase 17 | Complete |
 | SCR-06 | Phase 17 | Complete |
-| WEB-01 | Phase 18 | Pending |
-| WEB-02 | Phase 18 | Pending |
+| WEB-01 | Phase 18 | Complete |
+| WEB-02 | Phase 18 | Complete |
 | WEB-03 | Phase 18 | Pending |
 | POL-01 | Phase 19 | Pending |
 | POL-02 | Phase 19 | Pending |

@@ -145,10 +145,10 @@ Plans:
   1. A build script generates CSS custom properties from the shared TS token package, integrated into the Turborepo pipeline
   2. Web primitive components (Button, Input, Badge, Card, Modal, Skeleton) exist and consume tokens via CSS custom properties
   3. All web pages have been refreshed to match the mobile visual language -- same colors, spacing, typography scale, and component patterns
-**Plans:** 4 plans
+**Plans:** 2/4 plans executed
 Plans:
-- [ ] 18-01-PLAN.md -- Token pipeline validation, Inter font via next/font, shimmer keyframes, upgrade existing primitives (Button, Input, Skeleton, Modal)
-- [ ] 18-02-PLAN.md -- New web primitives (Badge, Card, EmptyState, Toast/ToastOverlay) and Zustand toast store
+- [x] 18-01-PLAN.md -- Token pipeline validation, Inter font via next/font, shimmer keyframes, upgrade existing primitives (Button, Input, Skeleton, Modal)
+- [x] 18-02-PLAN.md -- New web primitives (Badge, Card, EmptyState, Toast/ToastOverlay) and Zustand toast store
 - [ ] 18-03-PLAN.md -- Page refresh: Cards, Collection, Market, Proposals with skeleton, empty states, token colors
 - [ ] 18-04-PLAN.md -- Page refresh: Meta, Tier Lists, Auth pages, Sidebar refresh, hardcoded color audit
 
@@ -189,5 +189,5 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 15. Animation Utilities and Motion System | v3.0 | 5/5 | Complete    | 2026-03-21 |
 | 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
 | 17. Screen Migration Tier 2 | v3.0 | 4/4 | Complete    | 2026-03-22 |
-| 18. Web Companion Sync | v3.0 | 0/4 | Not started | - |
+| 18. Web Companion Sync | v3.0 | 2/4 | In Progress|  |
 | 19. Premium Touches and Polish | v3.0 | 0/TBD | Not started | - |
