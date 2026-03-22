@@ -122,7 +122,7 @@ export function CollectionGrid() {
                     e.stopPropagation();
                     removeFromCollection(item.cardId);
                   }}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-[var(--color-error)] hover:opacity-80"
                 >
                   <Trash2 size={12} />
                 </Button>

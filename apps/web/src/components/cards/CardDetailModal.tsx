@@ -149,7 +149,7 @@ export function CardDetailModal({
                     removeFromCollection(card.id);
                     handleClose();
                   }}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-[var(--color-error)] hover:opacity-80"
                 >
                   <Trash2 size={14} />
                   Remove

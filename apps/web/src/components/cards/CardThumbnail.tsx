@@ -4,14 +4,14 @@ import type { Card } from '@pocket-trade-hub/shared/src/schemas/card';
 import { useCardStore } from '@/stores/cards';
 
 const RARITY_COLORS: Record<string, string> = {
-  diamond1: 'bg-zinc-400',
-  diamond2: 'bg-zinc-300',
-  diamond3: 'bg-blue-400',
-  diamond4: 'bg-purple-400',
-  star1: 'bg-yellow-400',
-  star2: 'bg-yellow-300',
-  star3: 'bg-amber-300',
-  crown: 'bg-gold',
+  diamond1: 'bg-[var(--color-rarity-diamond)]',
+  diamond2: 'bg-[var(--color-rarity-diamond)] opacity-70',
+  diamond3: 'bg-[var(--color-rarity-diamond)] opacity-50',
+  diamond4: 'bg-[var(--color-rarity-diamond)] opacity-40',
+  star1: 'bg-[var(--color-rarity-star)]',
+  star2: 'bg-[var(--color-rarity-star)] opacity-70',
+  star3: 'bg-[var(--color-rarity-star)] opacity-50',
+  crown: 'bg-[var(--color-rarity-crown)]',
 };
 
 interface CardThumbnailProps {
@@ -34,7 +34,7 @@ export function CardThumbnail({ card }: CardThumbnailProps) {
       />
       {card.rarity && (
         <span
-          className={`absolute right-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-bold text-bg ${RARITY_COLORS[card.rarity] ?? 'bg-zinc-500'}`}
+          className={`absolute right-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-bold text-bg ${RARITY_COLORS[card.rarity] ?? 'bg-[var(--color-surface-light)]'}`}
         >
           {card.rarity}
         </span>
