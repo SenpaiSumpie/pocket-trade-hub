@@ -13,7 +13,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticPatterns } from '@/src/hooks/useHaptics';
 import { useTradesStore } from '@/src/stores/trades';
 import { TabBarIcon } from './TabBarIcon';
 import { fontFamily } from '@/src/constants/theme';
@@ -69,7 +69,7 @@ export function CustomTabBar({
             canPreventDefault: true,
           });
           if (!isFocused && !event.defaultPrevented) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            hapticPatterns.navigation();
             navigation.navigate(route.name, route.params);
           }
         };

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Pressable, View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { CheckCircle, Heart, Circle } from 'phosphor-react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticPatterns } from '@/src/hooks/useHaptics';
 import ReanimatedAnimated, {
   useAnimatedStyle,
   withRepeat,
@@ -123,7 +123,7 @@ export function CardThumbnail({
   const handleLongPress = useCallback(async () => {
     if (onLongPress) {
       if (Platform.OS !== 'web') {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        await hapticPatterns.navigation();
       }
       onLongPress();
       showToast();

@@ -5,12 +5,8 @@ import {
   runOnJS,
   useReducedMotion,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticPatterns } from '@/src/hooks/useHaptics';
 import { SPRING_PRESS } from '@/src/constants/springs';
-
-function triggerHaptic() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-}
 
 export function useAnimatedPress(options?: { haptic?: boolean }) {
   const scale = useSharedValue(1);
@@ -29,7 +25,7 @@ export function useAnimatedPress(options?: { haptic?: boolean }) {
         scale.value = withSpring(0.97, SPRING_PRESS);
       }
       if (options?.haptic) {
-        runOnJS(triggerHaptic)();
+        runOnJS(hapticPatterns.navigation)();
       }
     },
     onPressOut: () => {
