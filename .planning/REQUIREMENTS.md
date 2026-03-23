@@ -57,7 +57,7 @@ Requirements for UI/UX Overhaul. Each maps to roadmap phases.
 
 ### Polish
 
-- [ ] **POL-01**: Branded splash/loading animation
+- [x] **POL-01**: Branded splash/loading animation
 - [ ] **POL-02**: Card grid layout modes (grid/compact/list toggle)
 - [ ] **POL-03**: Parallax card headers on detail screens
 - [x] **POL-04**: Contextual haptic patterns across all interactions
@@ -121,7 +121,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WEB-01 | Phase 18 | Complete |
 | WEB-02 | Phase 18 | Complete |
 | WEB-03 | Phase 18 | Pending |
-| POL-01 | Phase 19 | Pending |
+| POL-01 | Phase 19 | Complete |
 | POL-02 | Phase 19 | Pending |
 | POL-03 | Phase 19 | Pending |
 | POL-04 | Phase 19 | Complete |
