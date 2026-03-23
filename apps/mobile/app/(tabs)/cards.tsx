@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass } from 'phosphor-react-native';
+import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass, SquaresFour, List as ListIcon } from 'phosphor-react-native';
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { SearchBar } from '@/src/components/cards/SearchBar';
@@ -17,6 +17,7 @@ import { useLoadCollection, useAddToCollection, useRemoveFromCollection, useUpda
 import { useLoadWanted, useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
 import { useCollapsibleHeader } from '@/src/hooks/useCollapsibleHeader';
 import { CollapsibleHeader } from '@/src/components/navigation/CollapsibleHeader';
+import { useLayoutPreferenceStore } from '@/src/stores/layoutPreference';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
 
@@ -42,6 +43,8 @@ const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; Icon: PhosphorIcon }> =
 
 export default function CardsScreen() {
   const { scrollHandler, headerStyle, searchRowStyle, titleStyle, borderStyle, HEADER_MAX } = useCollapsibleHeader();
+  const cardLayoutMode = useLayoutPreferenceStore((s) => s.cardLayoutMode);
+  const cycleLayoutMode = useLayoutPreferenceStore((s) => s.cycleLayoutMode);
   const { t } = useTranslation();
   const { sets, loading: setsLoading } = useSets();
   const {
@@ -279,29 +282,45 @@ export default function CardsScreen() {
         titleStyle={titleStyle}
         borderStyle={borderStyle}
       >
-        {/* Tab bar with icons and dividers */}
-        <View style={styles.tabBar}>
-          {SEGMENT_KEYS.map((seg, i) => {
-            const active = mode === seg.key;
-            return (
-              <View key={seg.key} style={styles.tabItemWrapper}>
-                {i > 0 && <View style={styles.tabDivider} />}
-                <Pressable
-                  style={[styles.tabItem, active && styles.tabItemActive]}
-                  onPress={() => handleModeSwitch(seg.key)}
-                >
-                  <seg.Icon
-                    size={18}
-                    color={active ? colors.primary : colors.textMuted}
-                    weight={active ? 'fill' : 'regular'}
-                  />
-                  <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-                    {t(seg.labelKey)}
-                  </Text>
-                </Pressable>
-              </View>
-            );
-          })}
+        {/* Tab bar with icons and dividers + layout toggle */}
+        <View style={styles.tabBarRow}>
+          <View style={[styles.tabBar, { flex: 1 }]}>
+            {SEGMENT_KEYS.map((seg, i) => {
+              const active = mode === seg.key;
+              return (
+                <View key={seg.key} style={styles.tabItemWrapper}>
+                  {i > 0 && <View style={styles.tabDivider} />}
+                  <Pressable
+                    style={[styles.tabItem, active && styles.tabItemActive]}
+                    onPress={() => handleModeSwitch(seg.key)}
+                  >
+                    <seg.Icon
+                      size={18}
+                      color={active ? colors.primary : colors.textMuted}
+                      weight={active ? 'fill' : 'regular'}
+                    />
+                    <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                      {t(seg.labelKey)}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+          <Pressable
+            onPress={() => {
+              cycleLayoutMode();
+            }}
+            style={styles.layoutToggle}
+            accessibilityLabel={
+              cardLayoutMode === 'grid' ? 'Grid view' :
+              cardLayoutMode === 'compact' ? 'Compact view' : 'List view'
+            }
+          >
+            {cardLayoutMode === 'grid' && <SquaresFour size={20} color="#f0c040" weight="bold" />}
+            {cardLayoutMode === 'compact' && <GridFour size={20} color="#f0c040" weight="bold" />}
+            {cardLayoutMode === 'list' && <ListIcon size={20} color="#f0c040" weight="bold" />}
+          </Pressable>
         </View>
       </CollapsibleHeader>
 
@@ -450,6 +469,7 @@ export default function CardsScreen() {
           checklistSelections={multiSelectIds}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
+          layoutMode={cardLayoutMode}
           onCheckToggle={(cardId) => {
             setMultiSelectIds((prev) => {
               const next = new Set(prev);
@@ -580,16 +600,24 @@ const styles = StyleSheet.create({
   },
 
   // Tab bar styles
-  tabBar: {
+  tabBarRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
+  },
+  tabBar: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+  },
+  layoutToggle: {
+    padding: 12,
+    marginLeft: spacing.sm,
   },
   tabItemWrapper: {
     flex: 1,

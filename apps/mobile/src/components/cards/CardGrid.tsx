@@ -2,9 +2,12 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import { CardThumbnail } from './CardThumbnail';
+import { CardCompactItem } from './CardCompactItem';
+import { CardListItem } from './CardListItem';
 import { colors, spacing, borderRadius } from '@/src/constants/theme';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
 import type { Priority } from '@pocket-trade-hub/shared';
+import type { CardLayoutMode } from '@/src/stores/layoutPreference';
 import { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 
@@ -28,6 +31,7 @@ interface CardGridProps {
   onScroll?: any;
   scrollEventThrottle?: number;
   contentContainerStyleExtra?: Record<string, any>;
+  layoutMode?: CardLayoutMode;
 }
 
 function SkeletonCard() {
@@ -103,6 +107,7 @@ export function CardGrid({
   onScroll,
   scrollEventThrottle,
   contentContainerStyleExtra,
+  layoutMode = 'grid',
 }: CardGridProps) {
   if (loading && cards.length === 0) {
     return <LoadingSkeleton />;
@@ -125,27 +130,55 @@ export function CardGrid({
     return false;
   };
 
+  const numColumns = layoutMode === 'grid' ? 3 : layoutMode === 'compact' ? 2 : 1;
+
   return (
     <FlashList
+      key={layoutMode}
       data={cards}
-      numColumns={3}
-      renderItem={({ item, index }) => (
-        <CardThumbnail
-          card={item}
-          onPress={() => onCardPress(item, index)}
-          showSetBadge={isSearchMode}
-          setName={getSetName(item.setId)}
-          quantity={collectionByCardId?.[item.id]}
-          priority={wantedByCardId?.[item.id]}
-          dimmed={isDimmed(item.id)}
-          onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
-          checklistMode={checklistMode}
-          checked={checklistSelections?.has(item.id)}
-          onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
-          inCollection={mode !== 'collection' && collectionByCardId != null && item.id in collectionByCardId}
-          isWanted={mode !== 'wanted' && wantedByCardId != null && item.id in wantedByCardId}
-        />
-      )}
+      numColumns={numColumns}
+      renderItem={({ item, index }) => {
+        if (layoutMode === 'compact') {
+          return (
+            <CardCompactItem
+              card={item}
+              onPress={() => onCardPress(item, index)}
+              onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+              setName={getSetName(item.setId)}
+              dimmed={isDimmed(item.id)}
+            />
+          );
+        }
+        if (layoutMode === 'list') {
+          return (
+            <CardListItem
+              card={item}
+              onPress={() => onCardPress(item, index)}
+              onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+              setName={getSetName(item.setId)}
+              dimmed={isDimmed(item.id)}
+            />
+          );
+        }
+        // Default: grid mode
+        return (
+          <CardThumbnail
+            card={item}
+            onPress={() => onCardPress(item, index)}
+            showSetBadge={isSearchMode}
+            setName={getSetName(item.setId)}
+            quantity={collectionByCardId?.[item.id]}
+            priority={wantedByCardId?.[item.id]}
+            dimmed={isDimmed(item.id)}
+            onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+            checklistMode={checklistMode}
+            checked={checklistSelections?.has(item.id)}
+            onCheckToggle={onCheckToggle ? () => onCheckToggle(item.id) : undefined}
+            inCollection={mode !== 'collection' && collectionByCardId != null && item.id in collectionByCardId}
+            isWanted={mode !== 'wanted' && wantedByCardId != null && item.id in wantedByCardId}
+          />
+        );
+      }}
       keyExtractor={(item) => item.id}
       onEndReached={hasMore ? onLoadMore : undefined}
       onEndReachedThreshold={0.5}
