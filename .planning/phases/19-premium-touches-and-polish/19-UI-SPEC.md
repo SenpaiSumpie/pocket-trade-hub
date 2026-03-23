@@ -21,7 +21,7 @@ created: 2026-03-23
 | Preset | not applicable |
 | Component library | Custom primitives (Button, Card, Text, Badge, Input, Divider, EmptyState) — established in Phases 16–18 |
 | Icon library | phosphor-react-native 3.0.3 |
-| Font | Inter (Inter-Regular / Inter-Medium / Inter-SemiBold / Inter-Bold via expo-font config plugin) |
+| Font | Inter (Inter-Regular / Inter-Bold via expo-font config plugin) |
 
 Source: RESEARCH.md Standard Stack, STATE.md Accumulated Context [Phase 14], theme.ts
 
@@ -42,7 +42,7 @@ Declared values (all multiples of 4, sourced from `packages/shared/src/tokens/sp
 | 3xl | 64px | Page-level spacing |
 
 Exceptions:
-- Touch targets for the layout mode toggle icon button: minimum 44px hit area (iOS HIG) — use `padding: 10px` around the 24px icon to reach 44px
+- Touch targets for the layout mode toggle icon button: minimum 44px hit area (iOS HIG) — use `padding: 12px` around the 24px icon (24px icon + 12px padding each side = 48px touch target, exceeds 44px minimum)
 - Parallax header image height: 280px (content-driven, not a spacing token — see Parallax section)
 - Safe area inset: added to parallax header container height via `useSafeAreaInsets()` — not a design token
 
@@ -54,19 +54,21 @@ Source: spacing.ts (confirmed), RESEARCH.md Pattern 3 (parallax header height), 
 
 All values sourced from `packages/shared/src/tokens/typography.ts`. No new type roles introduced in this phase.
 
+Two declared weights only: Regular (400) for body/label roles, Bold (700) for heading/display roles.
+
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Display / Heading | 28px | 700 (Bold, Inter-Bold) | 34px (1.21 ratio) |
-| Subheading | 20px | 600 (SemiBold, Inter-SemiBold) | 26px (1.30 ratio) |
+| Subheading | 20px | 700 (Bold, Inter-Bold) | 26px (1.30 ratio) |
 | Body | 16px | 400 (Regular, Inter-Regular) | 22px (1.375 ratio) |
-| Label / Caption | 14px | 500 (Medium, Inter-Medium) | 20px (1.43 ratio) |
+| Label / Caption | 14px | 400 (Regular, Inter-Regular) | 20px (1.43 ratio) |
 
 Phase 19 specific type usage:
-- Splash app name "Pocket Trade Hub": Subheading role (20px, SemiBold, weight 600), centered
+- Splash app name "Pocket Trade Hub": Subheading role (20px, Bold, weight 700), centered
 - Splash logo: image asset — no type role
-- Layout mode toggle popover label (if shown): Label role (14px, Medium)
+- Layout mode toggle popover label (if shown): Label role (14px, Regular)
 - Card detail screen title: Heading role (28px, Bold)
-- Card detail screen metadata lines (set, rarity, price): Label role (14px, Medium) for keys, Body role (16px, Regular) for values
+- Card detail screen metadata lines (set, rarity, price): Label role (14px, Regular) for keys, Body role (16px, Regular) for values
 
 Source: typography.ts (all sizes), CONTEXT.md D-02 (app name below logo), RESEARCH.md Pattern 1
 
@@ -119,7 +121,7 @@ This section is specific to Phase 19 and documents the visual behavior for each 
 | Mode | Columns | Card Content | Item Height |
 |------|---------|-------------|-------------|
 | Grid (default) | 3 | Card art only, no text overlay | ~140px (art fills cell, consistent aspect ratio) |
-| Compact | 2 | Card art + name (14px Medium) + set label (13px Regular, onSurfaceMuted) | ~200px |
+| Compact | 2 | Card art + name (14px Regular) + set label (14px Regular, onSurfaceMuted) | ~200px |
 | List | 1 (full width) | Art thumbnail (60px wide) + name + set + rarity badge + price label in horizontal row | 76px fixed row height |
 
 Toggle icon map (Phosphor icons, weight "Regular" default, "Bold" for active mode):
