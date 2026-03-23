@@ -1,5 +1,5 @@
 import '../src/i18n';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet as RNStyleSheet } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
 import { ToastOverlay } from '@/src/components/ui/ToastOverlay';
+import { SplashOverlay } from '@/src/components/SplashOverlay';
 import { ArrowsLeftRight } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -97,6 +98,7 @@ export default function RootLayout() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const hydrate = useAuthStore((s) => s.hydrate);
+  const [splashDone, setSplashDone] = useState(false);
 
   // Register for push notifications when authenticated
   useNotificationSetup();
@@ -104,12 +106,6 @@ export default function RootLayout() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
-
-  useEffect(() => {
-    if (isHydrated) {
-      SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [isHydrated]);
 
   if (!isHydrated) {
     return null;
@@ -168,6 +164,9 @@ export default function RootLayout() {
       </Stack>
       <Toast config={toastConfig} />
       <ToastOverlay />
+      {!splashDone && (
+        <SplashOverlay onComplete={() => setSplashDone(true)} />
+      )}
     </GestureHandlerRootView>
   );
 }
