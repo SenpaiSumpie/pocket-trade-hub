@@ -4,10 +4,13 @@ import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import Animated from 'react-native-reanimated';
 import { CardThumbnail } from './CardThumbnail';
+import { CardCompactItem } from './CardCompactItem';
+import { CardListItem } from './CardListItem';
 import { CardGridSkeleton } from '@/src/components/skeleton/CardGridSkeleton';
 import { colors, spacing } from '@/src/constants/theme';
 import type { Card, CardSet } from '@pocket-trade-hub/shared';
 import type { Priority } from '@pocket-trade-hub/shared';
+import type { CardLayoutMode } from '@/src/stores/layoutPreference';
 
 interface CardGridProps {
   cards: Card[];
@@ -35,6 +38,7 @@ interface CardGridProps {
   onStaggerLayout?: () => void;
   /** Gold RefreshControl — pass instead of onRefresh/refreshing for gold tint */
   refreshControl?: React.ReactElement;
+  layoutMode?: CardLayoutMode;
 }
 
 function EmptyState() {
@@ -72,6 +76,7 @@ export function CardGrid({
   getItemStyle,
   onStaggerLayout,
   refreshControl,
+  layoutMode = 'grid',
 }: CardGridProps) {
   if (loading && cards.length === 0) {
     return <CardGridSkeleton />;
@@ -94,12 +99,39 @@ export function CardGrid({
     return false;
   };
 
+  const numColumns = layoutMode === 'grid' ? 3 : layoutMode === 'compact' ? 2 : 1;
+
   return (
     <View style={styles.wrapper} onLayout={onStaggerLayout}>
       <FlashList
+        key={layoutMode}
         data={cards}
-        numColumns={3}
+        numColumns={numColumns}
+        estimatedItemSize={layoutMode === 'grid' ? 140 : layoutMode === 'compact' ? 200 : 76}
         renderItem={({ item, index }) => {
+          if (layoutMode === 'compact') {
+            return (
+              <CardCompactItem
+                card={item}
+                onPress={() => onCardPress(item, index)}
+                onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+                setName={getSetName(item.setId)}
+                dimmed={isDimmed(item.id)}
+              />
+            );
+          }
+          if (layoutMode === 'list') {
+            return (
+              <CardListItem
+                card={item}
+                onPress={() => onCardPress(item, index)}
+                onLongPress={onCardLongPress ? () => onCardLongPress(item, index) : undefined}
+                setName={getSetName(item.setId)}
+                dimmed={isDimmed(item.id)}
+              />
+            );
+          }
+          // Default: grid mode
           const cardThumbnail = (
             <CardThumbnail
               card={item}
