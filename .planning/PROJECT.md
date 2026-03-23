@@ -45,19 +45,21 @@ Players can instantly find other players who have cards they want AND want cards
 - ✓ Next.js web companion with cards, collection, marketplace, proposals, meta — v2.0
 - ✓ Socket.IO real-time notifications on web — v2.0
 
+- ✓ Shared design token package with cross-platform sync (mobile TS + web CSS custom properties) — v3.0
+- ✓ Custom animated tab bar with gold pill indicator, Phosphor icons, Inter typography — v3.0
+- ✓ Reusable animation library (3D card flip, parallax, staggered lists, shimmer, bottom sheets) — v3.0
+- ✓ Full visual refresh of all 6 mobile tabs with component primitives and motion — v3.0
+- ✓ Web companion synced with shared design tokens and upgraded primitives — v3.0
+- ✓ Contextual haptic feedback system, branded splash animation, card grid layout modes — v3.0
+- ✓ Parallax card detail view with reduced-motion accessibility — v3.0
+
 ### Active
 
-#### Current Milestone: v3.0 UI/UX Overhaul
+(No active milestone — planning next)
 
-**Goal:** Transform the app's visual identity and user experience to feel premium and distinctive — cohesive design system, refined typography and spacing, restructured navigation and information architecture, polished component library.
+### Known Gaps
 
-**Target features:**
-- Design system foundation (tokens, typography, spacing, color palette)
-- Component library overhaul (cards, buttons, inputs, modals, lists)
-- Navigation and information architecture restructuring
-- Screen-by-screen visual refresh
-- Motion and micro-interactions
-- Premium/standout visual identity
+- WEB-03: Screen-by-screen web page refresh not fully completed (web primitives and tokens synced, but individual page refreshes deferred)
 
 ### Out of Scope
 
@@ -71,11 +73,11 @@ Players can instantly find other players who have cards they want AND want cards
 
 ## Context
 
-Shipped v2.0 Full Platform with 40,275 LOC TypeScript. Completed v3.0 UI/UX Overhaul — Phase 19 (premium touches and polish) finished 2026-03-23.
+Shipped v3.0 UI/UX Overhaul on 2026-03-23. ~67,600 LOC TypeScript across mobile, web, API, and shared packages.
 Tech stack: Expo (React Native) + Next.js + Fastify + PostgreSQL + Redis + BullMQ + Socket.IO + RevenueCat.
 Monorepo via Turborepo with pnpm workspaces and shared Zod schemas.
-Dark theme with Pokemon-inspired gold accent (#f0c040).
-Built across 3 milestones, ~300+ commits.
+Dark theme with Pokemon-inspired gold accent (#f0c040). Design token system with Inter typography.
+Built across 3 milestones (v1.0 MVP, v2.0 Full Platform, v3.0 UI/UX Overhaul), ~375 commits.
 
 Competitor analysis: PokeHub (4.72 stars, 35k ratings) is the primary competitor. Weaknesses: excessive ads, aggressive VIP popups, poor filtering, language mismatches. Our advantages: no ads, structured proposals (cleaner than chat), fairness evaluation, deck meta, AI suggestions, web companion.
 
@@ -121,6 +123,12 @@ Known issues:
 | Basis points for win/usage rates | Integer math avoids float precision issues in meta analytics | ✓ Good |
 | Text codes for language display | Culturally neutral (EN, DE) instead of flag emojis | ✓ Good |
 | 10 UI languages (includes Thai) | Broader audience reach beyond the 9 card languages | ✓ Good |
+| Two-tier design token system | Shared TS tokens + backward-compatible shim preserves 44 files | ✓ Good |
+| Phosphor icons over Ionicons | Richer icon set, weight morphing, consistent visual language | ✓ Good |
+| @gorhom/bottom-sheet for modals | Native gesture-driven sheets replace Modal components | ✓ Good |
+| Reanimated worklet-based animations | 60fps animations off JS thread for card flip, parallax, stagger | ✓ Good |
+| Share tokens, not components (web) | Mobile and web consume same token package, build platform-native components | ✓ Good |
+| Haptic singleton over hook-only | Module-level hapticPatterns works in runOnJS worklet context | ✓ Good |
 
 ## Evolution
 
@@ -140,4 +148,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after Phase 17 (Screen Migration Tier 2) complete — Market, Meta, and Profile tabs migrated to UI primitives with Badge premium variant, glassmorphism profile header, skeleton loading states, staggered entrance animations, gold pull-to-refresh, Zustand toast system fully wired*
+*Last updated: 2026-03-23 after v3.0 UI/UX Overhaul milestone complete*
