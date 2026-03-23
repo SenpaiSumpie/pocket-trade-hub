@@ -3,6 +3,8 @@ import { View, Text, Pressable, Modal, FlatList, StyleSheet, Platform, RefreshCo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GridFour, Stack as StackIcon, Heart, CaretDown, CaretUp, Globe, X, PlusCircle, Trash, Check, MagnifyingGlass, Cards, SquaresFour, List as ListIcon } from 'phosphor-react-native';
 import type { Icon as PhosphorIcon } from 'phosphor-react-native';
+import { useRouter } from 'expo-router';
+import { hapticPatterns } from '@/src/hooks/useHaptics';
 import { useTranslation } from 'react-i18next';
 import Animated from 'react-native-reanimated';
 import { SearchBar } from '@/src/components/cards/SearchBar';
@@ -45,6 +47,7 @@ const SEGMENT_KEYS: Array<{ key: Mode; labelKey: string; Icon: PhosphorIcon }> =
 ];
 
 export default function CardsScreen() {
+  const router = useRouter();
   const { scrollHandler, headerStyle, searchRowStyle, titleStyle, borderStyle, HEADER_MAX } = useCollapsibleHeader();
   const cardLayoutMode = useLayoutPreferenceStore((s) => s.cardLayoutMode);
   const cycleLayoutMode = useLayoutPreferenceStore((s) => s.cycleLayoutMode);
@@ -155,6 +158,9 @@ export default function CardsScreen() {
   const staggerItemCount = !currentLoading && filteredCards.length > 0 ? filteredCards.length : 0;
   const { onLayout: onStaggerLayout, getItemStyle } = useStaggeredList(staggerItemCount);
 
+  // Find set name for detail modal and navigation params
+  const currentSetName = sets.find((s) => s.id === selectedSetId)?.name;
+
   const handleCardPress = useCallback((card: Card, index: number) => {
     if (multiSelectMode) {
       setMultiSelectIds((prev) => {
@@ -168,9 +174,13 @@ export default function CardsScreen() {
       });
       return;
     }
-    setDetailIndex(index);
-    setDetailVisible(true);
-  }, [multiSelectMode]);
+    // Navigate to full-screen card detail with parallax header (per D-10: tap = full-screen)
+    hapticPatterns.navigation();
+    router.push({
+      pathname: '/card/[id]',
+      params: { id: card.id, setName: currentSetName || '' },
+    });
+  }, [multiSelectMode, router, currentSetName]);
 
   const handleRefresh = useCallback(async () => {
     if (!isSearchMode) {
@@ -181,11 +191,24 @@ export default function CardsScreen() {
   }, [isSearchMode, refreshSet]);
 
   const handleLongPress = useCallback(
-    (card: Card) => {
-      if (multiSelectMode) return;
-      // Enter multi-select mode with this card as first selection
-      setMultiSelectIds(new Set([card.id]));
-      setMultiSelectMode(true);
+    (card: Card, index: number) => {
+      if (multiSelectMode) {
+        // In multi-select mode, treat long-press as multi-select toggle
+        setMultiSelectIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(card.id)) {
+            next.delete(card.id);
+          } else {
+            next.add(card.id);
+          }
+          return next;
+        });
+        return;
+      }
+      // Open bottom sheet for quick-peek (per D-10: long-press = bottom sheet)
+      hapticPatterns.navigation();
+      setDetailIndex(index);
+      setDetailVisible(true);
     },
     [multiSelectMode],
   );
@@ -273,9 +296,6 @@ export default function CardsScreen() {
     return result;
   }, [mode, progressBySet]);
 
-  // Find set name for detail modal
-  const currentSetName = sets.find((s) => s.id === selectedSetId)?.name;
-
   // Set dropdown options
   const setOptions = useMemo(() => {
     return [{ id: '', name: t('cards.allSets') }, ...sets];
@@ -326,6 +346,7 @@ export default function CardsScreen() {
           <Pressable
             onPress={() => {
               cycleLayoutMode();
+              hapticPatterns.navigation();
             }}
             style={styles.layoutToggle}
             accessibilityLabel={
@@ -505,7 +526,7 @@ export default function CardsScreen() {
             mode={mode}
             collectionByCardId={collectionByCardId}
             wantedByCardId={wantedByCardId}
-            onCardLongPress={(card) => handleLongPress(card)}
+            onCardLongPress={(card, index) => handleLongPress(card, index)}
             checklistMode={multiSelectMode}
             checklistSelections={multiSelectIds}
             onScroll={scrollHandler}

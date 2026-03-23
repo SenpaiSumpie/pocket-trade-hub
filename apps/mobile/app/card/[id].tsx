@@ -3,26 +3,35 @@ import { View, Text, ActivityIndicator, Pressable, StyleSheet } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WarningCircle } from 'phosphor-react-native';
-import { CardDetailModal } from '@/src/components/cards/CardDetailModal';
+import { CardDetailScreen } from '@/src/components/cards/CardDetailScreen';
+import { useCollectionStore } from '@/src/stores/collection';
+import { useAddToCollection, useRemoveFromCollection, useUpdateQuantity } from '@/src/hooks/useCollection';
+import { useAddToWanted, useRemoveFromWanted, useUpdatePriority } from '@/src/hooks/useWanted';
 import { apiFetch } from '@/src/hooks/useApi';
 import { colors, spacing } from '@/src/constants/theme';
 import type { Card } from '@pocket-trade-hub/shared';
 
-export default function CardDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+export default function CardDetailRoute() {
+  const { id, setName } = useLocalSearchParams<{ id: string; setName?: string }>();
   const router = useRouter();
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const collectionByCardId = useCollectionStore((s) => s.collectionByCardId);
+  const wantedByCardId = useCollectionStore((s) => s.wantedByCardId);
+  const addToCollection = useAddToCollection();
+  const removeFromCollection = useRemoveFromCollection();
+  const updateQuantity = useUpdateQuantity();
+  const addToWanted = useAddToWanted();
+  const removeFromWanted = useRemoveFromWanted();
+  const updatePriority = useUpdatePriority();
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     apiFetch<Card>(`/cards/${id}`, { skipAuth: true })
-      .then((data) => {
-        setCard(data);
-        setError(null);
-      })
+      .then((data) => { setCard(data); setError(null); })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -48,11 +57,17 @@ export default function CardDetailScreen() {
   }
 
   return (
-    <CardDetailModal
-      visible={true}
-      cards={[card]}
-      initialIndex={0}
-      onClose={() => router.back()}
+    <CardDetailScreen
+      card={card}
+      setName={setName}
+      collectionQuantity={(cardId) => collectionByCardId[cardId] ?? 0}
+      wantedPriority={(cardId) => wantedByCardId[cardId]}
+      onAddToCollection={(cardId) => addToCollection(cardId)}
+      onRemoveFromCollection={(cardId) => removeFromCollection(cardId)}
+      onUpdateQuantity={(cardId, qty) => updateQuantity(cardId, qty)}
+      onAddToWanted={(cardId) => addToWanted(cardId)}
+      onRemoveFromWanted={(cardId) => removeFromWanted(cardId)}
+      onUpdatePriority={(cardId, p) => updatePriority(cardId, p)}
     />
   );
 }

@@ -160,6 +160,16 @@ export default function RootLayout() {
               headerTintColor: '#ffffff',
             }}
           />
+          <Stack.Screen
+            name="card/[id]"
+            options={{
+              headerShown: true,
+              headerTitle: '',
+              headerTransparent: true,
+              headerTintColor: '#ffffff',
+              headerStyle: { backgroundColor: 'transparent' },
+            }}
+          />
         </Stack.Protected>
       </Stack>
       <Toast config={toastConfig} />
