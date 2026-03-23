@@ -46,7 +46,7 @@ Full details: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 16: Screen Migration Tier 1** - Home, Cards, Trades tabs with new primitives, component library, skeleton states, empty states (completed 2026-03-22)
 - [x] **Phase 17: Screen Migration Tier 2** - Market, Meta, Profile tabs with gradient accents and glassmorphism (gap closure in progress) (completed 2026-03-22)
 - [x] **Phase 18: Web Companion Sync** - CSS token generation, web primitives, screen-by-screen web refresh (completed 2026-03-22)
-- [ ] **Phase 19: Premium Touches and Polish** - Branded splash, grid layout modes, parallax headers, haptic patterns, reduced-motion support
+- [x] **Phase 19: Premium Touches and Polish** - Branded splash, grid layout modes, parallax headers, haptic patterns, reduced-motion support (completed 2026-03-23)
 
 ## Phase Details
 
@@ -162,12 +162,12 @@ Plans:
   3. Card detail screens display a parallax scrolling header that responds to scroll position
   4. Haptic feedback patterns are contextual -- different haptic intensities for navigation, success, error, and destructive actions
   5. Users with reduced-motion accessibility settings see instant transitions instead of animations, with no loss of functionality
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 19-01-PLAN.md -- Centralized useHaptics hook with 4 contextual levels + migrate 3 existing call sites
 - [x] 19-02-PLAN.md -- Branded splash animation overlay with logo spring, gold shimmer, app name fade
-- [ ] 19-03-PLAN.md -- Card grid layout modes (grid/compact/list) with Zustand persistence and toggle
-- [ ] 19-04-PLAN.md -- Parallax card detail screen with useParallaxHeader hook and route wiring
+- [x] 19-03-PLAN.md -- Card grid layout modes (grid/compact/list) with Zustand persistence and toggle
+- [x] 19-04-PLAN.md -- Parallax card detail screen with useParallaxHeader hook and route wiring
 
 ## Progress
 
@@ -195,4 +195,4 @@ Note: Phases 14 and 15 both depend only on Phase 13 and could execute in either 
 | 16. Screen Migration Tier 1 | v3.0 | 5/5 | Complete    | 2026-03-22 |
 | 17. Screen Migration Tier 2 | v3.0 | 4/4 | Complete    | 2026-03-22 |
 | 18. Web Companion Sync | v3.0 | 2/4 | Complete    | 2026-03-22 |
-| 19. Premium Touches and Polish | v3.0 | 2/4 | In Progress|  |
+| 19. Premium Touches and Polish | v3.0 | 4/4 | Complete   | 2026-03-23 |
